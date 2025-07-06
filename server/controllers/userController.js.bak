@@ -49,10 +49,10 @@ export const register = catchAsyncError(async (req, res, next) => {
 
     if (registerationAttemptsByUser.length > 3) {
       return next(
-          new ErrorHandler(
-              "You have exceeded the maximum number of attempts (3). Please try again after an hour.",
-              400
-          )
+        new ErrorHandler(
+          "You have exceeded the maximum number of attempts (3). Please try again after an hour.",
+          400
+        )
       );
     }
 
@@ -67,12 +67,12 @@ export const register = catchAsyncError(async (req, res, next) => {
     const verificationCode = await user.generateVerificationCode();
     await user.save();
     sendVerificationCode(
-        verificationMethod,
-        verificationCode,
-        name,
-        email,
-        phone,
-        res
+      verificationMethod,
+      verificationCode,
+      name,
+      email,
+      phone,
+      res
     );
   } catch (error) {
     next(error);
@@ -80,12 +80,12 @@ export const register = catchAsyncError(async (req, res, next) => {
 });
 
 async function sendVerificationCode(
-    verificationMethod,
-    verificationCode,
-    name,
-    email,
-    phone,
-    res
+  verificationMethod,
+  verificationCode,
+  name,
+  email,
+  phone,
+  res
 ) {
   try {
     if (verificationMethod === "email") {
@@ -97,9 +97,9 @@ async function sendVerificationCode(
       });
     } else if (verificationMethod === "phone") {
       const verificationCodeWithSpace = verificationCode
-          .toString()
-          .split("")
-          .join(" ");
+        .toString()
+        .split("")
+        .join(" ");
       let message = `Your verification code is ${verificationCodeWithSpace}. Please enter this code to verify your account.`;
       await client.messages.create({
         body: message,
@@ -199,7 +199,7 @@ export const verifyOTP = catchAsyncError(async (req, res, next) => {
     const currentTime = Date.now();
 
     const verificationCodeExpire = new Date(
-        user.verificationCodeExpire
+      user.verificationCodeExpire
     ).getTime();
     console.log(currentTime);
     console.log(verificationCodeExpire);
@@ -224,7 +224,7 @@ export const login = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Email and password are required.", 400));
   }
   const user = await User.findOne({ email, accountVerified: true }).select(
-      "+password"
+    "+password"
   );
   if (!user) {
     return next(new ErrorHandler("Invalid email or password.", 400));
@@ -238,15 +238,15 @@ export const login = catchAsyncError(async (req, res, next) => {
 
 export const logout = catchAsyncError(async (req, res, next) => {
   res
-      .status(200)
-      .cookie("token", "", {
-        expires: new Date(Date.now()),
-        httpOnly: true,
-      })
-      .json({
-        success: true,
-        message: "Logged out successfully.",
-      });
+    .status(200)
+    .cookie("token", "", {
+      expires: new Date(Date.now()),
+      httpOnly: true,
+    })
+    .json({
+      success: true,
+      message: "Logged out successfully.",
+    });
 });
 
 export const getUser = catchAsyncError(async (req, res, next) => {
@@ -286,10 +286,10 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
     user.resetPasswordExpire = undefined;
     await user.save({ validateBeforeSave: false });
     return next(
-        new ErrorHandler(
-            error.message ? error.message : "Cannot send reset password token.",
-            500
-        )
+      new ErrorHandler(
+        error.message ? error.message : "Cannot send reset password token.",
+        500
+      )
     );
   }
 });
@@ -297,25 +297,25 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
 export const resetPassword = catchAsyncError(async (req, res, next) => {
   const { token } = req.params;
   const resetPasswordToken = crypto
-      .createHash("sha256")
-      .update(token)
-      .digest("hex");
+    .createHash("sha256")
+    .update(token)
+    .digest("hex");
   const user = await User.findOne({
     resetPasswordToken,
     resetPasswordExpire: { $gt: Date.now() },
   });
   if (!user) {
     return next(
-        new ErrorHandler(
-            "Reset password token is invalid or has been expired.",
-            400
-        )
+      new ErrorHandler(
+        "Reset password token is invalid or has been expired.",
+        400
+      )
     );
   }
 
   if (req.body.password !== req.body.confirmPassword) {
     return next(
-        new ErrorHandler("Password & confirm password do not match.", 400)
+      new ErrorHandler("Password & confirm password do not match.", 400)
     );
   }
 

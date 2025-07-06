@@ -1,0 +1,10 @@
+# Node.js
+node_modules/
+npm-debug.log
+.env
+config.env
+
+# React
+build/
+dist/
+.DS_Store

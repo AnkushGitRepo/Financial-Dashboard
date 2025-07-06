@@ -2,6 +2,7 @@ import React, { useContext, useEffect } from "react";
 import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
+import StockDashboard from "./pages/StockDashboard";
 import Auth from "./pages/Auth";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -42,6 +43,7 @@ const App = () => {
           />
           <Route path="/password/forgot" element={<ForgotPassword />} />
           <Route path="/password/reset/:token" element={<ResetPassword />} />
+          <Route path="/dashboard" element={<StockDashboard />} />
         </Routes>
         <ToastContainer theme="colored" />
       </Router>

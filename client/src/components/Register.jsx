@@ -15,15 +15,18 @@ const Register = () => {
   } = useForm();
 
   const handleRegister = async (data) => {
-    data.phone = `+92${data.phone}`;
+    const updatedData = {
+      ...data,
+      phone: `+91${data.phone}`,
+    };
     await axios
-      .post("http://localhost:4000/api/v1/user/register", data, {
+      .post("http://localhost:4000/api/v1/user/register", updatedData, {
         withCredentials: true,
         headers: { "Content-Type": "application/json" },
       })
       .then((res) => {
         toast.success(res.data.message);
-        navigateTo(`/otp-verification/${data.email}/${data.phone}`);
+        navigateTo(`/otp-verification/${updatedData.email}/${updatedData.phone}`);
       })
       .catch((error) => {
         toast.error(error.response.data.message);
@@ -51,14 +54,19 @@ const Register = () => {
             {...register("email")}
           />
           <div>
-            <span>+92</span>
             <input
-              type="number"
+              type="text"
               placeholder="Phone"
               required
-              {...register("phone")}
+              {...register("phone", {
+                pattern: {
+                  value: /^\d{10}$/,
+                  message: "Invalid phone number (must be 10 digits)",
+                },
+              })}
             />
           </div>
+          {errors.phone && <span className="error-message">{errors.phone.message}</span>}
           <input
             type="password"
             placeholder="Password"
