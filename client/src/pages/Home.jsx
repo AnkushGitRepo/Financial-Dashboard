@@ -1,13 +1,10 @@
 import React, { useContext } from "react";
 import Hero from "../components/Hero";
-import Instructor from "../components/Instructor";
-import Technologies from "../components/Technologies";
 import "../styles/Home.css";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { Context } from "../main";
-import { Navigate, useNavigate } from "react-router-dom";
-import Footer from "../layout/Footer";
+import { Navigate } from "react-router-dom";
 
 const Home = () => {
   const { isAuthenticated, setIsAuthenticated, setUser } = useContext(Context);
@@ -34,13 +31,8 @@ const Home = () => {
 
   return (
     <>
-      <section className="home">
-        <Hero />
-        <Instructor />
-        <Technologies />
-        <Footer />
-        <button onClick={logout}>Logout</button>
-      </section>
+      <Hero />
+      <button onClick={logout} className="home-logout-button">Logout</button>
     </>
   );
 };

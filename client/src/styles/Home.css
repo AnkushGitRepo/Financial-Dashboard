@@ -1,7 +1,44 @@
-.home {
-  position: relative;
+/* Global Reset */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
-.home button {
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+/* Layout Container for Sidebar and Main Content */
+.layout-container {
+  display: flex;
+  
+}
+
+/* Main Content Area */
+.main-content {
+  flex-grow: 1; /* Allows main content to take up remaining space */
+  padding: 1rem; /* Add some padding to the content area */
+  overflow-y: auto; /* Enable scrolling for content if it overflows */
+  
+}
+
+/* Mobile Responsiveness for Layout */
+@media (max-width: 767px) {
+  .layout-container {
+    flex-direction: column; /* Stack sidebar and main content vertically on small screens */
+  }
+
+  .main-content {
+    margin-left: 0; /* Ensure no left margin on mobile */
+  }
+}
+
+/* Styles for the logout button (if still needed) */
+.home-logout-button {
   position: absolute;
   top: 40px;
   right: 100px;
@@ -14,13 +51,15 @@
   color: #fff;
   transition: all 0.3s;
 }
-.home button:hover {
+
+.home-logout-button:hover {
   background: #068047;
   color: #fff;
   transition: all 0.3s;
 }
+
 @media(max-width: 1000px){
-    .home button{
+    .home-logout-button{
         right: 30px;
     }
 }

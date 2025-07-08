@@ -1,11 +1,77 @@
-.dashboard-container {
-  width: 100%;
-  min-height: 100vh;
+.stocks-page {
   padding: 20px;
-  background-color: #f0f2f5;
+  font-family: Arial, sans-serif;
 }
 
-.chart-container {
-  width: 100%;
-  height: 300px; /* Or any suitable height */
+.stocks-page h1 {
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.stocks-summary .summary-cards {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.stocks-summary .card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.stocks-summary .card h3 {
+  margin-top: 0;
+  color: #555;
+}
+
+.stocks-summary .card .value {
+  font-size: 1.5em;
+  font-weight: bold;
+}
+
+.stocks-summary .card .change {
+  font-size: 0.9em;
+  margin-left: 10px;
+}
+
+.stocks-summary .card .change.positive {
+  color: #28a745;
+}
+
+.stocks-summary .card .change.negative {
+  color: #dc3545;
+}
+
+.top-movers ul {
+  list-style: none;
+  padding: 0;
+}
+
+.top-movers li {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.your-portfolio .view-portfolio-btn {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+}
+
+.your-portfolio .view-portfolio-btn:hover {
+  background-color: #0056b3;
 }

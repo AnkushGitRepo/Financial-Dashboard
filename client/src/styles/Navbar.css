@@ -1,0 +1,144 @@
+.navbar {
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.navbar-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 4rem;
+  padding: 0 2rem; /* Increased padding */
+  margin: 0 auto;
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.navbar-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.navbar-search {
+  position: relative;
+  display: none; /* Hidden by default */
+}
+
+@media (min-width: 768px) {
+  .navbar-search {
+    display: flex;
+    align-items: center; /* Align icon and input */
+  }
+}
+
+.navbar-search-icon {
+  height: 1rem;
+  width: 1rem;
+  margin-right: 0.5rem;
+}
+
+.navbar-search-input {
+  height: 2.25rem;
+  width: 150px;
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  box-shadow: none;
+}
+
+.navbar-search-input:focus {
+  outline: none;
+}
+
+.navbar-search-input::placeholder {
+  color: #6b7280;
+}
+
+@media (min-width: 1024px) {
+  .navbar-search-input {
+    width: 280px;
+  }
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.navbar-button {
+  position: relative;
+  height: 2.25rem;
+  width: 2.25rem;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.navbar-bell-icon {
+  height: 1.25rem;
+  width: 1.25rem;
+}
+
+.navbar-notification-dot {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  height: 0.5rem;
+  width: 0.5rem;
+  border-radius: 9999px;
+  background-color: #ef4444;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.navbar-avatar {
+  height: 2.25rem;
+  width: 2.25rem;
+  transition: transform 0.2s;
+}
+
+.navbar-avatar:hover {
+  transform: scale(1.05);
+}
+
+.navbar-avatar-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  border-radius: 9999px;
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.navbar-user-icon {
+  height: 1.25rem;
+  width: 1.25rem;
+}
+
+/* Add padding for mobile */
+@media (max-width: 767px) {
+  .navbar-container {
+    padding: 0 1.5rem;
+  }
+}
