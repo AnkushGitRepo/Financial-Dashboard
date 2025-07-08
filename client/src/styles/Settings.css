@@ -76,7 +76,7 @@
 
 @media (min-width: 768px) {
   .settings-form-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Adjusted for more fields */
   }
 }
 
@@ -93,6 +93,54 @@
   border: 1px solid #d1d5db;
   border-radius: 0.375rem;
 }
+
+/* Profile Photo Specific Styles */
+.profile-photo-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center horizontally */
+  margin-bottom: 1.5rem;
+}
+
+.profile-photo-wrapper {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid #ccc;
+}
+
+.profile-photo-preview {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-photo-placeholder-icon {
+  width: 50px;
+  height: 50px;
+  color: #666;
+}
+
+.settings-input-file {
+  display: none; /* Hide the default file input */
+}
+
+/* End Profile Photo Specific Styles */
 
 .settings-display-space > div:not(:last-child) {
   margin-bottom: 1rem;
