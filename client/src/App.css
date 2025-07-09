@@ -14,7 +14,6 @@ html, body, #root {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  overflow-x: hidden;
   font-family: "Ubuntu", sans-serif;
   font-weight: 400;
   font-style: normal;
@@ -30,4 +29,21 @@ html, body, #root {
   margin-bottom: 10px;
   text-align: left;
   width: 100%;
+}
+
+.layout-container {
+  display: flex;
+  flex-grow: 1; /* Allow it to take available space */
+}
+
+.main-content {
+  flex-grow: 1; /* Allow it to take available space */
+  margin-left: 250px; /* Initial width of the sidebar */
+  transition: margin-left 0.3s ease; /* Smooth transition for sidebar collapse */
+  padding: 20px; /* Add some padding to the content */
+}
+
+/* Adjust main content margin when sidebar is collapsed */
+.sidebar.collapsed + .main-content {
+  margin-left: 60px; /* Collapsed width of the sidebar */
 }

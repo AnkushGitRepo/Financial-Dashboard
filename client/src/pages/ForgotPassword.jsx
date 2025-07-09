@@ -1,17 +1,16 @@
-import React, { useContext, useState } from "react";
+import React, { useState } from "react";
 import "../styles/ForgotPassword.css";
-import { Context } from "../main";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { AtSign } from 'lucide-react';
 
 const ForgotPassword = () => {
-  const { isAuthenticated } = useContext(Context);
   const [email, setEmail] = useState("");
 
   const handleForgotPassword = async (e) => {
     e.preventDefault();
-    await axios
-      .post(
+    try {
+      const res = await axios.post(
         "http://localhost:4000/api/v1/user/password/forgot",
         { email },
         {
@@ -20,40 +19,39 @@ const ForgotPassword = () => {
             "Content-Type": "application/json",
           },
         }
-      )
-      .then((res) => {
-        toast.success(res.data.message);
-      })
-      .catch((error) => {
-        toast.error(error.response.data.message);
-      });
+      );
+      toast.success(res.data.message);
+      setEmail("");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "An unexpected error occurred.");
+    }
   };
 
   return (
-    <>
-      <div className="forgot-password-page">
-        <div className="forgot-password-container">
-          <h2>Forgot Password</h2>
-          <p>Enter your email address to receive a password reset token.</p>
-          <form
-            onSubmit={handleForgotPassword}
-            className="forgot-password-form"
-          >
+    <div className="auth-container">
+      <div className="auth-card">
+        <h2 className="auth-title">Forgot Password</h2>
+        <p className="auth-subtitle">Enter your email address to receive a password reset token.</p>
+        <form
+          onSubmit={handleForgotPassword}
+          className="auth-form"
+        >
+          <div className="input-group">
+            <AtSign className="input-icon" />
             <input
               type="email"
-              placeholder="Enter your email"
+              placeholder="Enter your Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="forgot-input"
             />
-            <button type="submit" className="forgot-btn">
-              Send Reset Link
-            </button>
-          </form>
-        </div>
+          </div>
+          <button type="submit" className="auth-button">
+            Send Reset Link
+          </button>
+        </form>
       </div>
-    </>
+    </div>
   );
 };
 

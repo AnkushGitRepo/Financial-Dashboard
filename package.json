@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "cloudinary": "^2.7.0",
+    "datauri": "^4.1.0",
+    "multer": "^2.0.1"
+  }
+}

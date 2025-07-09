@@ -1,13 +1,18 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { 
   BarChart, PieChart, BarChart3, Wallet, LineChart, Globe, 
-  DollarSign, Settings, ChevronRight, ChevronLeft, Home
+  DollarSign, Settings, ChevronRight, ChevronLeft, Home, LogIn, LogOut
 } from 'lucide-react';
 import '../styles/Sidebar.css';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Context } from '../main';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 export function Sidebar({ isCollapsed, onToggle }) {
   const location = useLocation();
+  const navigateTo = useNavigate();
+  const { isAuthenticated, setIsAuthenticated, setUser } = useContext(Context);
 
   const mainNavItems = [
     { title: 'Dashboard', icon: Home, href: '/' },
@@ -21,6 +26,22 @@ export function Sidebar({ isCollapsed, onToggle }) {
   ];
 
   const settingsItem = { title: 'Settings', icon: Settings, href: '/settings' };
+
+  const logout = async () => {
+    await axios
+      .get("http://localhost:4000/api/v1/user/logout", {
+        withCredentials: true,
+      })
+      .then((res) => {
+        toast.success(res.data.message);
+        setUser(null);
+        setIsAuthenticated(false);
+        navigateTo("/auth");
+      })
+      .catch((err) => {
+        toast.error(err.response.data.message);
+      });
+  };
 
   return (
     <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
@@ -49,6 +70,26 @@ export function Sidebar({ isCollapsed, onToggle }) {
             </Link>
           );
         })}
+      </nav>
+
+      <nav className="sidebar-nav auth-nav">
+        {isAuthenticated ? (
+          <button onClick={logout} className={`sidebar-link ${isCollapsed ? 'collapsed' : ''}`}>
+            <LogOut className="sidebar-link-icon" />
+            <span className={`sidebar-link-text ${isCollapsed ? 'collapsed' : ''}`}>
+              Logout
+            </span>
+          </button>
+        ) : (
+          <Link
+            to="/auth"
+            className={`sidebar-link ${location.pathname === '/auth' ? 'active' : ''} ${isCollapsed ? 'collapsed' : ''}`}>
+            <LogIn className="sidebar-link-icon" />
+            <span className={`sidebar-link-text ${isCollapsed ? 'collapsed' : ''}`}>
+              Login / Register
+            </span>
+          </Link>
+        )}
       </nav>
 
       <nav className="sidebar-nav settings-nav">

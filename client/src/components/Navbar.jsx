@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Search, Bell, User } from 'lucide-react';
 import '../styles/Navbar.css';
+import { Context } from '../main';
 
 export function Navbar() {
+  const { user } = useContext(Context);
+
   return (
     <header className="navbar">
       <div className="navbar-container">
@@ -25,9 +28,13 @@ export function Navbar() {
           </button>
 
           <div className="navbar-avatar">
-            <div className="navbar-avatar-fallback">
-              <User className="navbar-user-icon" />
-            </div>
+            {user && user.avatar && user.avatar.url ? (
+              <img src={user.avatar.url} alt="User Avatar" className="navbar-avatar-image" />
+            ) : (
+              <div className="navbar-avatar-fallback">
+                <User className="navbar-user-icon" />
+              </div>
+            )}
           </div>
         </div>
       </div>

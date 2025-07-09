@@ -150,6 +150,29 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  /* No flex-wrap here */
+}
+
+.settings-display-item > div {
+  flex-grow: 1; /* Allow text content to grow */
+  flex-shrink: 1; /* Allow text content to shrink */
+  overflow: hidden; /* Hide overflowing content */
+  white-space: nowrap; /* Prevent text from wrapping */
+  text-overflow: ellipsis; /* Add ellipsis for overflowing text */
+}
+
+.settings-display-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap; /* Allow the entire item to wrap */
+  gap: 0.5rem; /* Space between items */
+}
+
+.settings-display-item > div {
+  flex-grow: 1; /* Allow text content to grow */
+  flex-shrink: 1; /* Allow text content to shrink */
+  /* Removed overflow, white-space, text-overflow to allow text to wrap */
 }
 
 .settings-display-text-bold {
@@ -245,4 +268,75 @@
   background-color: #f3f4f6;
   color: #111827;
   border-color: #9ca3af;
+}
+
+/* OTP Verification Modal Styles */
+.otp-verification-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.otp-verification-modal {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+}
+
+.otp-verification-modal h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.otp-verification-modal p {
+  margin-bottom: 1.5rem;
+  color: #555;
+}
+
+.otp-input {
+  font-size: 1.25rem;
+  padding: 0.75rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  letter-spacing: 0.5rem;
+}
+
+.otp-modal-actions button {
+  margin: 0 0.5rem;
+}
+
+.settings-input-with-edit {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.settings-input-with-edit .settings-input {
+  flex-grow: 1;
+}
+
+.settings-edit-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.settings-edit-button:hover {
+  background-color: #0056b3;
 }

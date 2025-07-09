@@ -5,8 +5,15 @@ import { sendEmail } from "../utils/sendEmail.js";
 import twilio from "twilio";
 import { sendToken } from "../utils/sendToken.js";
 import crypto from "crypto";
+import cloudinary from "cloudinary";
+import DataUriParser from "datauri/parser.js";
+import { config } from "dotenv";
+
+config();
 
 const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+
+
 
 export const register = catchAsyncError(async (req, res, next) => {
   try {
@@ -326,3 +333,190 @@ export const resetPassword = catchAsyncError(async (req, res, next) => {
 
   sendToken(user, 200, "Reset Password Successfully.", res);
 });
+
+export const updatePassword = catchAsyncError(async (req, res, next) => {
+  const { oldPassword, newPassword, confirmPassword } = req.body;
+
+  if (!oldPassword || !newPassword || !confirmPassword) {
+    return next(new ErrorHandler("Please fill all the fields.", 400));
+  }
+
+  if (newPassword !== confirmPassword) {
+    return next(
+      new ErrorHandler("Password and confirm password do not match.", 400)
+    );
+  }
+
+  const user = await User.findById(req.user.id).select("+password");
+
+  const isPasswordMatched = await user.comparePassword(oldPassword);
+
+  if (!isPasswordMatched) {
+    return next(new ErrorHandler("Incorrect old password.", 400));
+  }
+
+  user.password = newPassword;
+  await user.save();
+
+  sendToken(user, 200, "Password updated successfully.", res);
+});
+
+export const updateProfile = catchAsyncError(async (req, res, next) => {
+  const newUserData = {
+    name: req.body.name,
+    email: req.body.email,
+    phone: req.body.phone,
+    address: req.body.address,
+    pincode: req.body.pincode,
+    city: req.body.city,
+    area: req.body.area,
+    dob: req.body.dob,
+    incomeLevel: req.body.incomeLevel,
+    aadhaarPan: req.body.aadhaarPan,
+    occupation: req.body.occupation,
+    darkMode: req.body.darkMode,
+    stockRebalancingUpdates: req.body.stockRebalancingUpdates,
+    ipoInvestmentAdvice: req.body.ipoInvestmentAdvice,
+    newsletter: req.body.newsletter,
+    promotionalMails: req.body.promotionalMails,
+  };
+
+  if (req.file) {
+    try {
+      // Find the user to get the old avatar public_id
+      const user = await User.findById(req.user.id);
+      console.log("User fetched for avatar deletion:", user);
+      console.log("User avatar public_id:", user.avatar ? user.avatar.public_id : "No avatar or public_id");
+
+      // If an old avatar exists, destroy it from Cloudinary
+      if (user.avatar && user.avatar.public_id) {
+        cloudinary.v2.config({
+          cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+          api_key: process.env.CLOUDINARY_API_KEY,
+          api_secret: process.env.CLOUDINARY_API_SECRET,
+        });
+        try {
+          await cloudinary.v2.uploader.destroy(user.avatar.public_id);
+          console.log("Old avatar destroyed from Cloudinary:", user.avatar.public_id);
+        } catch (destroyError) {
+          console.error("Error destroying old avatar from Cloudinary:", destroyError);
+        }
+      }
+
+      // Configure Cloudinary right before upload to ensure env vars are loaded
+      cloudinary.v2.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET,
+      });
+
+      const parser = new DataUriParser();
+      const fileUri = parser.format(
+        req.file.originalname,
+        req.file.buffer
+      ).content;
+
+      const myCloud = await cloudinary.v2.uploader.upload(fileUri);
+
+      newUserData.avatar = {
+        public_id: myCloud.public_id,
+        url: myCloud.secure_url,
+      };
+    } catch (cloudinaryError) {
+      console.error("Cloudinary upload failed:", cloudinaryError);
+      return next(new ErrorHandler("Failed to upload image to Cloudinary.", 500));
+    }
+  }
+
+  const user = await User.findByIdAndUpdate(req.user.id, newUserData, {
+    new: true,
+    runValidators: true,
+    useFindAndModify: false,
+  });
+
+  res.status(200).json({
+    success: true,
+    user,
+  });
+});
+
+export const sendOtpForUpdate = catchAsyncError(async (req, res, next) => {
+  const { email, phone } = req.body;
+  const user = req.user;
+
+  if (email) {
+    const existingUser = await User.findOne({ email, accountVerified: true });
+    if (existingUser && existingUser._id.toString() !== user._id.toString()) {
+      return next(new ErrorHandler("Email is already registered by another user.", 400));
+    }
+    user.verificationCode = await user.generateVerificationCode();
+    user.verificationCodeExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+    await user.save({ validateBeforeSave: false });
+
+    const message = generateEmailTemplate(user.verificationCode);
+    sendEmail({ email, subject: "Your Verification Code for Update", message });
+
+    res.status(200).json({
+      success: true,
+      message: "OTP sent to your new email.",
+    });
+  } else if (phone) {
+    const existingUser = await User.findOne({ phone, accountVerified: true });
+    if (existingUser && existingUser._id.toString() !== user._id.toString()) {
+      return next(new ErrorHandler("Phone number is already registered by another user.", 400));
+    }
+    user.verificationCode = await user.generateVerificationCode();
+    user.verificationCodeExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+    await user.save({ validateBeforeSave: false });
+
+    const verificationCodeWithSpace = user.verificationCode
+      .toString()
+      .split("")
+      .join(" ");
+    let message = `Your verification code is ${verificationCodeWithSpace}. Please enter this code to verify your account.`;
+    await client.messages.create({
+      body: message,
+      from: process.env.TWILIO_PHONE_NUMBER,
+      to: phone,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "OTP sent to your new phone number.",
+    });
+  } else {
+    return next(new ErrorHandler("Please provide an email or phone number.", 400));
+  }
+});
+
+export const verifyOtpForUpdate = catchAsyncError(async (req, res, next) => {
+  const { otp, email, phone } = req.body;
+  const user = req.user;
+
+  if (user.verificationCode !== Number(otp)) {
+    return next(new ErrorHandler("Invalid OTP.", 400));
+  }
+
+  const currentTime = Date.now();
+  const verificationCodeExpire = new Date(user.verificationCodeExpire).getTime();
+
+  if (currentTime > verificationCodeExpire) {
+    return next(new ErrorHandler("OTP Expired.", 400));
+  }
+
+  if (email) {
+    user.email = email;
+  } else if (phone) {
+    user.phone = phone;
+  }
+
+  user.verificationCode = undefined;
+  user.verificationCodeExpire = undefined;
+  await user.save({ validateModifiedOnly: true });
+
+  res.status(200).json({
+    success: true,
+    message: "Email/Phone updated successfully.",
+  });
+});
+  
