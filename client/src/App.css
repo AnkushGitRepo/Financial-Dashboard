@@ -44,6 +44,12 @@ html, body, #root {
 }
 
 /* Adjust main content margin when sidebar is collapsed */
-.sidebar.collapsed + .main-content {
+.layout-container.collapsed .main-content {
   margin-left: 60px; /* Collapsed width of the sidebar */
+}
+
+@media (max-width: 767px) {
+  .main-content {
+    margin-left: 0; /* Remove margin on small screens */
+  }
 }

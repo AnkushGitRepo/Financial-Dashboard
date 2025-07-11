@@ -20,7 +20,7 @@ const Layout = () => {
   return (
     <>
       <Navbar />
-      <div className="layout-container">
+      <div className={`layout-container ${isSidebarCollapsed ? 'collapsed' : ''}`}>
         <Sidebar isCollapsed={isSidebarCollapsed} onToggle={toggleSidebar} />
         <main className="main-content">
           <Outlet />

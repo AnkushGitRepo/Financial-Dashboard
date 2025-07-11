@@ -9,11 +9,11 @@
 }
 
 .sidebar.collapsed {
-  width: 4rem;
+  width: 4rem !important;
 }
 
 .sidebar:not(.collapsed) {
-  width: 16rem;
+  width: 16rem !important;
 }
 
 .sidebar-header {
@@ -171,5 +171,11 @@
 
   .sidebar-toggle {
     position: static;
+  }
+
+  .sidebar.collapsed .sidebar-nav.main-nav,
+  .sidebar.collapsed .sidebar-nav.auth-nav,
+  .sidebar.collapsed .sidebar-footer {
+    display: none;
   }
 }

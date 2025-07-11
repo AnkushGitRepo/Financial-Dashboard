@@ -71,6 +71,17 @@ This document summarizes our ongoing conversation regarding the development and 
     *   **Feature:** Dynamic "Login/Register" / "Logout" option added to sidebar.
     *   **Resolution:** Implemented conditional rendering in `Sidebar.jsx` and moved logout logic.
     *   **Layout Fixes:** Addressed overlapping issues by adjusting `App.css` and `Sidebar.css` for proper flexbox layout and spacing. Reverted and re-applied styles multiple times to achieve desired alignment and spacing for sidebar elements.
+    *   **Collapsible Sidebar:** Implemented a collapsible sidebar with a toggle button.
+        *   **Problem:** Sidebar not collapsing on all screen sizes, content below "Settings" not hiding, and "Settings" and "Logout" buttons going off-page.
+        *   **Root Cause:** Incorrect conditional rendering logic (`isMobile` state), incorrect CSS for `main-content` adjustment, and improper positioning of sidebar elements.
+        *   **Resolution:**
+            *   Removed `isMobile` state and associated `useEffect` from `Sidebar.jsx`.
+            *   Restructured `Sidebar.jsx` to ensure all navigation links are always present, and only content below "Settings" (including "Logout/Login" and "Market Status") hides when collapsed.
+            *   Adjusted `App.css` to correctly manage `margin-left` of `main-content` based on `layout-container`'s `collapsed` class.
+            *   Modified `Sidebar.css` to ensure `sidebar-link-text` hides correctly and `sidebar-hidden-content` transitions smoothly.
+            *   Set `sidebar` `top` property to `4rem` to position it correctly below the navbar.
+            *   Removed automatic collapse behavior based on screen size, making collapse solely dependent on the toggle button.
+            *   Ensured "MarketMitra" title and collapse button are always visible in the sidebar header.
 
 9.  **Navbar Profile Image:**
     *   **Feature:** Display user avatar in Navbar.

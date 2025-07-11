@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { 
   BarChart, PieChart, BarChart3, Wallet, LineChart, Globe, 
   DollarSign, Settings, ChevronRight, ChevronLeft, Home, LogIn, LogOut
@@ -49,7 +49,6 @@ export function Sidebar({ isCollapsed, onToggle }) {
         <h2 className={`sidebar-title ${isCollapsed ? 'collapsed' : ''}`}>
           MarketMitra
         </h2>
-
         <button onClick={onToggle} className="sidebar-toggle">
           {isCollapsed ? <ChevronRight /> : <ChevronLeft />}
         </button>
@@ -62,7 +61,7 @@ export function Sidebar({ isCollapsed, onToggle }) {
             <Link
               key={index}
               to={item.href}
-              className={`sidebar-link ${isActive ? 'active' : ''} ${isCollapsed ? 'collapsed' : ''}`}>
+              className={`sidebar-link ${isActive ? 'active' : ''}`}>
               <item.icon className="sidebar-link-icon" />
               <span className={`sidebar-link-text ${isCollapsed ? 'collapsed' : ''}`}>
                 {item.title}
@@ -72,42 +71,46 @@ export function Sidebar({ isCollapsed, onToggle }) {
         })}
       </nav>
 
-      <nav className="sidebar-nav auth-nav">
-        {isAuthenticated ? (
-          <button onClick={logout} className={`sidebar-link ${isCollapsed ? 'collapsed' : ''}`}>
-            <LogOut className="sidebar-link-icon" />
-            <span className={`sidebar-link-text ${isCollapsed ? 'collapsed' : ''}`}>
-              Logout
-            </span>
-          </button>
-        ) : (
+      <div className="sidebar-bottom">
+        <nav className="sidebar-nav settings-nav">
           <Link
-            to="/auth"
-            className={`sidebar-link ${location.pathname === '/auth' ? 'active' : ''} ${isCollapsed ? 'collapsed' : ''}`}>
-            <LogIn className="sidebar-link-icon" />
+            to={settingsItem.href}
+            className={`sidebar-link ${location.pathname === settingsItem.href ? 'active' : ''}`}>
+            <settingsItem.icon className="sidebar-link-icon" />
             <span className={`sidebar-link-text ${isCollapsed ? 'collapsed' : ''}`}>
-              Login / Register
+              {settingsItem.title}
             </span>
           </Link>
-        )}
-      </nav>
+        </nav>
 
-      <nav className="sidebar-nav settings-nav">
-        <Link
-          to={settingsItem.href}
-          className={`sidebar-link ${location.pathname === settingsItem.href ? 'active' : ''} ${isCollapsed ? 'collapsed' : ''}`}>
-          <settingsItem.icon className="sidebar-link-icon" />
-          <span className={`sidebar-link-text ${isCollapsed ? 'collapsed' : ''}`}>
-            {settingsItem.title}
-          </span>
-        </Link>
-      </nav>
+        <nav className="sidebar-nav auth-nav">
+          {isAuthenticated ? (
+            <button onClick={logout} className="sidebar-link">
+              <LogOut className="sidebar-link-icon" />
+              <span className={`sidebar-link-text ${isCollapsed ? 'collapsed' : ''}`}>
+                Logout
+              </span>
+            </button>
+          ) : (
+            <Link
+              to="/auth"
+              className={`sidebar-link ${location.pathname === '/auth' ? 'active' : ''}`}>
+              <LogIn className="sidebar-link-icon" />
+              <span className={`sidebar-link-text ${isCollapsed ? 'collapsed' : ''}`}>
+                Login / Register
+              </span>
+            </Link>
+          )}
+        </nav>
 
-      <div className="sidebar-footer">
-        <div className={`sidebar-footer-content ${isCollapsed ? 'collapsed' : ''}`}>
-          <p className="font-medium">Market Status</p>
-          <p>Markets are open</p>
-          <p className="text-xxs">Closes in 3h 45m</p>
+        <div className={`sidebar-hidden-content ${isCollapsed ? 'collapsed' : ''}`}>
+          <div className="sidebar-footer">
+            <div className="sidebar-footer-content">
+              <p className="font-medium">Market Status</p>
+              <p>Markets are open</p>
+              <p className="text-xxs">Closes in 3h 45m</p>
+            </div>
+          </div>
         </div>
       </div>
     </aside>
