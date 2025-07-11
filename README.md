@@ -79,11 +79,11 @@ financial-dashboard/
 
 ## Getting Started
 
-To set up and run this project, please refer to the [Setup and Installation Guide](setup.md).
+To set up and run this project, please refer to the [Setup and Installation Guide](SETUP.md).
 
 ## Development Notes
 
-For specific instructions and conventions related to developing with the Gemini CLI agent, please refer to [gemini.md](gemini.md).
+For specific instructions and conventions related to developing with the Gemini CLI agent, please refer to [GEMINI.md](GEMINI.md).
 
 ## Usage
 
