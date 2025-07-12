@@ -1,5 +1,6 @@
 import React, { useContext, useState } from "react";
 import "../styles/OtpVerification.css";
+import "../styles/Auth.css";
 import axios from "axios";
 import { Navigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -10,6 +11,12 @@ const OtpVerification = () => {
   const { email, phone } = useParams();
   const [otp, setOtp] = useState(["", "", "", "", ""]);
 
+  
+
+  
+
+  
+
   const handleChange = (value, index) => {
     if (!/^\d*$/.test(value)) return;
     const newOtp = [...otp];
@@ -18,6 +25,9 @@ const OtpVerification = () => {
 
     if (value && index < otp.length - 1) {
       document.getElementById(`otp-input-${index + 1}`).focus();
+    } else if (index === otp.length - 1 && value) {
+      // All digits entered, trigger verification
+      handleOtpVerification();
     }
   };
 
@@ -27,9 +37,13 @@ const OtpVerification = () => {
     }
   };
 
-  const handleOtpVerification = async (e) => {
-    e.preventDefault();
+  const handleOtpVerification = async () => {
     const enteredOtp = otp.join("");
+    // Only proceed if all OTP fields are filled
+    if (enteredOtp.length !== 5) {
+      return;
+    }
+
     const data = {
       email,
       otp: enteredOtp,
@@ -58,16 +72,16 @@ const OtpVerification = () => {
 
   return (
     <>
-      <div className="otp-verification-page">
-        <div className="otp-container">
-          <h1>OTP Verification</h1>
-          <p>Enter the 5-digit OTP sent to your registered email or phone.</p>
-          <form onSubmit={handleOtpVerification} className="otp-form">
+      <div className="auth-container">
+        <div className="auth-card">
+          <h2 className="auth-title">OTP Verification</h2>
+          <p className="otp-instruction">Enter the 5-digit OTP sent to your registered email or phone.</p>
+          <form onSubmit={(e) => { e.preventDefault(); handleOtpVerification(); }} className="auth-form">
             <div className="otp-input-container">
               {otp.map((digit, index) => {
                 return (
                   <input
-                  id={`otp-input-${index}`}
+                    id={`otp-input-${index}`}
                     type="text"
                     maxLength="1"
                     key={index}
@@ -79,7 +93,7 @@ const OtpVerification = () => {
                 );
               })}
             </div>
-            <button type="submit" className="verify-button">
+            <button type="submit" className="auth-button">
               Verify OTP
             </button>
           </form>

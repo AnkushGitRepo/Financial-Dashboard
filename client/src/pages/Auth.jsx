@@ -21,14 +21,20 @@ const Auth = () => {
       : "http://localhost:4000/api/v1/user/register";
 
     try {
-      const res = await axios.post(url, data, {
+      const payload = isLogin ? data : { ...data, verificationMethod: "email" };
+      const res = await axios.post(url, payload, {
         withCredentials: true,
         headers: { "Content-Type": "application/json" },
       });
+      
       toast.success(res.data.message);
-      setIsAuthenticated(true);
-      setUser(res.data.user);
-      navigateTo("/");
+      if (!isLogin) {
+        navigateTo(`/otp-verification/${data.email}/${data.phone}`);
+      } else {
+        setIsAuthenticated(true);
+        setUser(res.data.user);
+        navigateTo("/");
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || "An unexpected error occurred.");
     }
