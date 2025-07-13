@@ -21,6 +21,9 @@
     "mongoose": "^8.9.1",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.9.16",
-    "twilio": "^5.4.0"
+    "twilio": "^5.4.0",
+    "cloudinary": "^2.7.0",
+    "datauri": "^4.1.0",
+    "multer": "^2.0.1"
   }
 }

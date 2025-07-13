@@ -50,10 +50,15 @@ SMPT_SERVICE=<Your_SMTP_Service> # e.g., gmail
 SMPT_MAIL=<Your_SMTP_Email>
 SMPT_PASSWORD=<Your_SMTP_Password>
 FRONTEND_URL=http://localhost:5173
-```
-**Note:** For `FRONTEND_URL`, ensure it matches the URL where your frontend application will be running.
 
-### 2.4 Start the Backend Server
+### 2.4 File Uploads and Image Storage
+
+This project uses `multer` for handling `multipart/form-data` (file uploads) and `Cloudinary` for storing images.
+
+*   **Multer:** The configuration for `multer` is located in `server/config/multerConfig.js`. No manual installation steps are required beyond `npm install` in the backend directory.
+*   **Cloudinary:** Ensure you have set up your Cloudinary account and configured the `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` environment variables in your `.env` file as mentioned above.
+
+### 2.5 Start the Backend Server
 
 ```bash
 npm run start
