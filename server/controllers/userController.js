@@ -8,6 +8,7 @@ import crypto from "crypto";
 import cloudinary from "cloudinary";
 import DataUriParser from "datauri/parser.js";
 import { config } from "dotenv";
+import mongoose from "mongoose";
 
 config();
 
@@ -518,5 +519,19 @@ export const verifyOtpForUpdate = catchAsyncError(async (req, res, next) => {
     success: true,
     message: "Email/Phone updated successfully.",
   });
+});
+
+export const getIpoData = catchAsyncError(async (req, res, next) => {
+  try {
+    const db = mongoose.connection.useDb("financial-dashboard");
+    const collection = db.collection("ipo_data");
+    const ipoData = await collection.find({}).toArray();
+    res.status(200).json({
+      success: true,
+      ipoData,
+    });
+  } catch (error) {
+    return next(new ErrorHandler("Failed to fetch IPO data.", 500));
+  }
 });
   

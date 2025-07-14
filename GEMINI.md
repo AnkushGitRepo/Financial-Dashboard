@@ -98,3 +98,35 @@ This document summarizes our ongoing conversation regarding the development and 
 12. **Project Setup Documentation:**
     *   **Feature:** Created `SETUP.md` for project setup instructions.
     *   **Resolution:** Documented cloning, backend/frontend setup, environment variables, and running the application.
+
+13. **IPO Calendar Table Enhancements:**
+    *   **Feature:** Added borders, fade/non-fade background pattern for rows, and conditional row coloring based on IPO date and premium.
+    *   **Resolution:** Implemented `getRowClass` function in `client/src/pages/IpoCalendar.jsx` to apply dynamic CSS classes. Updated `client/src/styles/IpoCalendar.css` to include table borders, alternating row backgrounds, and styles for `ipo-status-open`, `ipo-status-closed-not-listed`, `ipo-status-listed`, and `ipo-status-high-premium` classes.
+
+14. **IPO Calendar Filtering and Company Name Trimming:**
+    *   **Feature:** Added filter buttons for "All", "Mainboard", and "SME" IPOs, and implemented trimming of "(TENTATIVE DATES)" from company names.
+    *   **Resolution:** Implemented `filterType` and `filteredIpoData` states, `handleFilterChange` function, and `trimCompanyName` function in `client/src/pages/IpoCalendar.jsx`. Added styles for filter buttons in `client/src/styles/IpoCalendar.css`.
+
+15. **IPO Calendar Search Functionality:**
+    *   **Feature:** Added a search bar to filter IPOs by company name.
+    *   **Resolution:** Implemented `searchTerm` and `searchedIpoData` states, and `handleSearchChange` function in `client/src/pages/IpoCalendar.jsx`. Added styles for the search bar in `client/src/styles/IpoCalendar.css`.
+
+16. **IPO Calendar Recommendation and Layout Adjustments:**
+    *   **Feature:** Updated "Recommendation" column logic for Mainboard and SME IPOs based on premium, and corresponding cell color coding. Adjusted search bar and filter button layout.
+    *   **Resolution:** Updated `getRecommendation` function in `client/src/pages/IpoCalendar.jsx`. Updated `client/src/styles/IpoCalendar.css` to adjust layout and update styles for recommendation cells.
+
+17. **IPO Calendar Recommendation Logic Refinement:**
+    *   **Feature:** Refined the recommendation logic for Mainboard and SME IPOs based on specific premium ranges.
+    *   **Resolution:** Updated the `getRecommendation` function in `client/src/pages/IpoCalendar.jsx` to implement the new premium-based recommendation rules.
+
+18. **IPO Calendar Troubleshooting:**
+    *   **Problem:** User reported that previous changes (recommendation logic, search bar border, button centering) were not reflecting.
+    *   **Resolution:** Re-verified code changes and provided detailed instructions for clearing browser cache and restarting the development server to ensure the latest updates are loaded.
+
+19. **IPO Calendar Premium Display and Search Bar Background:**
+    *   **Feature:** Removed numerical value from premium field, displaying only the percentage. Removed background color from search bar.
+    *   **Resolution:** Modified `client/src/pages/IpoCalendar.jsx` to extract and display only the percentage from the premium string. Updated `client/src/styles/IpoCalendar.css` to set the search bar background to `transparent`.
+
+20. **IPO Calendar Page Loading and Premium Display Fix:**
+    *   **Problem:** Page not loading due to a bug in premium display logic; user also requested to display both premium price and percentage.
+    *   **Resolution:** Reverted the premium display logic in `client/src/pages/IpoCalendar.jsx` to show the original `ipo.Premium` string, which contains both price and percentage, and fixed the bug that caused the page to not load.

@@ -92,6 +92,30 @@ npm run dev
 ```
 The frontend development server should now be running, typically on `http://localhost:5173`.
 
-## 4. Access the Application
+## 4. Scraper Setup (Python)
+
+The project includes a Python scraper for IPO data.
+
+### 4.1 Navigate to the Scraper Directory
+
+Open a new terminal window and navigate to the scraper directory:
+
+```bash
+cd ../scraper
+```
+
+### 4.2 Install Dependencies
+
+Install the necessary Python packages for the scraper:
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4.3 Running the Scraper
+
+The scraper is configured to run automatically when the backend server starts and then every hour. You do not need to run it manually.
+
+## 5. Access the Application
 
 Open your web browser and navigate to `http://localhost:5173` to access the financial dashboard application.

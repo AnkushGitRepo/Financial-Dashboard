@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { 
   BarChart, PieChart, BarChart3, Wallet, LineChart, Globe, 
-  DollarSign, Settings, ChevronRight, ChevronLeft, Home, LogIn, LogOut
+  DollarSign, Settings, ChevronRight, ChevronLeft, Home, LogIn, LogOut, Calendar
 } from 'lucide-react';
 import '../styles/Sidebar.css';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -18,7 +18,7 @@ export function Sidebar({ isCollapsed, onToggle }) {
     { title: 'Dashboard', icon: Home, href: '/' },
     { title: 'Stocks', icon: BarChart, href: '/stocks' },
     { title: 'Markets', icon: BarChart3, href: '/markets' },
-    { title: 'Currencies', icon: DollarSign, href: '/currencies' },
+    { title: 'IPO Calendar', icon: Calendar, href: '/ipo-calendar' },
     { title: 'Global', icon: Globe, href: '/global' },
     { title: 'Portfolio', icon: Wallet, href: '/portfolio' },
     { title: 'Performance', icon: LineChart, href: '/performance' },

@@ -1,0 +1,210 @@
+.ipo-calendar-container {
+  padding: 20px;
+  color: var(--text-color);
+}
+
+.ipo-calendar-container h1 {
+  color: var(--heading-color);
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.ipo-calendar-header {
+  padding: 15px 20px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  text-align: center;
+  /* From Uiverse.io by csemszepp */
+  --s: 222px;
+  --c1: #a0a0a0; /* Light gray */
+  --c2: #c0c0c0; /* Lighter gray */
+  --c3: #e0e0e0; /* Even lighter gray */
+
+  --_g: var(--c1) 10%, var(--c2) 10.5% 19%, #0000 19.5% 80.5%,
+    var(--c2) 81% 89.5%, var(--c3) 90%;
+  --_c: from -90deg at 37.5% 50%, #0000 75%;
+  --_l1: linear-gradient(145deg, var(--_g));
+  --_l2: linear-gradient(35deg, var(--_g));
+  background: var(--_l1), var(--_l1) calc(var(--s) / 2) var(--s), var(--_l2),
+    var(--_l2) calc(var(--s) / 2) var(--s),
+    conic-gradient(var(--_c), var(--c1) 0) calc(var(--s) / 8) 0,
+    conic-gradient(var(--_c), var(--c3) 0) calc(var(--s) / 2) 0,
+    linear-gradient(
+      90deg,
+      var(--c3) 38%,
+      var(--c1) 0 50%,
+      var(--c3) 0 62%,
+      var(--c1) 0
+    );
+  background-size: var(--s) calc(2 * var(--s) / 3);
+}
+
+.ipo-calendar-header h1 {
+  color: var(--heading-color);
+  margin: 0; /* Remove default h1 margin */
+  font-weight: bold; /* Make text bold */
+}
+
+.ipo-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.ipo-search-bar {
+  width: 100%; /* Make search bar full width */
+  align-self: flex-start;
+}
+
+.ipo-search-bar input {
+  width: 100%;
+  padding: 10px 15px;
+  border: 2px solid var(--accent-color); /* Made border more prominent */
+  border-radius: 5px;
+  background-color: transparent;
+  color: var(--input-text-color);
+  font-size: 1em;
+}
+
+.ipo-search-bar input::placeholder {
+  color: var(--input-placeholder-color);
+}
+
+.ipo-filter-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.filter-button {
+  padding: 10px 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  background-color: var(--button-background, #007bff); /* Different default color */
+  color: var(--button-text-color, #ffffff);
+  cursor: pointer;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.filter-button:hover {
+  background-color: var(--button-hover-background, #0056b3);
+}
+
+.filter-button.active {
+  background-color: var(--button-active-background, #28a745);
+  color: var(--button-active-text-color, #ffffff);
+  border-color: var(--button-active-border-color, #28a745);
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.ipo-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background-color: var(--card-background);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--box-shadow);
+  border: 1px solid var(--border-color);
+}
+
+.ipo-table th,
+.ipo-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border: 1px solid var(--border-color);
+}
+
+.ipo-table th {
+  background-color: #607D8B; /* Distinct header background color */
+  color: #ffffff;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 0.9em;
+}
+
+.ipo-table tbody tr:nth-child(odd) {
+  background-color: #f2f2f2; /* Light faded background for odd rows */
+}
+
+.ipo-table tbody tr:nth-child(even) {
+  background-color: #e6e6e6; /* Non-faded background for even rows */
+}
+
+.ipo-table tbody tr:hover {
+  background-color: var(--table-row-hover-background, #d0d0d0); /* Slightly darker hover effect */
+}
+
+.ipo-table td {
+  color: var(--text-color);
+}
+
+/* Row specific styling based on IPO status */
+.ipo-status-open {
+  background-color: var(--ipo-open-background, #d4edda) !important;
+}
+
+.ipo-status-closed-not-listed {
+  background-color: var(--ipo-closed-not-listed-background, #fff3cd) !important;
+}
+
+.ipo-status-listed {
+  background-color: var(--ipo-listed-background, #ffffff) !important;
+}
+
+.ipo-status-high-premium {
+  background-color: var(--ipo-high-premium-background, #d1ecf1) !important;
+}
+
+/* Recommendation cell styling */
+.recommendation-must-apply {
+  background-color: var(--recommendation-must-apply-background, #c8e6c9) !important; /* Light Green */
+  color: var(--recommendation-must-apply-text, #333333);
+  font-weight: bold;
+}
+
+.recommendation-apply {
+  background-color: var(--recommendation-apply-background, #a5d6a7) !important; /* Lighter Green */
+  color: var(--recommendation-apply-text, #333333);
+}
+
+.recommendation-may-apply {
+  background-color: var(--recommendation-may-apply-background, #ffe082) !important; /* Light Yellow */
+  color: var(--recommendation-may-apply-text, #333333);
+}
+
+.recommendation-not-apply {
+  background-color: var(--recommendation-not-apply-background, #ffcdd2) !important; /* Light Red */
+  color: var(--recommendation-not-apply-text, #333333);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .ipo-table th,
+  .ipo-table td {
+    padding: 8px 10px;
+    font-size: 0.85em;
+  }
+
+  .ipo-controls {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ipo-search-bar {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .ipo-table th,
+  .ipo-table td {
+    font-size: 0.8em;
+  }
+}

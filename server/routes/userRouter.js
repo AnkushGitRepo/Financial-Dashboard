@@ -11,6 +11,7 @@ import {
   sendOtpForUpdate,
   verifyOtpForUpdate,
   updatePassword,
+  getIpoData,
 } from "../controllers/userController.js";
 import { isAuthenticated } from "../middlewares/auth.js";
 import { upload } from "../config/multerConfig.js";
@@ -28,5 +29,6 @@ router.put("/me/update", isAuthenticated, upload.single("avatar"), updateProfile
 router.post("/send-otp-for-update", isAuthenticated, sendOtpForUpdate);
 router.post("/verify-otp-for-update", isAuthenticated, verifyOtpForUpdate);
 router.put("/password/update", isAuthenticated, updatePassword);
+router.get("/ipo-data", getIpoData);
 
 export default router;
