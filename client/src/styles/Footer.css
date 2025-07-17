@@ -1,32 +1,93 @@
 .footer {
-  background: #0cbb69;
+  background: #181e25;
   color: white;
   padding: 40px 20px;
+  animation: fadeIn 1s ease-in-out;
+  transition: width 0.3s ease;
+  width: calc(100% - 250px);
+  margin-left: 250px;
+}
+
+.footer.collapsed {
+  width: calc(100% - 60px);
+  margin-left: 60px;
 }
 
 .footer-container {
   max-width: 1200px;
   margin: 0 auto;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  flex-wrap: wrap;
 }
 
-.footer-logo h2 {
+.footer-top {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.footer-about, .footer-links {
+  flex: 1;
+  margin: 20px;
+  min-width: 250px;
+}
+
+.footer-team {
+  width: 100%;
+  text-align: center;
+}
+
+.footer-about h2 {
   font-size: 1.8rem;
   margin-bottom: 10px;
+  animation: slideInFromLeft 1s ease-in-out;
 }
 
-.footer-logo p {
+.footer-about p {
   font-size: 1rem;
   line-height: 1.5;
   opacity: 0.9;
 }
 
-.footer-social h3 {
+.footer-links h3, .footer-team h3 {
   font-size: 1.3rem;
   margin-bottom: 15px;
+  animation: slideInFromRight 1s ease-in-out;
+}
+
+.footer-links ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-links ul li a {
+  color: white;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.footer-links ul li a:hover {
+  color: #f0f0f0;
+}
+
+.team-members {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+}
+
+.team-member {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.team-member h4 {
+  margin-bottom: 5px;
 }
 
 .social-icons {
@@ -34,20 +95,14 @@
   gap: 15px;
 }
 
-.social-link {
-  width: 50px;
-  height: 50px;
-  background: #ebf5fc;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 100%;
-  padding: 7px;
+.social-icons a {
+  color: white;
+  font-size: 1.5rem;
+  transition: transform 0.3s;
 }
 
-.social-link img {
-  width: 40px;
-  height: 40px;
+.social-icons a:hover {
+  transform: scale(1.2);
 }
 
 .footer-bottom {
@@ -60,10 +115,30 @@
   line-height: 2;
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInFromLeft {
+  from { transform: translateX(-50px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideInFromRight {
+  from { transform: translateX(50px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
 @media (max-width: 768px) {
   .footer-container {
     flex-direction: column;
     text-align: center;
+  }
+
+  .footer-about, .footer-links, .footer-team {
+    margin: 10px 0;
+    align-items: center;
   }
 
   .social-icons {

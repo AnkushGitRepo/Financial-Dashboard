@@ -7,8 +7,8 @@
   transition: width 0.3s ease;
   flex-shrink: 0;
   position: fixed;
-  height: calc(100vh - 4rem);
-  top: 4rem;
+  height: calc(100vh - 5rem);
+  top: calc(5rem + 16px);
   left: 0;
   z-index: 20;
 }

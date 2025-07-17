@@ -18,7 +18,13 @@ const IpoCalendar = () => {
         const response = await axios.get('http://localhost:4000/api/v1/user/ipo-data', {
           withCredentials: true,
         });
-        setIpoData(response.data.ipoData);
+
+        // Sort by Open date in descending order
+        const sortedData = response.data.ipoData.sort((a, b) => {
+          return new Date(b.Open) - new Date(a.Open);
+        });
+
+        setIpoData(sortedData);
         setLoading(false);
       } catch (err) {
         setError(err);
@@ -43,7 +49,7 @@ const IpoCalendar = () => {
   useEffect(() => {
     const lowerCaseSearchTerm = searchTerm.toLowerCase();
     const searchResults = filteredIpoData.filter(ipo =>
-      ipo["Company Name"].toLowerCase().includes(lowerCaseSearchTerm)
+        ipo["Company Name"].toLowerCase().includes(lowerCaseSearchTerm)
     );
     setSearchedIpoData(searchResults);
   }, [filteredIpoData, searchTerm]);
@@ -142,80 +148,80 @@ const IpoCalendar = () => {
   };
 
   return (
-    <div className="ipo-calendar-container">
-      <div className="ipo-calendar-header">
-        <h1>IPO Calendar</h1>
+      <div className="ipo-calendar-container">
+        <div className="ipo-calendar-header">
+          <h1>IPO Calendar</h1>
+        </div>
+        <div className="ipo-controls">
+          <div className="ipo-filter-buttons">
+            <button
+                className={`filter-button ${filterType === 'All' ? 'active' : ''}`}
+                onClick={() => handleFilterChange('All')}
+            >
+              All
+            </button>
+            <button
+                className={`filter-button ${filterType === 'Mainboard' ? 'active' : ''}`}
+                onClick={() => handleFilterChange('Mainboard')}
+            >
+              Mainboard
+            </button>
+            <button
+                className={`filter-button ${filterType === 'SME' ? 'active' : ''}`}
+                onClick={() => handleFilterChange('SME')}
+            >
+              SME
+            </button>
+          </div>
+          <div className="ipo-search-bar">
+            <input
+                type="text"
+                placeholder="Search by company name..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+            />
+          </div>
+        </div>
+        {searchedIpoData.length > 0 ? (
+            <div className="table-responsive">
+              <table className="ipo-table">
+                <thead>
+                <tr>
+                  <th>Company Name</th>
+                  <th>Premium</th>
+                  <th>Open Date</th>
+                  <th>Close Date</th>
+                  <th>Price</th>
+                  <th>Lot Size</th>
+                  <th>Allotment Date</th>
+                  <th>Listing Date</th>
+                  <th>Recommendation</th>
+                </tr>
+                </thead>
+                <tbody>
+                {searchedIpoData.map((ipo, index) => {
+                  const recommendation = getRecommendation(ipo);
+                  return (
+                      <tr key={index} className={getRowClass(ipo)}>
+                        <td>{trimCompanyName(ipo["Company Name"])}</td>
+                        <td>{ipo.Premium.match(/^.*\)/) ? ipo.Premium.match(/^.*\)/)[0] : ipo.Premium}</td>
+                        <td>{new Date(ipo.Open).toLocaleDateString()}</td>
+                        <td>{new Date(ipo.Close).toLocaleDateString()}</td>
+                        <td>{ipo.Price}</td>
+                        <td>{ipo["Lot Size"]}</td>
+                        <td>{new Date(ipo["Allotment Date"]).toLocaleDateString()}</td>
+                        <td>{new Date(ipo["Listing Date"]).toLocaleDateString()}</td>
+                        <td className={getRecommendationCellClass(recommendation)}>{recommendation}</td>
+                      </tr>
+                  );
+                })}
+                </tbody>
+              </table>
+            </div>
+        ) : (
+            <p>No IPO data available for the selected filter and search term.</p>
+        )}
       </div>
-      <div className="ipo-controls">
-        <div className="ipo-filter-buttons">
-          <button
-            className={`filter-button ${filterType === 'All' ? 'active' : ''}`}
-            onClick={() => handleFilterChange('All')}
-          >
-            All
-          </button>
-          <button
-            className={`filter-button ${filterType === 'Mainboard' ? 'active' : ''}`}
-            onClick={() => handleFilterChange('Mainboard')}
-          >
-            Mainboard
-          </button>
-          <button
-            className={`filter-button ${filterType === 'SME' ? 'active' : ''}`}
-            onClick={() => handleFilterChange('SME')}
-          >
-            SME
-          </button>
-        </div>
-        <div className="ipo-search-bar">
-          <input
-            type="text"
-            placeholder="Search by company name..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-          />
-        </div>
-      </div>
-      {searchedIpoData.length > 0 ? (
-        <div className="table-responsive">
-          <table className="ipo-table">
-            <thead>
-              <tr>
-                <th>Company Name</th>
-                <th>Premium</th>
-                <th>Open Date</th>
-                <th>Close Date</th>
-                <th>Price</th>
-                <th>Lot Size</th>
-                <th>Allotment Date</th>
-                <th>Listing Date</th>
-                <th>Recommendation</th>
-              </tr>
-            </thead>
-            <tbody>
-              {searchedIpoData.map((ipo, index) => {
-                const recommendation = getRecommendation(ipo);
-                return (
-                  <tr key={index} className={getRowClass(ipo)}>
-                    <td>{trimCompanyName(ipo["Company Name"])}</td>
-                    <td>{ipo.Premium.match(/^.*\)/) ? ipo.Premium.match(/^.*\)/)[0] : ipo.Premium}</td>
-                    <td>{new Date(ipo.Open).toLocaleDateString()}</td>
-                    <td>{new Date(ipo.Close).toLocaleDateString()}</td>
-                    <td>{ipo.Price}</td>
-                    <td>{ipo["Lot Size"]}</td>
-                    <td>{new Date(ipo["Allotment Date"]).toLocaleDateString()}</td>
-                    <td>{new Date(ipo["Listing Date"]).toLocaleDateString()}</td>
-                    <td className={getRecommendationCellClass(recommendation)}>{recommendation}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <p>No IPO data available for the selected filter and search term.</p>
-      )}
-    </div>
   );
 };
 

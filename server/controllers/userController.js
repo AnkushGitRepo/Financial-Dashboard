@@ -227,7 +227,7 @@ export const verifyOTP = catchAsyncError(async (req, res, next) => {
 });
 
 export const login = catchAsyncError(async (req, res, next) => {
-  const { email, password } = req.body;
+  const { email, password, rememberMe } = req.body;
   if (!email || !password) {
     return next(new ErrorHandler("Email and password are required.", 400));
   }
@@ -241,7 +241,7 @@ export const login = catchAsyncError(async (req, res, next) => {
   if (!isPasswordMatched) {
     return next(new ErrorHandler("Invalid email or password.", 400));
   }
-  sendToken(user, 200, "User logged in successfully.", res);
+  sendToken(user, 200, "User logged in successfully.", res, rememberMe);
 });
 
 export const logout = catchAsyncError(async (req, res, next) => {

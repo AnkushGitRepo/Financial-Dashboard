@@ -1,59 +1,97 @@
-import React from "react";
-import "../styles/Footer.css";
-import { Link } from "react-router-dom";
-import fb from "../assets/fb.png";
-import yt from "../assets/yt.png";
-import git from "../assets/git.png";
-import linkedin from "../assets/linkedin.png";
+import React from 'react';
+import '../styles/Footer.css';
+import { FaGithub, FaLinkedin, FaEnvelope, FaInstagram } from 'react-icons/fa';
 
-const Footer = () => {
+const teamMembers = [
+  {
+    name: 'Ankush',
+    socials: {
+      linkedin: 'https://www.linkedin.com/in/ankushgupta18/',
+      github: 'https://github.com/AnkushGitRepo',
+      email: 'mailto:ankushgupta1806@gmail.com',
+      instagram: 'https://www.instagram.com/_ankushg/',
+    },
+  },
+  {
+    name: 'Vishwa',
+    socials: {
+      linkedin: 'https://www.linkedin.com/',
+      github: 'https://github.com/Vishwashah1010',
+      email: 'mailto:ankushgupta1806@gmail.com',
+      instagram: 'https://www.instagram.com/_ankushg/',
+    },
+  },
+  {
+    name: 'Nirjar',
+    socials: {
+      linkedin: 'https://www.linkedin.com/',
+      github: 'https://github.com/Nirjar21',
+      email: 'mailto:ankushgupta1806@gmail.com',
+      instagram: 'https://www.instagram.com/_ankushg/',
+    },
+  },
+  {
+    name: 'Kaunen',
+    socials: {
+      linkedin: 'https://www.linkedin.com/',
+      github: 'https://github.com/KaunenVahora08',
+      email: 'mailto:ankushgupta1806@gmail.com',
+      instagram: 'https://www.instagram.com/_ankushg/',
+    },
+  },
+  {
+    name: 'Malav',
+    socials: {
+      linkedin: 'https://www.linkedin.com/',
+      github: 'https://github.com/Malav-coder',
+      email: 'mailto:ankushgupta1806@gmail.com',
+      instagram: 'https://www.instagram.com/_ankushg/',
+    },
+  }
+];
+
+const Footer = ({ isSidebarCollapsed }) => {
   return (
-    <footer className="footer">
+    <footer className={`footer ${isSidebarCollapsed ? 'collapsed' : ''}`}>
       <div className="footer-container">
-        <div className="footer-logo">
-          <h2>MERN Authentication</h2>
-          <p>Your ultimate guide to mastering the MERN stack.</p>
+        <div className="footer-top">
+          <div className="footer-about">
+            <h2>MarketMitra</h2>
+            <p>Your trusted partner in financial markets.</p>
+          </div>
+          <div className="footer-links">
+            <h3>Important Links</h3>
+            <ul>
+              <li><a href="/">Home</a></li>
+              <li><a href="/stocks">Stocks</a></li>
+              <li><a href="/markets">Markets</a></li>
+              <li><a href="/ipo-calendar">IPO Calendar</a></li>
+            </ul>
+          </div>
         </div>
-        <div className="footer-social">
-          <h3>Follow Me</h3>
-          <div className="social-icons">
-            <Link
-              to="https://facebook.com/profile.php?id=100030535123397&mibextid=9R9pXO"
-              target="_blank"
-              className="social-link"
-            >
-              <img src={fb} alt="Facebook" />
-            </Link>
-            <Link
-              to="https://www.youtube.com/channel/UCbGtkGZ9sDg54PtU3GEDE6w"
-              target="_blank"
-              className="social-link"
-            >
-              <img src={yt} alt="Twitter" />
-            </Link>
-            <Link
-              to="https://www.linkedin.com/in/muhammad-zeeshan-khan-dev/"
-              target="_blank"
-              className="social-link"
-            >
-              <img src={linkedin} alt="LinkedIn" />
-            </Link>
-            <Link
-              to="https://github.com/Zeeshu911"
-              target="_blank"
-              className="social-link"
-            >
-              <img src={git} alt="GitHub" />
-            </Link>
+        <div className="footer-team">
+          <h3>Meet the Team</h3>
+          <div className="team-members">
+            {teamMembers.map((member, index) => (
+              <div key={index} className="team-member">
+                <h4>{member.name}</h4>
+                <div className="social-icons">
+                  <a href={member.socials.linkedin} target="_blank" rel="noopener noreferrer"><FaLinkedin /></a>
+                  <a href={member.socials.github} target="_blank" rel="noopener noreferrer"><FaGithub /></a>
+                  <a href={member.socials.email}><FaEnvelope /></a>
+                  <a href={member.socials.instagram} target="_blank" rel="noopener noreferrer"><FaInstagram /></a>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
       <div className="footer-bottom">
-        <p>&copy; 2024 MERN Authentication. All Rights Reserved.</p>
-        <p>Designed by CodeWithZeeshu</p>
+        <p>&copy; {new Date().getFullYear()} MarketMitra. All Rights Reserved.</p>
       </div>
     </footer>
   );
 };
 
 export default Footer;
+

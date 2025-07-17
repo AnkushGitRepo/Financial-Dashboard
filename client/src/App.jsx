@@ -22,6 +22,7 @@ import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import { Context } from "./main";
 import PageTitle from "./components/PageTitle";
+import TickerBarLayout from "./layout/TickerBarLayout";
 
 const App = () => {
   const { setIsAuthenticated, setUser } = useContext(Context);
@@ -45,6 +46,7 @@ const App = () => {
   return (
     <>
       <Router>
+        <TickerBarLayout />
         <Routes>
           <Route path="/auth" element={<><PageTitle title="Authentication" /><Auth /></>} />
           <Route

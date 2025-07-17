@@ -21,7 +21,7 @@ const Auth = () => {
       : "http://localhost:4000/api/v1/user/register";
 
     try {
-      const payload = isLogin ? data : { ...data, verificationMethod: "email" };
+      const payload = isLogin ? { ...data } : { ...data, verificationMethod: "email" };
       const res = await axios.post(url, payload, {
         withCredentials: true,
         headers: { "Content-Type": "application/json" },

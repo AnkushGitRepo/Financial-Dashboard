@@ -4,11 +4,14 @@ import { Sidebar } from '../components/Sidebar';
 import { ActionBar } from '../components/ActionBar';
 import { Outlet, useLocation, Navigate } from 'react-router-dom';
 import { Context } from '../main';
+import Footer from './Footer';
 
 const Layout = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const { isAuthenticated } = useContext(Context);
   const location = useLocation();
+  
+
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
@@ -42,6 +45,7 @@ const Layout = () => {
         </main>
       </div>
       {isMobile && <ActionBar />}
+      <Footer isSidebarCollapsed={isSidebarCollapsed} />
     </>
   );
 };

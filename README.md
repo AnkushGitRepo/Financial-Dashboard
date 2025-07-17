@@ -1,6 +1,6 @@
 # Financial Dashboard
 
-This project is a full-stack web application built with the MERN (MongoDB, Express.js, React, Node.js) stack. It provides a robust user authentication system with email and phone (Twilio) based OTP verification, and a newly integrated Indian Stock Market Dashboard.
+This project is a comprehensive full-stack web application built with the MERN (MongoDB, Express.js, React, Node.js) stack, designed to provide users with a robust financial dashboard experience. It features secure user authentication with OTP verification, a dynamic Indian Stock Market Dashboard, and an interactive IPO Calendar. The application emphasizes a responsive and intuitive user interface, with functionalities for managing account details, notification preferences, and profile images.
 
 ## Features
 
@@ -17,7 +17,22 @@ This project is a full-stack web application built with the MERN (MongoDB, Expre
 - **SENSEX Overview**: Displays current SENSEX value and a trend line chart.
 - **Top Gainers**: Lists top performing stocks.
 - **Top Losers**: Lists worst performing stocks.
-- **Responsive Design**: The dashboard is designed to be responsive across different screen sizes.
+- **Real-time Ticker Bar**: Displays live updates of key stock prices and their changes.
+
+### IPO Calendar
+- **Comprehensive Listings**: View upcoming and past Initial Public Offerings (IPOs).
+- **Filtering**: Filter IPOs by Mainboard and SME categories.
+- **Search Functionality**: Easily search for IPOs by company name.
+- **Recommendation System**: Provides recommendations based on premium and other factors.
+
+### User Settings
+- **Account Details Management**: Update personal information such as name and email.
+- **Profile Image Upload**: Upload and manage user profile pictures.
+- **Notification Preferences**: Customize notification settings.
+- **Password Management**: Securely change your account password.
+
+### General Features
+- **Responsive Design**: The application is designed to be responsive across different screen sizes.
 
 ## Technologies Used
 
@@ -52,7 +67,7 @@ financial-dashboard/
 │   ├── public/
 │   ├── src/
 │   │   ├── assets/
-│   │   ├── components/     # Reusable React components (e.g., Login, Register)
+│   │   ├── components/     # Reusable React components (e.g., Login, Register, TickerBar)
 │   │   ├── layout/
 │   │   ├── pages/          # Page-level React components (e.g., Home, Auth, StockDashboard)
 │   │   ├── styles/         # CSS files
@@ -60,9 +75,13 @@ financial-dashboard/
 │   │   ├── App.jsx         # Main React application component and routing
 │   │   └── main.jsx        # Entry point for the React application
 │   └── package.json        # Frontend dependencies
+├── scraper/                # Python-based web scraper for IPO data
+│   ├── .env                # Environment variables for the scraper
+│   ├── ipo_data_scraper.py # Main scraper script
+│   └── requirements.txt    # Python dependencies
 ├── server/                 # Backend Node.js/Express application
 │   ├── automation/         # Scheduled tasks (e.g., remove unverified accounts)
-│   ├── config.env          # Environment variables for the server
+│   ├── config/             # Configuration files (e.g., multerConfig)
 │   ├── controllers/        # Logic for handling API requests (e.g., userController)
 │   ├── database/           # Database connection setup
 │   ├── middlewares/        # Express middleware (e.g., error handling, authentication)
@@ -91,4 +110,7 @@ For specific instructions and conventions related to developing with the Gemini 
 2.  **Register**: Click on the "Register" tab. Fill in your details, including a valid Indian phone number (starting with 6, 7, 8, or 9 and 10 digits long). Select your preferred verification method (Email or Phone).
 3.  **Verify OTP**: After registration, you will be redirected to an OTP verification page. Enter the OTP received via email or phone.
 4.  **Login**: Once verified, you can log in using your registered email and password.
-5.  **Access Dashboard**: After logging in, you can navigate to the Indian Stock Market Dashboard by going to `http://localhost:5173/dashboard`.
+5.  **Explore Features**: After logging in, you can explore various features:
+    -   **Stock Dashboard**: Navigate to `/stock-dashboard` to view NIFTY 50, SENSEX, Top Gainers, and Top Losers.
+    -   **IPO Calendar**: Visit `/ipo-calendar` to see upcoming and past IPOs, with filtering and search options.
+    -   **Settings**: Go to `/settings` to manage your account details, upload a profile image, update notification preferences, and change your password.

@@ -14,6 +14,26 @@ export function Sidebar({ isCollapsed, onToggle }) {
   const navigateTo = useNavigate();
   const { isAuthenticated, setIsAuthenticated, setUser } = useContext(Context);
 
+  useEffect(() => {
+    const calculateHeight = () => {
+      const sidebarBottom = document.querySelector('.sidebar-bottom');
+      if (sidebarBottom) {
+        const availableHeight = window.innerHeight - sidebarBottom.offsetTop;
+        const authNav = document.querySelector('.auth-nav');
+        if (authNav) {
+          authNav.style.marginBottom = isCollapsed ? `${availableHeight - 100}px` : '0';
+        }
+      }
+    };
+
+    calculateHeight();
+    window.addEventListener('resize', calculateHeight);
+
+    return () => {
+      window.removeEventListener('resize', calculateHeight);
+    };
+  }, [isCollapsed]);
+
   const mainNavItems = [
     { title: 'Dashboard', icon: Home, href: '/' },
     { title: 'Stocks', icon: BarChart, href: '/stocks' },
