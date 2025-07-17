@@ -1,36 +1,23 @@
 import yahooFinance from 'yahoo-finance2';
 
 const indexes = [
-  // ---- Major Indian Indices ----
   { symbol: 'NIFTY 50', ticker: '^NSEI' },
   { symbol: 'SENSEX', ticker: '^BSESN' },
   { symbol: 'NIFTY BANK', ticker: '^NSEBANK' },
   { symbol: 'NIFTY IT', ticker: '^CNXIT' },
-  { symbol: 'NIFTY MIDCAP 50', ticker: '^NSEMDCP50' },
   { symbol: 'NIFTY FMCG', ticker: '^CNXFMCG' },
   { symbol: 'NIFTY PHARMA', ticker: '^CNXPHARMA' },
   { symbol: 'NIFTY AUTO', ticker: '^CNXAUTO' },
   { symbol: 'NIFTY METAL', ticker: '^CNXMETAL' },
   { symbol: 'NIFTY ENERGY', ticker: '^CNXENERGY' },
-  { symbol: 'NIFTY NEXT 50', ticker: '^NSENEXT50' },
-  { symbol: 'NIFTY 100', ticker: '^NSE100' },
-  { symbol: 'NIFTY 200', ticker: '^NSE200' },
-  { symbol: 'NIFTY 500', ticker: '^NSE500' },
-  { symbol: 'NIFTY SMALLCAP 100', ticker: '^NSESMCP100' },
-  { symbol: 'NIFTY MIDCAP 100', ticker: '^NSEMDCP100' },
-  { symbol: 'NIFTY SMALLCAP 250', ticker: '^NSESMCP250' },
-  { symbol: 'NIFTY MIDCAP 150', ticker: '^NSEMDCP150' },
   { symbol: 'NIFTY REALTY', ticker: '^CNXREALTY' },
   { symbol: 'NIFTY MEDIA', ticker: '^CNXMEDIA' },
   { symbol: 'NIFTY PSE', ticker: '^CNXPSE' },
   { symbol: 'NIFTY PSU BANK', ticker: '^CNXPSUBANK' },
-  { symbol: 'NIFTY HEALTHCARE INDEX', ticker: '^CNXHEALTH' },
   { symbol: 'NIFTY CONSUMPTION', ticker: '^CNXCONSUM' },
   { symbol: 'NIFTY INFRASTRUCTURE', ticker: '^CNXINFRA' },
-  { symbol: 'NIFTY COMMODITIES', ticker: '^CNXCOMMODITIES' },
-  { symbol: 'NIFTY SERVICES SECTOR', ticker: '^CNXSERVICE' },
 
-  // ---- Global Benchmarks (for completeness, feel free to omit) ----
+  // ---- Global Benchmarks (unchanged) ----
   { symbol: 'S&P 500', ticker: '^GSPC' },
   { symbol: 'Dow Jones Industrial Average', ticker: '^DJI' },
   { symbol: 'Nasdaq Composite', ticker: '^IXIC' },
@@ -44,6 +31,7 @@ const indexes = [
   { symbol: 'ASX 200', ticker: '^AXJO' },
   { symbol: 'EURO STOXX 50', ticker: '^STOXX50E' },
 ];
+
 
 
 const getLiveMarketData = async () => {

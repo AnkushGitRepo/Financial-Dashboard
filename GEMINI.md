@@ -50,58 +50,16 @@ financial-dashboard/
 └── README.md               # Project documentation
 ```
 
-## Recent Conversation Summary (Last 5-6 key tasks):
+## Recent Conversation Summary:
 
-1.  **Sidebar Adjustments:**
-    *   **Feature:** Added a top margin to the sidebar and fixed an issue where the logout button would go off-screen when the sidebar is collapsed.
-    *   **Resolution:** Adjusted the `top` and `height` properties in `client/src/styles/Sidebar.css`. Implemented a `useEffect` hook in `client/src/components/Sidebar.jsx` to dynamically calculate and apply a `marginBottom` to the authentication navigation section. Removed an unused `client/src/components/Sidebar.css` file.
+1.  **Range Buttons to Radio Buttons:**
+    *   **Feature:** Converted range selection buttons to radio buttons with a new, styled appearance.
+    *   **Resolution:** Updated `client/src/pages/IndexDetailPage.jsx` to use radio button inputs and `client/src/styles/IndexDetailPage.css` with new styles for the radio buttons.
 
-2.  **Conditional TickerBar Display:**
-    *   **Feature:** Removed the `TickerBar` from all authentication-related pages.
-    *   **Resolution:** Created a new `TickerBarLayout.jsx` component to conditionally render the `TickerBar` based on the current route. Updated `App.jsx` to use this new layout component, ensuring the ticker does not appear on pages like `/auth`, `/password/forgot`, etc.
+2.  **Radio Buttons Alignment:**
+    *   **Feature:** Aligned the newly implemented radio buttons to the right side of the chart controls.
+    *   **Resolution:** Modified `client/src/styles/IndexDetailPage.css` to adjust the alignment of the radio button container.
 
-3.  **"Remember Me" Login Functionality:**
-    *   **Feature:** Implemented logic for the "Remember me" checkbox on the login page. If unchecked, the user's session expires when the browser is closed.
-    *   **Resolution:** Modified the `sendToken` utility in `server/utils/sendToken.js` to accept a `rememberMe` flag, setting a session cookie if the flag is false. Updated `userController.js` and `Auth.jsx` to pass the `rememberMe` state from the client to the server.
-
-4.  **Comprehensive Footer Redesign:**
-    *   **Feature:** Overhauled the footer to include a "MarketMitra" title, important links, a "Meet the Team" section with social media links for five contributors, and a copyright notice.
-    *   **Resolution:** Updated `client/src/layout/Footer.jsx` with the new structure and content. Installed and used the `react-icons` library for social media icons.
-
-5.  **Footer Styling and Layout Refinements:**
-    *   **Feature:** Styled the new footer, changed its background color to match the `TickerBar`, and adjusted the layout of the "Meet the Team" section.
-    *   **Resolution:** Updated `client/src/styles/Footer.css` to change the background color to `#181e25`. Modified the flexbox layout to position the "Meet the Team" section below the other footer content and display team members in a single horizontal line.
-
-6.  **Dynamic Footer-Sidebar Integration:**
-    *   **Feature:** Made the footer responsive to the sidebar's collapsed state, preventing overlap.
-    *   **Resolution:** Passed the `isSidebarCollapsed` state from `Layout.jsx` to `Footer.jsx`. Added dynamic CSS classes and styles in `Footer.css` to adjust the footer's width and margin based on whether the sidebar is collapsed or expanded.
-
-7.  **Market Indices Component Enhancements:**
-    *   **Feature:** Implemented dynamic styling for index cards (white background, black text for title, light red/green for change text).
-    *   **Resolution:** Modified `client/src/styles/MarketIndices.css` and `client/src/components/MarketIndices.jsx` to apply different background colors to each card, make the entire card clickable, and adjust chart and card sizing.
-    *   **Feature:** Ensured the chart line color is red or green based on change, and the "Market Indices" title is bold and left-aligned.
-    *   **Resolution:** Updated `client/src/styles/MarketIndices.css` and `client/src/components/MarketIndices.jsx`.
-
-8.  **Detailed Index Page Implementation:**
-    *   **Feature:** Created a dedicated page (`IndexDetailPage.jsx`) to display detailed information and a larger, interactive chart for individual indices.
-    *   **Resolution:** Created `client/src/pages/IndexDetailPage.jsx` and added a new route `/markets/indices/:ticker` in `client/src/App.jsx`.
-    *   **Feature:** Implemented fetching real-time and historical data from Yahoo Finance via a new backend endpoint.
-    *   **Resolution:** Created `server/controllers/marketController.js` and `server/routes/marketRoutes.js`, and integrated them into `server/app.js`.
-    *   **Feature:** Added interactive chart with time range buttons (1D, 5D, 1M, 3M, 6M, 1Y, 5Y) and dynamic moving average buttons with custom input.
-    *   **Resolution:** Updated `client/src/pages/IndexDetailPage.jsx` to include these functionalities.
-    *   **Feature:** Implemented dynamic chart fill color based on the current price's position relative to the 52-week high/low.
-    *   **Resolution:** Modified `client/src/pages/IndexDetailPage.jsx`.
-    *   **Feature:** Displayed comprehensive index data in a structured table format.
-    *   **Resolution:** Updated `client/src/pages/IndexDetailPage.jsx` and created `client/src/styles/IndexDetailPage.css` to manage its styles.
-
-9.  **Backend API Stability and Data Fetching Fixes:**
-    *   **Feature:** Resolved persistent "Loading..." issues and `Invalid options` errors from `yahoo-finance2` library.
-    *   **Resolution:** Refined `server/controllers/marketController.js` to correctly handle `period1`, `period2`, and `range` parameters for `yahooFinance.chart` method, ensuring proper date object passing and range handling.
-
-10. **Layout and Chart Sizing Refinements:**
-    *   **Feature:** Addressed `chartOptions` not defined error in `IndexDetailPage.jsx`.
-    *   **Resolution:** Moved `chartOptions` declaration to ensure it's defined before use.
-    *   **Feature:** Fixed chart width issues in `IndexDetailPage` and `MarketIndices` components.
-    *   **Resolution:** Applied more specific CSS selectors in `client/src/styles/IndexDetailPage.css` and adjusted `client/src/styles/MarketIndices.css` to control chart dimensions independently.
-    *   **Feature:** Resolved sidebar overlapping issues caused by previous layout adjustments.
-    *   **Resolution:** Reverted problematic CSS changes in `client/src/App.css` to restore correct sidebar behavior.
+3.  **Chart Tooltip Enhancement:**
+    *   **Feature:** Improved chart tooltip to display price and date clearly on hover.
+    *   **Resolution:** Updated `chartOptions` in `client/src/pages/IndexDetailPage.jsx` with custom tooltip callbacks for better formatting of date and price.

@@ -11,6 +11,7 @@ import {
   Title,
   Tooltip,
   Legend,
+  Filler, // Import Filler plugin
 } from 'chart.js';
 import '../../src/styles/IndexDetailPage.css'; // Import the new CSS file
 
@@ -21,7 +22,8 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler // Register Filler plugin
 );
 
 const IndexDetailPage = () => {
@@ -29,8 +31,9 @@ const IndexDetailPage = () => {
   const [indexData, setIndexData] = useState(null);
   const [historicalData, setHistoricalData] = useState([]);
   const [selectedRange, setSelectedRange] = useState('1y'); // Default to 1 year
-  const [maPeriod, setMaPeriod] = useState(null); // State for selected MA period
-  const [customMaInput, setCustomMaInput] = useState(''); // State for custom MA input
+  const [maPeriod, setMaPeriod] = useState(50); // State for selected MA period, default to 50
+  const [showPrice, setShowPrice] = useState(true); // State to control Price line visibility
+  const [showMa, setShowMa] = useState(true); // State to control MA line visibility
 
   useEffect(() => {
     const fetchIndexData = async () => {
@@ -93,28 +96,24 @@ const IndexDetailPage = () => {
 
   const getChartData = () => {
     const prices = historicalData.map((d) => d.price);
-    const borderColor = indexData && indexData.regularMarketChange >= 0 ? '#006400' : '#8B0000';
-    const movingAverageData = calculateMovingAverage(prices, maPeriod); // Use maPeriod
-
-    // Determine fill color based on current price relative to 52-week high/low
-    let fillColor = 'rgba(0, 0, 0, 0.1)'; // Default light grey
-    if (indexData && indexData.fiftyTwoWeekHigh && indexData.fiftyTwoWeekLow) {
-      const range = indexData.fiftyTwoWeekHigh - indexData.fiftyTwoWeekLow;
-      const position = (indexData.regularMarketPrice - indexData.fiftyTwoWeekLow) / range;
-
-      if (position > 0.75) {
-        fillColor = 'rgba(144, 238, 144, 0.2)'; // Light Green (closer to high)
-      } else if (position < 0.25) {
-        fillColor = 'rgba(255, 99, 71, 0.2)'; // Light Red (closer to low)
-      } else {
-        fillColor = 'rgba(173, 216, 230, 0.2)'; // Light Blue (middle range)
-      }
+    const maPeriodValue = maPeriod;
+    let movingAverageData = [];
+    if (!isNaN(maPeriodValue) && maPeriodValue > 0) {
+      movingAverageData = calculateMovingAverage(prices, maPeriodValue);
     }
+
+    const lastPrice = prices[prices.length - 1];
+    const lastMovingAverage = movingAverageData[movingAverageData.length - 1];
+
+    const isAboveMA = lastPrice > lastMovingAverage;
+
+    const borderColor = isAboveMA ? '#5EE04A' : '#E04038'; // Green/Red hex codes
+    const fillColor = isAboveMA ? 'rgba(182, 229, 175, 0.5)' : 'rgba(224, 82, 74, 0.5)'; // Lighter shade of line color with transparency
 
     return {
       labels: historicalData.map((d) => d.date),
       datasets: [
-        {
+        ...(showPrice ? [{
           label: 'Price',
           data: prices,
           fill: true, // Fill the area under the line
@@ -122,49 +121,62 @@ const IndexDetailPage = () => {
           borderColor: borderColor,
           tension: 0.1,
           pointRadius: 0,
-        },
-        {
-          label: `${maPeriod}-Period MA`,
+        }] : []),
+        ...(showMa && maPeriodValue !== null ? [{
+          label: `${maPeriodValue}-Period MA`,
           data: movingAverageData,
           fill: false,
-          borderColor: 'blue',
+          borderColor: '#ADD8E6', // Lighter blue
           borderDash: [5, 5],
           tension: 0.1,
           pointRadius: 0,
-        },
+        }] : []),
       ],
     };
   };
 
   const handleRangeChange = (range) => {
     setSelectedRange(range);
-    setMaPeriod(null); // Reset MA period to trigger default calculation
+    // Only reset MA period to default if it's not currently 'custom'
+    setMaPeriod(50); // Reset to default 50-period MA
   };
 
-  const handleMaPeriodChange = (period) => {
-    setMaPeriod(period);
+  const handleMaPeriodChange = (value) => {
+    setMaPeriod(parseInt(value));
   };
 
-  const handleCustomMaSubmit = () => {
-    const period = parseInt(customMaInput);
-    if (!isNaN(period) && period > 0) {
-      setMaPeriod(period);
-    }
-  };
+  
 
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        display: true,
+        display: false,
       },
       title: {
-        display: true,
-        text: indexData ? `${indexData.longName || indexData.symbol} Performance` : 'Index Performance',
-        color: '#333',
-        font: { size: 18 },
+        display: false,
       },
+      tooltip: {
+        mode: 'index',
+        intersect: false,
+        callbacks: {
+          title: function(context) {
+            // context[0].label contains the date string
+            return context[0].label;
+          },
+          label: function(context) {
+            let label = context.dataset.label || '';
+            if (label) {
+              label += ': ';
+            }
+            if (context.parsed.y !== null) {
+              label += new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(context.parsed.y);
+            }
+            return label;
+          }
+        }
+      }
     },
     scales: {
       x: {
@@ -206,31 +218,65 @@ const IndexDetailPage = () => {
         <p><strong>52-Week High:</strong> {indexData.fiftyTwoWeekHigh?.toFixed(2)}</p>
         <p><strong>52-Week Low:</strong> {indexData.fiftyTwoWeekLow?.toFixed(2)}</p>
       </div>
-      <div className="range-buttons-container">
-        <button onClick={() => handleRangeChange('1d')}>1D</button>
-        <button onClick={() => handleRangeChange('5d')}>5D</button>
-        <button onClick={() => handleRangeChange('1mo')}>1M</button>
-        <button onClick={() => handleRangeChange('3mo')}>3M</button>
-        <button onClick={() => handleRangeChange('6mo')}>6M</button>
-        <button onClick={() => handleRangeChange('1y')}>1Y</button>
-        <button onClick={() => handleRangeChange('5y')}>5Y</button>
-      </div>
-      <div className="ma-buttons-container">
-        <button onClick={() => handleMaPeriodChange(5)}>5-Period MA</button>
-        <button onClick={() => handleMaPeriodChange(20)}>20-Period MA</button>
-        <button onClick={() => handleMaPeriodChange(50)}>50-Period MA</button>
-        <input
-          type="number"
-          value={customMaInput}
-          onChange={(e) => setCustomMaInput(e.target.value)}
-          placeholder="Custom MA Period"
-        />
-        <button onClick={handleCustomMaSubmit}>Apply Custom MA</button>
-      </div>
-      <div className="chart-container">
-        {historicalData.length > 0 && (
-          <Line data={getChartData()} options={chartOptions} />
-        )}
+      <div className="chart-controls">
+        <div className="radio-inputs">
+          <label className="radio">
+            <input type="radio" name="range" value="1d" checked={selectedRange === '1d'} onChange={() => handleRangeChange('1d')} />
+            <span className="name">1D</span>
+          </label>
+          <label className="radio">
+            <input type="radio" name="range" value="5d" checked={selectedRange === '5d'} onChange={() => handleRangeChange('5d')} />
+            <span className="name">5D</span>
+          </label>
+          <label className="radio">
+            <input type="radio" name="range" value="1mo" checked={selectedRange === '1mo'} onChange={() => handleRangeChange('1mo')} />
+            <span className="name">1M</span>
+          </label>
+          <label className="radio">
+            <input type="radio" name="range" value="3mo" checked={selectedRange === '3mo'} onChange={() => handleRangeChange('3mo')} />
+            <span className="name">3M</span>
+          </label>
+          <label className="radio">
+            <input type="radio" name="range" value="6mo" checked={selectedRange === '6mo'} onChange={() => handleRangeChange('6mo')} />
+            <span className="name">6M</span>
+          </label>
+          <label className="radio">
+            <input type="radio" name="range" value="1y" checked={selectedRange === '1y'} onChange={() => handleRangeChange('1y')} />
+            <span className="name">1Y</span>
+          </label>
+          <label className="radio">
+            <input type="radio" name="range" value="5y" checked={selectedRange === '5y'} onChange={() => handleRangeChange('5y')} />
+            <span className="name">5Y</span>
+          </label>
+        </div>
+        <div className="chart-container">
+          {historicalData.length > 0 && (
+            <Line data={getChartData()} options={chartOptions} />
+          )}
+        </div>
+        <div className="ma-controls">
+          <div className="ma-dropdown-container">
+            <label htmlFor="ma-select">Moving Average:</label>
+            <select id="ma-select" onChange={(e) => handleMaPeriodChange(e.target.value)} value={maPeriod}>
+              <option value="5">5-Period MA</option>
+              <option value="10">10-Period MA</option>
+              <option value="20">20-Period MA</option>
+              <option value="50">50-Period MA</option>
+              <option value="100">100-Period MA</option>
+              <option value="200">200-Period MA</option>
+            </select>
+          </div>
+          <div className="chart-checkboxes">
+            <label>
+              <input type="checkbox" checked={showPrice} onChange={() => setShowPrice(!showPrice)} />
+              Show Price
+            </label>
+            <label>
+              <input type="checkbox" checked={showMa} onChange={() => setShowMa(!showMa)} />
+              Show Moving Average
+            </label>
+          </div>
+        </div>
       </div>
       <div className="details-section">
         <h3>All Details:</h3>

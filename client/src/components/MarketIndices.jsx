@@ -12,6 +12,7 @@ import {
   Title,
   Tooltip,
   Legend,
+  Filler, // Import Filler plugin
 } from 'chart.js';
 
 ChartJS.register(
@@ -21,7 +22,8 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler // Register Filler plugin
 );
 
 const MarketIndices = () => {
@@ -86,8 +88,15 @@ const MarketIndices = () => {
   const getChartData = (index) => {
     const data = historicalData[index.ticker] || [];
     const prices = data.map((d) => d.price);
-    const borderColor = index.change >= 0 ? '#006400' : '#8B0000'; // Dynamic color based on change (DarkGreen / DarkRed)
     const movingAverageData = calculateMovingAverage(prices, 12); // 12-month moving average for 1-year data
+
+    const lastPrice = prices[prices.length - 1];
+    const lastMovingAverage = movingAverageData[movingAverageData.length - 1];
+
+    const isAboveMA = lastPrice > lastMovingAverage;
+
+    const borderColor = isAboveMA ? '#5EE04A' : '#E04038'; // Green/Red hex codes
+    const fillColor = isAboveMA ? 'rgba(182, 229, 175, 0.5)' : 'rgba(224, 82, 74, 0.5)'; // Lighter shade of line color with transparency
 
     return {
       labels: data.map((d) => d.date),
