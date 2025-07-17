@@ -1,0 +1,85 @@
+.market-indices-container {
+  padding: 20px;
+  color: #333;
+  border-radius: 8px;
+  margin: 20px;
+}
+
+.market-indices-container h2 {
+  text-align: left;
+  margin-bottom: 20px;
+  color: #000000; /* Black color for text */
+  font-weight: bold;
+}
+
+.indices-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  justify-content: center;
+}
+
+.index-card {
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer; /* Indicate clickable */
+}
+
+.index-card.color-0 {
+  background-color: #e0f7fa; /* Light Cyan */
+}
+
+.index-card.color-1 {
+  background-color: #e8f5e9; /* Light Green */
+}
+
+.index-card.color-2 {
+  background-color: #fff3e0; /* Light Orange */
+}
+
+.index-card.color-3 {
+  background-color: #ede7f6; /* Light Purple */
+}
+
+.index-card h3 {
+  margin-top: 0;
+  color: #333;
+  font-size: 1.4em; /* Slightly smaller font size */
+}
+
+.index-card p {
+  margin: 3px 0; /* Reduced margin */
+  font-size: 1em; /* Slightly smaller font size */
+}
+
+.chart-container {
+  width: 100%;
+  max-width: 100%; /* Make it take full width of the card */
+  height: 150px; /* Increased height */
+  margin-top: 10px; /* Adjusted margin */
+}
+
+.chart-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.see-more-button {
+  background-color: #00bfff;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  margin-top: 20px;
+}
+
+.see-more-button:hover {
+  background-color: #009acd;
+}

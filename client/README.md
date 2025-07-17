@@ -22,6 +22,7 @@ client/
 │   ├── components/         # Reusable React components
 │   │   ├── ActionBar.jsx   # Component for mobile action bar
 │   │   ├── Hero.jsx        # Hero section component
+│   │   ├── MarketIndices.jsx # Displays key market indices with charts
 │   │   ├── Navbar.jsx      # Navigation bar component
 │   │   ├── Notification.jsx# Notification display component
 │   │   ├── PageTitle.jsx   # Component to dynamically set page titles
@@ -43,6 +44,7 @@ client/
 │   │   ├── ForgotPassword.jsx # Forgot password page
 │   │   ├── Global.jsx      # Global market data page
 │   │   ├── Home.jsx        # Home page
+│   │   ├── IndexDetailPage.jsx # Detailed page for individual market indices
 │   │   ├── IpoCalendar.jsx # IPO Calendar page
 │   │   ├── Markets.jsx     # Markets overview page
 │   │   ├── NotFound.jsx    # 404 Not Found page
@@ -60,8 +62,10 @@ client/
 │   │   ├── ForgotPassword.css
 │   │   ├── Hero.css
 │   │   ├── Home.css
+│   │   ├── IndexDetailPage.css # Styles for the IndexDetailPage component
 │   │   ├── Instructor.css
 │   │   ├── IpoCalendar.css
+│   │   ├── MarketIndices.css # Styles for the MarketIndices component
 │   │   ├── Navbar.css
 │   │   ├── NotFound.css
 │   │   ├── OtpVerification.css

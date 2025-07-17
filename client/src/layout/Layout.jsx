@@ -38,7 +38,7 @@ const Layout = () => {
       <Navbar />
       <div className={`layout-container ${isSidebarCollapsed ? 'collapsed' : ''}`}>
         {!isMobile && (
-          <Sidebar isCollapsed={isSidebarCollapsed} onToggle={toggleSidebar} />
+          <Sidebar isCollapsed={isSidebarCollapsed} onToggle={toggleSidebar} className="sidebar-container" />
         )}
         <main className="main-content">
           <Outlet />

@@ -23,6 +23,7 @@ import axios from "axios";
 import { Context } from "./main";
 import PageTitle from "./components/PageTitle";
 import TickerBarLayout from "./layout/TickerBarLayout";
+import IndexDetailPage from "./pages/IndexDetailPage";
 
 const App = () => {
   const { setIsAuthenticated, setUser } = useContext(Context);
@@ -60,6 +61,7 @@ const App = () => {
             <Route path="/stock-dashboard" element={<><PageTitle title="Stock Dashboard" /><StockDashboard /></>} />
             <Route path="/stocks" element={<><PageTitle title="Stocks" /><Stocks /></>} />
             <Route path="/markets" element={<><PageTitle title="Markets" /><Markets /></>} />
+            <Route path="/markets/indices/:ticker" element={<><PageTitle title="Index Details" /><IndexDetailPage /></>} />
             <Route path="/ipo-calendar" element={<><PageTitle title="IPO Calendar" /><IpoCalendar /></>} />
             <Route path="/global" element={<><PageTitle title="Global" /><Global /></>} />
             <Route path="/portfolio" element={<><PageTitle title="Portfolio" /><Portfolio /></>} />

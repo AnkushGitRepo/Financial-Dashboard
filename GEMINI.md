@@ -75,3 +75,33 @@ financial-dashboard/
 6.  **Dynamic Footer-Sidebar Integration:**
     *   **Feature:** Made the footer responsive to the sidebar's collapsed state, preventing overlap.
     *   **Resolution:** Passed the `isSidebarCollapsed` state from `Layout.jsx` to `Footer.jsx`. Added dynamic CSS classes and styles in `Footer.css` to adjust the footer's width and margin based on whether the sidebar is collapsed or expanded.
+
+7.  **Market Indices Component Enhancements:**
+    *   **Feature:** Implemented dynamic styling for index cards (white background, black text for title, light red/green for change text).
+    *   **Resolution:** Modified `client/src/styles/MarketIndices.css` and `client/src/components/MarketIndices.jsx` to apply different background colors to each card, make the entire card clickable, and adjust chart and card sizing.
+    *   **Feature:** Ensured the chart line color is red or green based on change, and the "Market Indices" title is bold and left-aligned.
+    *   **Resolution:** Updated `client/src/styles/MarketIndices.css` and `client/src/components/MarketIndices.jsx`.
+
+8.  **Detailed Index Page Implementation:**
+    *   **Feature:** Created a dedicated page (`IndexDetailPage.jsx`) to display detailed information and a larger, interactive chart for individual indices.
+    *   **Resolution:** Created `client/src/pages/IndexDetailPage.jsx` and added a new route `/markets/indices/:ticker` in `client/src/App.jsx`.
+    *   **Feature:** Implemented fetching real-time and historical data from Yahoo Finance via a new backend endpoint.
+    *   **Resolution:** Created `server/controllers/marketController.js` and `server/routes/marketRoutes.js`, and integrated them into `server/app.js`.
+    *   **Feature:** Added interactive chart with time range buttons (1D, 5D, 1M, 3M, 6M, 1Y, 5Y) and dynamic moving average buttons with custom input.
+    *   **Resolution:** Updated `client/src/pages/IndexDetailPage.jsx` to include these functionalities.
+    *   **Feature:** Implemented dynamic chart fill color based on the current price's position relative to the 52-week high/low.
+    *   **Resolution:** Modified `client/src/pages/IndexDetailPage.jsx`.
+    *   **Feature:** Displayed comprehensive index data in a structured table format.
+    *   **Resolution:** Updated `client/src/pages/IndexDetailPage.jsx` and created `client/src/styles/IndexDetailPage.css` to manage its styles.
+
+9.  **Backend API Stability and Data Fetching Fixes:**
+    *   **Feature:** Resolved persistent "Loading..." issues and `Invalid options` errors from `yahoo-finance2` library.
+    *   **Resolution:** Refined `server/controllers/marketController.js` to correctly handle `period1`, `period2`, and `range` parameters for `yahooFinance.chart` method, ensuring proper date object passing and range handling.
+
+10. **Layout and Chart Sizing Refinements:**
+    *   **Feature:** Addressed `chartOptions` not defined error in `IndexDetailPage.jsx`.
+    *   **Resolution:** Moved `chartOptions` declaration to ensure it's defined before use.
+    *   **Feature:** Fixed chart width issues in `IndexDetailPage` and `MarketIndices` components.
+    *   **Resolution:** Applied more specific CSS selectors in `client/src/styles/IndexDetailPage.css` and adjusted `client/src/styles/MarketIndices.css` to control chart dimensions independently.
+    *   **Feature:** Resolved sidebar overlapping issues caused by previous layout adjustments.
+    *   **Resolution:** Reverted problematic CSS changes in `client/src/App.css` to restore correct sidebar behavior.

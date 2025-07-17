@@ -13,8 +13,8 @@ This project is a comprehensive full-stack web application built with the MERN (
 - **Session Management**: Uses cookies for maintaining user sessions.
 
 ### Indian Stock Market Dashboard
-- **NIFTY 50 Overview**: Displays current NIFTY 50 value and a trend line chart.
-- **SENSEX Overview**: Displays current SENSEX value and a trend line chart.
+- **Market Indices Overview**: Displays key Indian stock market indices (NIFTY 50, SENSEX, NIFTY BANK, NIFTY IT) with their current levels, changes, and small trend line charts. Cards are dynamically styled based on performance.
+- **Detailed Index View**: Clicking on an index card redirects to a dedicated page providing comprehensive details, an interactive chart with various time ranges (1D, 5D, 1M, 3M, 6M, 1Y, 5Y), customizable moving averages, and a detailed table of market data.
 - **Top Gainers**: Lists top performing stocks.
 - **Top Losers**: Lists worst performing stocks.
 - **Real-time Ticker Bar**: Displays live updates of key stock prices and their changes.

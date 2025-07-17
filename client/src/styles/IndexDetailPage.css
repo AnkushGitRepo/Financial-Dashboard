@@ -1,0 +1,83 @@
+.index-detail-page-container {
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  margin: 20px;
+  color: #333;
+}
+
+.index-detail-page-container h2 {
+  text-align: left;
+  margin-bottom: 20px;
+  color: #000000;
+  font-weight: bold;
+}
+
+.index-summary {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+}
+
+.index-summary p {
+  margin: 0;
+}
+
+.range-buttons-container,
+.ma-buttons-container {
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.range-buttons-container button,
+.ma-buttons-container button,
+.ma-buttons-container input {
+  margin: 5px;
+  padding: 8px 15px;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #f0f0f0;
+}
+
+.ma-buttons-container input {
+  width: 120px;
+  padding: 8px;
+}
+
+.range-buttons-container button:hover,
+.ma-buttons-container button:hover {
+  background-color: #e0e0e0;
+}
+
+.index-detail-page-wrapper .chart-container {
+  height: 400px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.index-detail-page-wrapper .chart-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.details-section {
+  margin-top: 20px;
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+}
+
+.details-section h3 {
+  margin-bottom: 10px;
+}
+
+.details-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.details-table td {
+  padding: 8px;
+  border: 1px solid #ddd;
+}
