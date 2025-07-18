@@ -1,5 +1,6 @@
 import yahooFinance from 'yahoo-finance2';
 import { catchAsyncError } from '../middlewares/catchAsyncError.js';
+import axios from 'axios';
 
 const getDateRange = (range) => {
   const today = new Date();
@@ -35,7 +36,7 @@ const getDateRange = (range) => {
       period1Date.setFullYear(today.getFullYear() - 5);
       break;
     case 'max':
-      period1Date = undefined; // For 'max', yahoo-finance2 fetches all available data
+      period1Date = new Date('1970-01-01'); // Unix epoch start date
       break;
     default:
       period1Date = new Date(today);
@@ -57,14 +58,8 @@ export const getHistoricalIndexData = catchAsyncError(async (req, res, next) => 
   }
 
   try {
-    let chartOptions = {};
-
-    if (range === 'max') {
-      chartOptions = { range: 'max' };
-    } else {
-      const { period1, period2 } = getDateRange(range);
-      chartOptions = { period1: period1, period2: period2 };
-    }
+    const { period1, period2 } = getDateRange(range);
+    const chartOptions = { period1: period1, period2: period2 };
 
     const chartResult = await yahooFinance.chart(ticker, chartOptions);
 
@@ -87,13 +82,14 @@ export const getHistoricalIndexData = catchAsyncError(async (req, res, next) => 
           symbol: currentQuote.symbol,
           longName: currentQuote.longName || currentQuote.symbol,
           regularMarketPrice: currentQuote.regularMarketPrice,
-          regularMarketChange: currentQuote.regularMarketChange,
-          regularMarketChangePercent: currentQuote.regularMarketChangePercent,
+          regularMarketChange: currentQuote.chartPreviousClose ? (currentQuote.regularMarketPrice - currentQuote.chartPreviousClose) : null,
+          regularMarketChangePercent: currentQuote.chartPreviousClose ? ((currentQuote.regularMarketPrice - currentQuote.chartPreviousClose) / currentQuote.chartPreviousClose) * 100 : null,
           fiftyTwoWeekHigh: currentQuote.fiftyTwoWeekHigh,
           fiftyTwoWeekLow: currentQuote.fiftyTwoWeekLow,
           regularMarketOpen: currentQuote.regularMarketOpen,
           regularMarketDayHigh: currentQuote.regularMarketDayHigh,
           regularMarketDayLow: currentQuote.regularMarketDayLow,
+          regularMarketPreviousClose: currentQuote.regularMarketPreviousClose,
           regularMarketVolume: currentQuote.regularMarketVolume,
           averageDailyVolume3Month: currentQuote.averageDailyVolume3Month,
           averageDailyVolume10Day: currentQuote.averageDailyVolume10Day,
@@ -113,3 +109,5 @@ export const getHistoricalIndexData = catchAsyncError(async (req, res, next) => 
     return next(new Error(`Failed to fetch data for ${ticker}: ${error.message}`, 500));
   }
 });
+
+

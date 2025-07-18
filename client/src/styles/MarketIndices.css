@@ -14,7 +14,7 @@
 
 .indices-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 20px;
   justify-content: center;
 }
@@ -57,10 +57,10 @@
   font-size: 1em; /* Slightly smaller font size */
 }
 
-.chart-container {
+.index-card .chart-container {
   width: 100%;
   max-width: 100%; /* Make it take full width of the card */
-  height: 150px; /* Increased height */
+  height: 100px; /* Reduced height */
   margin-top: 10px; /* Adjusted margin */
 }
 

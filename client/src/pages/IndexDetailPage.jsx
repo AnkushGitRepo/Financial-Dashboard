@@ -66,6 +66,9 @@ const IndexDetailPage = () => {
             case '5y':
               setMaPeriod(200); // Example: 200-period MA for 5 years
               break;
+            case 'max':
+              setMaPeriod(200); // No default MA for max range
+              break;
             default:
               setMaPeriod(50); // Default MA for other ranges
           }
@@ -77,7 +80,7 @@ const IndexDetailPage = () => {
     };
 
     fetchIndexData();
-    const interval = setInterval(fetchIndexData, 60000); // Refresh every 1 minute
+    const interval = setInterval(fetchIndexData, 5000); // Refresh every 4 seconds
     return () => clearInterval(interval);
   }, [ticker, selectedRange, maPeriod]); // Add maPeriod to dependencies
 
@@ -137,8 +140,11 @@ const IndexDetailPage = () => {
 
   const handleRangeChange = (range) => {
     setSelectedRange(range);
-    // Only reset MA period to default if it's not currently 'custom'
-    setMaPeriod(50); // Reset to default 50-period MA
+    if (range === 'max') {
+      setMaPeriod(null); // No default MA for max range
+    } else {
+      setMaPeriod(50); // Reset to default 50-period MA for other ranges
+    }
   };
 
   const handleMaPeriodChange = (value) => {
@@ -248,6 +254,10 @@ const IndexDetailPage = () => {
             <input type="radio" name="range" value="5y" checked={selectedRange === '5y'} onChange={() => handleRangeChange('5y')} />
             <span className="name">5Y</span>
           </label>
+          <label className="radio">
+            <input type="radio" name="range" value="max" checked={selectedRange === 'max'} onChange={() => handleRangeChange('max')} />
+            <span className="name">MAX</span>
+          </label>
         </div>
         <div className="chart-container">
           {historicalData.length > 0 && (
@@ -282,26 +292,26 @@ const IndexDetailPage = () => {
         <h3>All Details:</h3>
         <table className="details-table">
           <tbody>
-            <tr><td><strong>Symbol:</strong></td><td>{indexData.symbol}</td></tr>
-            <tr><td><strong>Short Name:</strong></td><td>{indexData.longName || indexData.symbol}</td></tr>
-            <tr><td><strong>Current Price:</strong></td><td>{indexData.regularMarketPrice?.toFixed(2)}</td></tr>
-            <tr><td><strong>Change:</strong></td><td className={indexData.regularMarketChange >= 0 ? 'positive-change' : 'negative-change'}>{indexData.regularMarketChange?.toFixed(2)}</td></tr>
-            <tr><td><strong>Change Percent:</strong></td><td className={indexData.regularMarketChangePercent >= 0 ? 'positive-change' : 'negative-change'}>{indexData.regularMarketChangePercent?.toFixed(2)}%</td></tr>
-            <tr><td><strong>Day High:</strong></td><td>{indexData.regularMarketDayHigh?.toFixed(2)}</td></tr>
-            <tr><td><strong>Day Low:</strong></td><td>{indexData.regularMarketDayLow?.toFixed(2)}</td></tr>
-            <tr><td><strong>Previous Close:</strong></td><td>{indexData.regularMarketPreviousClose?.toFixed(2)}</td></tr>
-            <tr><td><strong>Open:</strong></td><td>{indexData.regularMarketOpen?.toFixed(2)}</td></tr>
-            <tr><td><strong>Volume:</strong></td><td>{indexData.regularMarketVolume?.toLocaleString()}</td></tr>
-            <tr><td><strong>Market State:</strong></td><td>{indexData.marketState}</td></tr>
-            <tr><td><strong>Exchange:</strong></td><td>{indexData.exchange}</td></tr>
-            <tr><td><strong>Full Exchange Name:</strong></td><td>{indexData.fullExchangeName}</td></tr>
-            <tr><td><strong>Currency:</strong></td><td>{indexData.currency}</td></tr>
-            <tr><td><strong>GMT Offset (ms):</strong></td><td>{indexData.gmtOffSetMilliseconds}</td></tr>
-            <tr><td><strong>Last Update Time:</strong></td><td>{new Date(indexData.regularMarketTime * 1000).toLocaleString()}</td></tr>
-            <tr><td><strong>Quote Type:</strong></td><td>{indexData.quoteType}</td></tr>
-            <tr><td><strong>52-Week High:</strong></td><td>{indexData.fiftyTwoWeekHigh?.toFixed(2)}</td></tr>
-            <tr><td><strong>52-Week Low:</strong></td><td>{indexData.fiftyTwoWeekLow?.toFixed(2)}</td></tr>
-            <tr><td><strong>Regular Market Source:</strong></td><td>{indexData.regularMarketSource}</td></tr>
+            {indexData.symbol && <tr><td><strong>Symbol:</strong></td><td>{indexData.symbol}</td></tr>}
+            {(indexData.longName || indexData.symbol) && <tr><td><strong>Short Name:</strong></td><td>{indexData.longName || indexData.symbol}</td></tr>}
+            {indexData.regularMarketPrice && <tr><td><strong>Current Price:</strong></td><td>{indexData.regularMarketPrice?.toFixed(2)}</td></tr>}
+            <tr><td><strong>Change:</strong></td><td className={indexData.regularMarketChange >= 0 ? 'positive-change' : 'negative-change'}>{indexData.regularMarketChange}</td></tr>
+            <tr><td><strong>Change Percent:</strong></td><td className={indexData.regularMarketChangePercent >= 0 ? 'positive-change' : 'negative-change'}>{indexData.regularMarketChangePercent}</td></tr>
+            {indexData.regularMarketDayHigh && <tr><td><strong>Day High:</strong></td><td>{indexData.regularMarketDayHigh?.toFixed(2)}</td></tr>}
+            {indexData.regularMarketDayLow && <tr><td><strong>Day Low:</strong></td><td>{indexData.regularMarketDayLow?.toFixed(2)}</td></tr>}
+            {indexData.regularMarketPreviousClose && <tr><td><strong>Previous Close:</strong></td><td>{indexData.regularMarketPreviousClose?.toFixed(2)}</td></tr>}
+            {indexData.regularMarketOpen && <tr><td><strong>Open:</strong></td><td>{indexData.regularMarketOpen?.toFixed(2)}</td></tr>}
+            {indexData.regularMarketVolume !== undefined && indexData.regularMarketVolume !== null && indexData.regularMarketVolume !== 0 && <tr><td><strong>Volume:</strong></td><td>{indexData.regularMarketVolume?.toLocaleString()}</td></tr>}
+            {indexData.marketState && <tr><td><strong>Market State:</strong></td><td>{indexData.marketState}</td></tr>}
+            {indexData.exchange && <tr><td><strong>Exchange:</strong></td><td>{indexData.exchange}</td></tr>}
+            {indexData.fullExchangeName && <tr><td><strong>Full Exchange Name:</strong></td><td>{indexData.fullExchangeName}</td></tr>}
+            {indexData.currency && <tr><td><strong>Currency:</strong></td><td>{indexData.currency}</td></tr>}
+            {indexData.gmtOffSetMilliseconds && <tr><td><strong>GMT Offset (ms):</strong></td><td>{indexData.gmtOffSetMilliseconds}</td></tr>}
+            <tr><td><strong>Last Update Time:</strong></td><td>{new Date().toLocaleString()}</td></tr>
+            {indexData.quoteType && <tr><td><strong>Quote Type:</strong></td><td>{indexData.quoteType}</td></tr>}
+            {indexData.fiftyTwoWeekHigh && <tr><td><strong>52-Week High:</strong></td><td>{indexData.fiftyTwoWeekHigh?.toFixed(2)}</td></tr>}
+            {indexData.fiftyTwoWeekLow && <tr><td><strong>52-Week Low:</strong></td><td>{indexData.fiftyTwoWeekLow?.toFixed(2)}</td></tr>}
+            
           </tbody>
         </table>
       </div>

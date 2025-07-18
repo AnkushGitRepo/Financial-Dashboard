@@ -68,7 +68,7 @@ const MarketIndices = () => {
       }));
     });
 
-    const interval = setInterval(fetchMarketData, 60000); // Refresh every 1 minute
+    const interval = setInterval(fetchMarketData, 5000); // Refresh every 5 seconds
     return () => clearInterval(interval);
   }, []);
 
@@ -90,13 +90,10 @@ const MarketIndices = () => {
     const prices = data.map((d) => d.price);
     const movingAverageData = calculateMovingAverage(prices, 12); // 12-month moving average for 1-year data
 
-    const lastPrice = prices[prices.length - 1];
-    const lastMovingAverage = movingAverageData[movingAverageData.length - 1];
+    const isPositiveChange = index.change >= 0;
 
-    const isAboveMA = lastPrice > lastMovingAverage;
-
-    const borderColor = isAboveMA ? '#5EE04A' : '#E04038'; // Green/Red hex codes
-    const fillColor = isAboveMA ? 'rgba(182, 229, 175, 0.5)' : 'rgba(224, 82, 74, 0.5)'; // Lighter shade of line color with transparency
+    const borderColor = isPositiveChange ? '#5EE04A' : '#E04038'; // Green/Red hex codes
+    const fillColor = isPositiveChange ? 'rgba(182, 229, 175, 0.5)' : 'rgba(224, 82, 74, 0.5)'; // Lighter shade of line color with transparency
 
     return {
       labels: data.map((d) => d.date),
@@ -137,14 +134,7 @@ const MarketIndices = () => {
         display: false, // Hide x-axis
       },
       y: {
-        display: true, // Display y-axis
-        ticks: {
-          color: '#888', // Color for y-axis labels
-        },
-        grid: {
-          color: 'rgba(0, 0, 0, 0.1)', // Very light color for y-axis grid lines
-          borderDash: [2, 2], // Dashed grid lines
-        },
+        display: false, // Hide y-axis
       },
     },
   };
