@@ -1,0 +1,236 @@
+/* General Styles */
+.index-detail-page-wrapper {
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  margin: 20px auto;
+  max-width: 1200px;
+  color: #333;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.index-detail-page-wrapper h2 {
+  text-align: left;
+  margin-bottom: 20px;
+  color: #000000;
+  font-weight: bold;
+  font-size: 2rem;
+}
+
+/* Summary Section */
+.index-summary {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 30px;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.index-summary p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.index-summary .positive-change {
+  color: #28a745;
+}
+
+.index-summary .negative-change {
+  color: #dc3545;
+}
+
+/* Chart Controls & Container */
+.chart-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end; /* Align controls to the right */
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.radio-inputs {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  border-radius: 1rem;
+  background: linear-gradient(145deg, #e6e6e6, #ffffff);
+  box-sizing: border-box;
+  box-shadow:
+    5px 5px 15px rgba(0, 0, 0, 0.15),
+    -5px -5px 15px rgba(255, 255, 255, 0.8);
+  padding: 0.5rem;
+  width: auto; /* Adjust width */
+  max-width: 500px; /* Max width for larger screens */
+  font-size: 14px;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.radio-inputs .radio {
+  flex: 1 1 auto;
+  text-align: center;
+  position: relative;
+}
+
+.radio-inputs .radio input {
+  display: none;
+}
+
+.radio-inputs .radio .name {
+  display: flex;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.7rem;
+  border: none;
+  padding: 0.7rem 1rem; /* Adjust padding */
+  color: #2d3748;
+  font-weight: 500;
+  font-family: inherit;
+  background: linear-gradient(145deg, #ffffff, #e6e6e6);
+  box-shadow:
+    3px 3px 6px rgba(0, 0, 0, 0.1),
+    -3px -3px 6px rgba(255, 255, 255, 0.7);
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.radio-inputs .radio input:checked + .name {
+  background: linear-gradient(145deg, #3b82f6, #2563eb);
+  color: white;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  box-shadow:
+    inset 2px 2px 5px rgba(0, 0, 0, 0.2),
+    inset -2px -2px 5px rgba(255, 255, 255, 0.1),
+    3px 3px 8px rgba(59, 130, 246, 0.3);
+  transform: translateY(2px);
+}
+
+.radio-inputs .radio:hover .name {
+  background: linear-gradient(145deg, #f0f0f0, #ffffff);
+  transform: translateY(-1px);
+  box-shadow:
+    4px 4px 8px rgba(0, 0, 0, 0.1),
+    -4px -4px 8px rgba(255, 255, 255, 0.8);
+}
+
+.radio-inputs .radio:hover input:checked + .name {
+  transform: translateY(1px);
+}
+
+.chart-container {
+  height: 450px; /* Increased height */
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.chart-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* MA Dropdown & Checkboxes */
+.ma-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.ma-dropdown-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #f8f9fa;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.ma-dropdown-container label {
+  font-weight: bold;
+}
+
+.ma-dropdown-container select {
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  background-color: white;
+}
+
+.chart-checkboxes {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+
+.chart-checkboxes label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.chart-checkboxes input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+/* Details Section */
+.details-section {
+  margin-top: 30px;
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  width: 100%;
+}
+
+.details-section h3 {
+  margin-bottom: 15px;
+  font-size: 1.5rem;
+  width: 100%; /* Ensure heading takes full width */
+}
+
+.details-section {
+  margin-top: 30px;
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  width: 100%;
+}
+
+.details-section h3 {
+  margin-bottom: 15px;
+  font-size: 1.5rem;
+  width: 100%; /* Ensure heading takes full width */
+}
+
+.details-table {
+  flex: 1 1 calc(50% - 10px); /* Two columns, accounting for gap */
+  border-collapse: collapse;
+  min-width: 300px; /* Ensure tables don't get too small */
+}
+
+.details-table td {
+  padding: 12px;
+  border: 1px solid #ddd;
+}
+
+.details-table tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+h3{
+  font-weight: bold;
+}

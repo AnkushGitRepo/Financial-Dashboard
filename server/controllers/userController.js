@@ -9,6 +9,7 @@ import cloudinary from "cloudinary";
 import DataUriParser from "datauri/parser.js";
 import { config } from "dotenv";
 import mongoose from "mongoose";
+import { Stock } from "../models/stockModel.js";
 
 config();
 
@@ -532,6 +533,34 @@ export const getIpoData = catchAsyncError(async (req, res, next) => {
     });
   } catch (error) {
     return next(new ErrorHandler("Failed to fetch IPO data.", 500));
+  }
+});
+
+export const getListedCompanies = catchAsyncError(async (req, res, next) => {
+  try {
+    const { query } = req.query;
+    if (!query) {
+      return res.status(200).json({
+        success: true,
+        stocks: [],
+      });
+    }
+
+    const searchCriteria = {
+      $or: [
+        { "Issuer Name": { $regex: query, $options: "i" } },
+        { "Security Id": { $regex: query, $options: "i" } },
+      ],
+    };
+
+    const stocks = await Stock.find(searchCriteria).limit(10); // Limit to 10 results for search bar
+
+    res.status(200).json({
+      success: true,
+      stocks,
+    });
+  } catch (error) {
+    return next(new ErrorHandler("Failed to fetch listed companies data.", 500));
   }
 });
   

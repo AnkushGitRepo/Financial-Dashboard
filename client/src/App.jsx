@@ -8,6 +8,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import OtpVerification from "./pages/OtpVerification";
 import Stocks from "./pages/Stocks";
+import StockDetailPage from "./pages/StockDetailPage";
 import Markets from "./pages/Markets";
 import IpoCalendar from "./pages/IpoCalendar";
 import Global from "./pages/Global";
@@ -60,6 +61,7 @@ const App = () => {
             <Route path="/" element={<><PageTitle title="Home" /><Home /></>} />
             <Route path="/stock-dashboard" element={<><PageTitle title="Stock Dashboard" /><StockDashboard /></>} />
             <Route path="/stocks" element={<><PageTitle title="Stocks" /><Stocks /></>} />
+            <Route path="/stocks/:stockIdentifier" element={<><PageTitle title="Stock Details" /><StockDetailPage /></>} />
             <Route path="/markets" element={<><PageTitle title="Markets" /><Markets /></>} />
             <Route path="/markets/indices/:ticker" element={<><PageTitle title="Index Details" /><IndexDetailPage /></>} />
             <Route path="/ipo-calendar" element={<><PageTitle title="IPO Calendar" /><IpoCalendar /></>} />

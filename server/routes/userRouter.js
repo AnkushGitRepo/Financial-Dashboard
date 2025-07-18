@@ -12,6 +12,7 @@ import {
   verifyOtpForUpdate,
   updatePassword,
   getIpoData,
+  getListedCompanies,
 } from "../controllers/userController.js";
 import { isAuthenticated } from "../middlewares/auth.js";
 import { upload } from "../config/multerConfig.js";
@@ -30,5 +31,6 @@ router.post("/send-otp-for-update", isAuthenticated, sendOtpForUpdate);
 router.post("/verify-otp-for-update", isAuthenticated, verifyOtpForUpdate);
 router.put("/password/update", isAuthenticated, updatePassword);
 router.get("/ipo-data", getIpoData);
+router.get("/stocks/search", getListedCompanies);
 
 export default router;

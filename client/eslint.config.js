@@ -33,6 +33,8 @@ export default [
         'warn',
         { allowConstantExport: true },
       ],
+      'react/react-in-jsx-scope': 'off', // Disable this rule for React 17+
+      'no-unused-vars': ['warn', { 'varsIgnorePattern': 'React' }],
     },
   },
 ]

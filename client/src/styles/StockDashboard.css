@@ -8,6 +8,116 @@
   margin-bottom: 20px;
 }
 
+.stock-search-section {
+  margin-bottom: 30px;
+  position: relative;
+}
+
+.stock-search-section h2 {
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.stock-search-input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1em;
+  box-sizing: border-box; /* Ensure padding doesn't increase overall width */
+}
+
+.search-results-dropdown {
+  border: 1px solid #eee;
+  border-top: none;
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 0 0 8px 8px;
+  z-index: 1000; /* Ensure it appears above other content */
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+}
+
+.search-result-item {
+  padding: 10px 15px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.search-result-item:hover {
+  background-color: #f0f0f0;
+}
+
+.search-result-item p {
+  margin: 0;
+  color: #333;
+}
+
+.search-result-item .ticker-info {
+  font-size: 0.8em;
+  color: #666;
+  margin-top: 5px;
+}
+
+.popular-indian-stocks {
+  margin-top: 30px;
+  margin-bottom: 30px;
+}
+
+.popular-indian-stocks h2 {
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.stocks-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.stock-card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.stock-card h3 {
+  margin-top: 0;
+  color: #555;
+  font-size: 1.2em;
+}
+
+.stock-card .value {
+  font-size: 1.3em;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.stock-card .change {
+  font-size: 0.9em;
+  margin-left: 10px;
+}
+
+.stock-card .change.positive {
+  color: #28a745;
+}
+
+.stock-card .change.negative {
+  color: #dc3545;
+}
+
 .stocks-summary .summary-cards {
   display: flex;
   gap: 20px;
