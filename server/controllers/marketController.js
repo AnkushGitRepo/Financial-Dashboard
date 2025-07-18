@@ -188,6 +188,39 @@ export const getStockDetails = catchAsyncError(async (req, res, next) => {
   }
 });
 
+export const getStocksData = catchAsyncError(async (req, res, next) => {
+  const { tickers } = req.query; // tickers will be a comma-separated string
+
+  if (!tickers) {
+    return res.status(200).json({ success: true, stocksData: [] });
+  }
+
+  const tickerArray = tickers.split(',');
+
+  try {
+    const quotes = await Promise.all(
+      tickerArray.map(ticker => yahooFinance.quote(ticker, { validateResult: false }))
+    );
+
+    const stocksData = quotes.map(quote => ({
+      symbol: quote.symbol || null,
+      longName: quote.longName || quote.shortName || quote.symbol || null,
+      regularMarketPrice: quote.regularMarketPrice?.raw !== undefined ? quote.regularMarketPrice.raw : quote.regularMarketPrice || null,
+      regularMarketChange: quote.regularMarketChange?.raw !== undefined ? quote.regularMarketChange.raw : quote.regularMarketChange || null,
+      regularMarketChangePercent: quote.regularMarketChangePercent?.raw !== undefined ? quote.regularMarketChangePercent.raw : quote.regularMarketChangePercent || null,
+      marketState: quote.marketState || null,
+    }));
+
+    res.status(200).json({
+      success: true,
+      stocksData,
+    });
+  } catch (error) {
+    console.error('Error fetching stocks data:', error);
+    return next(new Error('Failed to fetch stocks data', 500));
+  }
+});
+
 export const getHistoricalStockData = catchAsyncError(async (req, res, next) => {
   const { ticker: stockIdentifier } = req.params; // Rename ticker to stockIdentifier for clarity
   const { range } = req.query;

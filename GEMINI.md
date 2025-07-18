@@ -138,3 +138,34 @@ financial-dashboard/
 22. **Indian/Global Market Title Boldness**:
     *   **Feature**: Made the titles "Indian Market" and "Global Market" bold.
     *   **Resolution**: Added `font-weight: bold;` to `.market-section h2` in `client/src/styles/MarketSection.css`.
+23. **Server Startup Error (SyntaxError):**
+    *   **Feature:** Resolved `SyntaxError` due to `getStockDividendData` import in `server/routes/marketRoutes.js`.
+    *   **Resolution:** Removed unused `getStockDividendData` import and its corresponding route from `server/routes/marketRoutes.js`.
+24. **Server Startup Error (ReferenceError):**
+    *   **Feature:** Resolved `ReferenceError` due to `getStockFinancialData` in `server/routes/marketRoutes.js`.
+    *   **Resolution:** Removed unused `getStockFinancialData` route from `server/routes/marketRoutes.js`.
+25. **Stocks Page Title Styling:**
+    *   **Feature:** Added a styled `h1` title "Stocks Dashboard" to `client/src/pages/Stocks.jsx` with a custom background and white text.
+    *   **Resolution:** Wrapped the `h1` in a `div` with `stocks-title-container` class and applied background styles. Created `client/src/styles/Stocks.css` for the new styles.
+26. **Stocks Page Title Text Color:**
+    *   **Feature:** Ensured the title text color is white.
+    *   **Resolution:** Added `color: white !important;` to `.stocks-page-title` in `client/src/styles/Stocks.css`.
+27. **Stocks Page Title Styling Conflict:**
+    *   **Feature:** Prevented styling conflicts with other pages by making Stocks page title styles more specific.
+    *   **Resolution:** Renamed `.title-container` to `.stocks-title-container` and `.stock-title` to `.stocks-page-title` in `client/src/styles/Stocks.css` and `client/src/pages/Stocks.jsx`.
+28. **Stocks Page Title Alignment:**
+    *   **Feature:** Centered the title text on the Stocks page.
+    *   **Resolution:** Added `width: 100%;` to `.stocks-page-title` in `client/src/styles/Stocks.css` to ensure `text-align: center` works correctly.
+29. **Stocks Page Text Updates:**
+    *   **Feature:** Removed "Welcome to your personalized stocks overview." line and made "Search Stocks" and "Popular Indian Stocks" bold.
+    *   **Resolution:** Removed the `<p>` tag and wrapped the `h2` tags with `<b>` for bolding in `client/src/pages/Stocks.jsx`.
+30. **Stocks Page Popular Stocks Data Fetching:**
+    *   **Feature:** Replaced hardcoded popular stock data with real-time data fetched from Yahoo Finance using a new backend API.
+    *   **Resolution:**
+        *   Added `getStocksData` function to `server/controllers/marketController.js` to fetch data for multiple tickers.
+        *   Added a new route `/api/v1/market/stocks/data` in `server/routes/marketRoutes.js` for `getStocksData`.
+        *   Modified `client/src/pages/Stocks.jsx` to fetch data from this new API, format it, and update the `popularIndianStocks` state.
+        *   Implemented a 60-second refresh interval for popular stocks data.
+31. **Stocks Page Data Fetching 404 Error:**
+    *   **Feature:** Resolved 404 error when fetching popular stocks data.
+    *   **Resolution:** Corrected the API endpoint in `client/src/pages/Stocks.jsx` from `/api/v1/user/stocks/data` to `/api/v1/market/stocks/data`.

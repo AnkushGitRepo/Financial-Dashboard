@@ -1,5 +1,5 @@
 import express from 'express';
-import { getHistoricalIndexData, getAllMarketIndices, getGlobalNews, searchIndianStocks, getStockDetails, getHistoricalStockData, getStockDividendData } from '../controllers/marketController.js';
+import { getHistoricalIndexData, getAllMarketIndices, getGlobalNews, searchIndianStocks, getStockDetails, getHistoricalStockData, getStocksData } from '../controllers/marketController.js';
 
 const router = express.Router();
 
@@ -9,8 +9,7 @@ router.route('/global-news').get(getGlobalNews);
 router.route('/stocks/search').get(searchIndianStocks);
 router.route('/stock/:stockIdentifier').get(getStockDetails);
 router.route('/stock/history/:ticker').get(getHistoricalStockData);
-router.route('/stock/financials/:stockIdentifier').get(getStockFinancialData);
-router.route('/stock/dividends/:stockIdentifier').get(getStockDividendData);
+router.route('/stocks/data').get(getStocksData);
 
 
 export default router;

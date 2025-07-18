@@ -54,7 +54,7 @@ client/
 │   │   ├── ResetPassword.jsx # Reset password page
 │   │   ├── Settings.jsx    # User settings page
 │   │   ├── StockDashboard.jsx # Stock dashboard page
-│   │   └── Stocks.jsx      # Stocks listing page
+│   │   ├── Stocks.jsx      # Stocks listing page with real-time data
 │   ├── styles/             # Global and component-specific CSS files
 │   │   ├── ActionBar.css
 │   │   ├── Auth.css
@@ -72,8 +72,13 @@ client/
 │   │   ├── ResetPassword.css
 │   │   ├── Settings.css
 │   │   ├── Sidebar.css
+│   │   ├── MarketSection.css
+│   │   ├── Markets.css
 │   │   ├── StockDashboard.css
-│   │   └── Technologies.css
+│   │   ├── StockDetailPage.css
+│   │   ├── Stocks.css
+│   │   ├── Technologies.css
+│   │   └── TickerBar.css
 │   ├── App.css             # Main application-wide CSS
 │   ├── App.jsx             # Main React application component and routing setup
 │   └── main.jsx            # Entry point for the React application (ReactDOM.render)
@@ -84,6 +89,42 @@ client/
 ├── README.md               # This file
 └── vite.config.js          # Vite build configuration
 ```
+
+## Dependencies
+
+This project uses the following key dependencies:
+
+| Package            | Version  | Reason                                      |
+| :----------------- | :------- | :------------------------------------------ |
+| `axios`            | ^1.7.9   | Promise-based HTTP client for API requests  |
+| `chart.js`         | ^4.5.0   | Flexible JavaScript charting library        |
+| `clsx`             | ^2.1.1   | Utility for conditionally joining class names |
+| `framer-motion`    | ^12.23.6 | Library for animations                      |
+| `lucide-react`     | ^0.525.0 | Collection of beautiful & customizable React icons |
+| `react`            | ^18.3.1  | Core library for building user interfaces   |
+| `react-chartjs-2`  | ^5.3.0   | React wrapper for Chart.js                  |
+| `react-dom`        | ^18.3.1  | Provides DOM-specific methods for React     |
+| `react-hook-form`  | ^7.54.2  | Library for efficient form validation       |
+| `react-icons`      | ^5.5.0   | Popular icon library for React applications |
+| `react-router-dom` | ^7.1.0   | Declarative routing for React applications  |
+| `react-toastify`   | ^11.0.2  | Library for toast notifications             |
+| `recharts`         | ^3.0.2   | Composable charting library built with React |
+| `tailwind-merge`   | ^3.3.1   | Utility for merging Tailwind CSS classes    |
+
+## Development Dependencies
+
+| Package                      | Version   | Reason                                      |
+| :--------------------------- | :-------- | :------------------------------------------ |
+| `@eslint/js`                 | ^9.17.0   | ESLint core functionality                   |
+| `@types/react`               | ^18.3.17  | TypeScript type definitions for React       |
+| `@types/react-dom`           | ^18.3.5   | TypeScript type definitions for React DOM   |
+| `@vitejs/plugin-react`       | ^4.3.4    | Vite plugin for React support               |
+| `eslint`                     | ^9.17.0   | Pluggable JavaScript linter                 |
+| `eslint-plugin-react`        | ^7.37.2   | ESLint plugin for React specific linting rules |
+| `eslint-plugin-react-hooks`  | ^5.0.0    | ESLint plugin for React Hooks specific linting rules |
+| `eslint-plugin-react-refresh`| ^0.4.16   | ESLint plugin for React Fast Refresh        |
+| `globals`                    | ^15.13.0  | Global variables for ESLint configuration   |
+| `vite`                       | ^6.0.3    | Next generation frontend tooling            |
 
 ## Available Scripts
 

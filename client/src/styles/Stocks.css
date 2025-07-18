@@ -1,0 +1,85 @@
+.stocks-title-container {
+  width: 100%;
+  --u: 20px; /* change block size */
+  --hue: hue-rotate(0deg); /* change color hue*/
+  --c1: #92472f;
+  --c2: #d2562f;
+  --c3: #ffbc58;
+  --cs: #6b2e1b;
+  --gp: 50% / calc(var(--u) * 12) calc(var(--u) * 12.8);
+  height: 100px; /* Adjusted height for the title container */
+  filter: var(--hue);
+  background:
+    repeating-conic-gradient(
+        from 61.93deg at 75% 36.5%,
+        var(--c1) 0%,
+        var(--c1) 2%,
+        var(--cs) 16%,
+        #fff0 0% 100%
+      )
+      var(--gp),
+    repeating-conic-gradient(
+        from 118.07deg at 75% 87.5%,
+        var(--c3) 0% 34.5%,
+        #fff0 0% 100%
+      )
+      var(--gp),
+    repeating-conic-gradient(
+        from 118.07deg at 50% 75%,
+        #fff0 2%,
+        var(--cs) 17.15%,
+        #fff0 0% 100%
+      )
+      var(--gp),
+    repeating-conic-gradient(
+        from 61.93deg at 50% 50%,
+        var(--c3) 0% 15.59%,
+        var(--c2) 0% 32.79%,
+        #fff0 0% 100%
+      )
+      var(--gp),
+    repeating-conic-gradient(
+        from -118.07deg at 25% 12.5%,
+        var(--c2) 0% 32.79%,
+        var(--c1) 0% 50%,
+        #fff0 0% 100%
+      )
+      var(--gp),
+    repeating-conic-gradient(
+        from -61.93deg at 25% 87.5%,
+        #fff0 0 67.25%,
+        var(--c2) 0% 100%
+      )
+      var(--gp),
+    repeating-conic-gradient(
+        from -61.93deg at 50% 75%,
+        #fff0 0% 66.5%,
+        var(--c1) 0% 84.25%,
+        var(--c3) 0% 100%
+      )
+      var(--gp),
+    repeating-conic-gradient(
+        from -61.93deg at 25% 37.5%,
+        var(--c3) 0% 34.5%,
+        var(--c1) 0% 67.25%,
+        var(--c2) 0% 100%
+      )
+      var(--gp);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.stocks-page-title {
+  color: white !important;
+  font-weight: bold;
+  text-align: center;
+  margin: 0;
+  width: 100%;
+}
+
+b{
+    font-weight: bold;
+}
