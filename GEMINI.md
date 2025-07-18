@@ -111,3 +111,30 @@ financial-dashboard/
         *   Encountered "Too Many Requests" error from Yahoo Finance.
         *   Implemented caching for Nifty 50 tickers in `server/controllers/marketController.js`.
         *   **Reverted all TickerBar related changes** due to persistent issues and user request to avoid risk. This includes reverting changes in `server/controllers/marketController.js`, `server/routes/marketRoutes.js`, and `client/src/components/TickerBar.jsx`. Also, fixed a `SyntaxError` in `marketController.js` and a `ReferenceError` in `app.js` that arose during the TickerBar implementation and subsequent reverts.
+14. **Market Card Styling**:
+    *   **Feature**: Enhanced styling for market cards in `IndianMarket.jsx` and `GlobalMarket.jsx` to visually represent positive/negative changes with colored borders and background.
+    *   **Resolution**: Modified `client/src/styles/MarketSection.css` to add `border-left-color` and `background-color` based on `positive` or `negative` classes. Also added a subtle `updated` animation.
+15. **Market Card Text Color**:
+    *   **Feature**: Ensured market change values and percentages are colored red for negative and green for positive changes.
+    *   **Resolution**: Modified `client/src/styles/MarketSection.css` to apply `color: var(--color-positive) !important;` and `color: var(--color-negative) !important;` to `.market-card.positive .market-change` and `.market-card.negative .market-change` respectively. Also set the default text color of `.market-card` to `var(--color-text-primary)`.
+16. **Market Card Navigation**:
+    *   **Feature**: Corrected navigation for market cards in `IndianMarket.jsx` and `GlobalMarket.jsx` to prevent 404 errors when clicking on indices.
+    *   **Resolution**: Updated `Link` `to` prop in both `IndianMarket.jsx` and `GlobalMarket.jsx` from `/indices/:ticker` to `/markets/indices/:ticker`.
+17. **Index Detail Page Data Loading**:
+    *   **Feature**: Resolved the "Loading..." issue on `IndexDetailPage` where data was not loading.
+    *   **Resolution**: Modified `server/controllers/marketController.js` to ensure the `getHistoricalIndexData` function returns data in the format expected by `IndexDetailPage` (i.e., with `current` and `historical` properties).
+18. **Server Stability (Global News)**:
+    *   **Feature**: Addressed server crashes caused by the deprecated `google-finance` package when fetching global news.
+    *   **Resolution**: Replaced `google-finance` with `yahoo-finance2` in `server/controllers/marketController.js` for fetching global news. Removed `google-finance` dependency from `server/package.json`.
+19. **Market News Section Redesign**:
+    *   **Feature**: Redesigned the `MarketNews` component to have a professional layout with one large main article, two secondary articles, and a list of other articles.
+    *   **Resolution**: Modified `client/src/components/MarketNews.jsx` to structure the news display. Added new styles to `client/src/styles/MarketSection.css` for `.news-grid-container`, `.news-card-large`, `.news-image-large`, `.news-content-large`, `.secondary-news-container`, `.news-card-medium`, `.news-image-medium`, `.news-content-medium`, `.news-source`, `.other-news-list`, and `.news-source-list`.
+20. **Markets Page Title Styling**:
+    *   **Feature**: Added a styled `h1` title to `client/src/pages/Markets.jsx` with a custom background, centered and bold text, rounded edges, and adjusted height.
+    *   **Resolution**: Created `client/src/styles/Markets.css` with styles for `.title-container` and `.market-title`. Imported this new CSS file into `client/src/pages/Markets.jsx` and applied the classes.
+21. **Markets Page Title Readability**:
+    *   **Feature**: Improved readability of the "Market Overview" title on the Markets page.
+    *   **Resolution**: Changed the `color` of `.market-title` in `client/src/styles/Markets.css` to `#333333` (dark charcoal).
+22. **Indian/Global Market Title Boldness**:
+    *   **Feature**: Made the titles "Indian Market" and "Global Market" bold.
+    *   **Resolution**: Added `font-weight: bold;` to `.market-section h2` in `client/src/styles/MarketSection.css`.

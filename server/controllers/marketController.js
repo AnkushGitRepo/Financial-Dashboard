@@ -1,6 +1,9 @@
 import yahooFinance from 'yahoo-finance2';
 import { catchAsyncError } from '../middlewares/catchAsyncError.js';
 import axios from 'axios';
+import { indexes } from '../market/live_market.js';
+import getLiveMarketData from '../market/live_market.js';
+
 
 const getDateRange = (range) => {
   const today = new Date();
@@ -49,64 +52,83 @@ const getDateRange = (range) => {
   };
 };
 
+export const getAllMarketIndices = catchAsyncError(async (req, res, next) => {
+  try {
+    const allMarketData = await getLiveMarketData();
+
+    const indianIndices = allMarketData.filter(index =>
+      indexes.find(i => i.ticker === index.ticker && i.type === 'indian')
+    );
+    const globalIndices = allMarketData.filter(index =>
+      indexes.find(i => i.ticker === index.ticker && i.type === 'global')
+    );
+
+    res.status(200).json({
+      success: true,
+      indianIndices,
+      globalIndices,
+    });
+  } catch (error) {
+    console.error('Error fetching all market indices:', error);
+    return next(new Error('Failed to fetch market indices', 500));
+  }
+});
+
 export const getHistoricalIndexData = catchAsyncError(async (req, res, next) => {
   const { ticker } = req.params;
-  const { range = '1y' } = req.query; // Default to 1 year
-
-  if (!ticker) {
-    return next(new Error('Ticker symbol is required', 400));
-  }
+  const { range } = req.query;
 
   try {
     const { period1, period2 } = getDateRange(range);
-    const chartOptions = { period1: period1, period2: period2 };
 
-    const chartResult = await yahooFinance.chart(ticker, chartOptions);
+    const queryOptions = {
+      period1: period1.toISOString().split('T')[0],
+      period2: period2.toISOString().split('T')[0],
+    };
 
-    if (!chartResult || !chartResult.quotes || chartResult.quotes.length === 0) {
-      return next(new Error(`No data found for ticker: ${ticker} with range ${range}`, 404));
-    }
+    // Fetch historical and current data in parallel
+    const [historicalResult, quote] = await Promise.all([
+      yahooFinance.historical(ticker, queryOptions),
+      yahooFinance.quote(ticker)
+    ]);
 
-    const historical = chartResult.quotes.map(quote => ({
-      date: new Date(quote.date).toISOString().split('T')[0],
-      price: quote.close,
+    // Format historical data
+    const historical = historicalResult.map(item => ({
+      date: item.date.toISOString().split('T')[0],
+      price: item.close,
     }));
-
-    const currentQuote = chartResult.meta;
 
     res.status(200).json({
       success: true,
       data: {
+        current: quote,
         historical: historical,
-        current: {
-          symbol: currentQuote.symbol,
-          longName: currentQuote.longName || currentQuote.symbol,
-          regularMarketPrice: currentQuote.regularMarketPrice,
-          regularMarketChange: currentQuote.chartPreviousClose ? (currentQuote.regularMarketPrice - currentQuote.chartPreviousClose) : null,
-          regularMarketChangePercent: currentQuote.chartPreviousClose ? ((currentQuote.regularMarketPrice - currentQuote.chartPreviousClose) / currentQuote.chartPreviousClose) * 100 : null,
-          fiftyTwoWeekHigh: currentQuote.fiftyTwoWeekHigh,
-          fiftyTwoWeekLow: currentQuote.fiftyTwoWeekLow,
-          regularMarketOpen: currentQuote.regularMarketOpen,
-          regularMarketDayHigh: currentQuote.regularMarketDayHigh,
-          regularMarketDayLow: currentQuote.regularMarketDayLow,
-          regularMarketPreviousClose: currentQuote.regularMarketPreviousClose,
-          regularMarketVolume: currentQuote.regularMarketVolume,
-          averageDailyVolume3Month: currentQuote.averageDailyVolume3Month,
-          averageDailyVolume10Day: currentQuote.averageDailyVolume10Day,
-          marketState: currentQuote.marketState,
-          exchange: currentQuote.exchange,
-          fullExchangeName: currentQuote.fullExchangeName,
-          currency: currentQuote.currency,
-          gmtOffSetMilliseconds: currentQuote.gmtOffSetMilliseconds,
-          regularMarketTime: currentQuote.regularMarketTime,
-          quoteType: currentQuote.quoteType,
-          regularMarketSource: currentQuote.regularMarketSource || 'N/A', // regularMarketSource might not always be present
-        },
       },
     });
   } catch (error) {
-    console.error(`Error fetching data for ${ticker} with range ${range}:`, error);
-    return next(new Error(`Failed to fetch data for ${ticker}: ${error.message}`, 500));
+    console.error(`Error fetching data for ${ticker}:`, error);
+    return next(new Error(`Failed to fetch data for ${ticker}`, 500));
+  }
+});
+
+export const getGlobalNews = catchAsyncError(async (req, res, next) => {
+  try {
+    const result = await yahooFinance.search('global markets');
+    const articles = result.news.slice(0, 10).map(article => ({
+      url: article.link,
+      urlToImage: article.thumbnail?.resolutions[0]?.url || null,
+      title: article.title,
+      description: null, // Yahoo Finance search doesn't provide descriptions
+      source: { name: article.publisher }
+    }));
+
+    res.status(200).json({
+      success: true,
+      articles: articles,
+    });
+  } catch (error) {
+    console.error('Error fetching global news:', error);
+    return next(new Error('Failed to fetch global news', 500));
   }
 });
 
