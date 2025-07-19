@@ -1,0 +1,381 @@
+.portfolio-main-title-container {
+  width: 100%;
+  height: 100px; /* Adjust height as needed */
+  --color: #a748f5;
+  background: linear-gradient(95deg, var(--color) 25%, transparent 25%) -50px 0,
+    linear-gradient(-15deg, var(--color) 25%, transparent 25%) -50px 0,
+    linear-gradient(25deg, transparent 75%, var(--color) 75%) -50px 0,
+    linear-gradient(-45deg, transparent 75%, var(--color) 75%) -50px 0,
+    linear-gradient(-15deg, transparent 75%, var(--color) 75%) -50px 0;
+  background-color: #b669fd;
+  background-size: 40px 40px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.portfolio-main-title {
+  color: white;
+  font-size: 2.5em;
+  font-weight: bold;
+  margin: 0;
+  text-align: center;
+}
+
+.portfolio-page {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.stock-search-section {
+  margin-bottom: 30px;
+  background-color: var(--color-background-card);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: var(--box-shadow);
+}
+
+.stock-search-section h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: var(--color-text-primary);
+}
+
+.stock-search-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  font-size: 1em;
+  box-sizing: border-box;
+  background-color: var(--color-input-background);
+  color: var(--color-text-primary);
+}
+
+.stock-search-input::placeholder {
+  color: var(--color-text-secondary);
+}
+
+.search-results-dropdown {
+  border: 1px solid var(--color-border);
+  border-top: none;
+  max-height: 300px;
+  overflow-y: auto;
+  background-color: var(--color-background-card);
+  border-radius: 0 0 8px 8px;
+  box-shadow: var(--box-shadow);
+  z-index: 1000;
+  position: relative;
+}
+
+.search-result-item {
+  padding: 12px 15px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--color-border-light);
+  transition: background-color 0.2s ease;
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.search-result-item:hover {
+  background-color: var(--color-hover);
+}
+
+.search-result-item p {
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.search-result-item .ticker-info {
+  font-size: 0.85em;
+  color: var(--color-text-secondary);
+}
+
+.add-transaction-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup-content {
+  background-color: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: var(--box-shadow-lg);
+  width: 90%;
+  max-width: 500px;
+  position: relative;
+  color: var(--color-text-primary);
+}
+
+.popup-content h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: var(--color-primary);
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: var(--color-text-primary);
+}
+
+.form-group input[type="number"],
+.form-group input[type="date"],
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc; /* Make border more visible */
+  border-radius: 5px;
+  font-size: 1em;
+  box-sizing: border-box;
+  background-color: white; /* Ensure white background for input fields */
+  color: var(--color-text-primary);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 25px;
+}
+
+.submit-button,
+.cancel-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: bold;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.submit-button {
+  background-color: var(--color-positive);
+  color: white;
+}
+
+.submit-button:hover {
+  background-color: #218838; /* Darker green */
+}
+
+.cancel-button {
+  background-color: var(--color-negative);
+  color: white;
+}
+
+.cancel-button:hover {
+  background-color: #c82333; /* Darker red */
+}
+
+.portfolio-holdings {
+  margin-top: 40px;
+  background-color: var(--color-background-card);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: var(--box-shadow);
+}
+
+.portfolio-holdings h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: var(--color-text-primary);
+}
+
+.portfolio-holdings p {
+  color: var(--color-text-secondary);
+  text-align: center;
+  padding: 20px;
+  border: 1px dashed var(--color-border);
+  border-radius: 5px;
+}
+
+.holdings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.holding-card {
+  background-color: var(--color-background-alt);
+  padding: 20px;
+  border-radius: 12px; /* More rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Softer shadow */
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-light); /* Subtle border */
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Smooth transition for hover */
+  position: relative; /* Added for icon positioning */
+  padding-bottom: 20px; /* Adjusted padding */
+  display: grid;
+  grid-template-columns: 2fr 3fr 1fr; /* Company Name | Prices | Buttons */
+  align-items: center;
+  width: 100%; /* Take full width */
+}
+
+.holding-card:hover {
+  transform: translateY(-5px); /* Lift effect on hover */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
+}
+
+.holding-card-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.holding-card h3 {
+  margin: 0;
+  color: var(--color-primary);
+  font-size: 1.5em; /* Larger font size for company name */
+  font-weight: bold; /* Bold company name */
+}
+
+.holding-card-prices {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  text-align: center;
+}
+
+.price-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.price-label {
+  font-size: 0.9em;
+  color: var(--color-text-secondary);
+  margin-bottom: 5px;
+}
+
+.price-value {
+  font-size: 1.1em;
+  font-weight: bold;
+  color: var(--color-text-primary);
+}
+
+.action-icon {
+  cursor: pointer;
+  font-size: 1.4em; /* Slightly larger icons */
+  color: var(--color-text-secondary);
+  transition: color 0.2s ease;
+}
+
+.action-icon:hover {
+  color: var(--color-primary);
+}
+
+.delete-icon:hover {
+  color: var(--color-negative);
+}
+
+.link-icon:hover {
+  color: var(--color-primary);
+}
+
+.edit-icon:hover {
+  color: var(--color-primary);
+}
+
+.portfolio-summary {
+  margin-bottom: 30px;
+  background-color: var(--color-background-card);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: var(--box-shadow);
+}
+
+.portfolio-summary h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: var(--color-text-primary);
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.summary-card {
+  background-color: var(--color-background-alt);
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: var(--box-shadow);
+  text-align: center;
+}
+
+.summary-card h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: var(--color-primary);
+  font-size: 1.1em;
+}
+
+.summary-card p {
+  margin: 0;
+  font-size: 1.4em;
+  font-weight: bold;
+  color: var(--color-text-primary);
+  border: none;
+  padding: 0;
+}
+
+.summary-card p.profit-text {
+  color: var(--color-positive) !important;
+}
+
+.summary-card p.loss-text {
+  color: var(--color-negative) !important;
+}
+
+.delete-confirmation-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  width: 100%;
+  height: 100%;
+}
+
+.profit-text {
+  color: var(--color-positive) !important;
+}
+
+.loss-text {
+  color: var(--color-negative) !important;
+}
+
+.holding-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* Adjusted gap */
+  align-items: flex-end;
+  justify-content: center; /* Center buttons vertically */
+}

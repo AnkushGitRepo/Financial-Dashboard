@@ -1,10 +1,10 @@
-# Financial Dashboard
+# Financial Dashboard 📈
 
 This project is a comprehensive full-stack web application built with the MERN (MongoDB, Express.js, React, Node.js) stack, designed to provide users with a robust financial dashboard experience. It features secure user authentication with OTP verification, a dynamic Indian Stock Market Dashboard, and an interactive IPO Calendar. The application emphasizes a responsive and intuitive user interface, with functionalities for managing account details, notification preferences, and profile images.
 
-## Features
+## Features ✨
 
-### User Authentication
+### User Authentication 🔐
 - **User Registration**: Allows new users to sign up with name, email, phone, and password.
 - **User Login**: Secure login for registered users.
 - **OTP Verification**: Supports both email and phone (via Twilio) for one-time password verification during registration.
@@ -12,28 +12,28 @@ This project is a comprehensive full-stack web application built with the MERN (
 - **Reset Password**: Secure password reset using a token sent to the user's email.
 - **Session Management**: Uses cookies for maintaining user sessions.
 
-### Indian Stock Market Dashboard
+### Indian Stock Market Dashboard 📊
 - **Market Indices Overview**: Displays key Indian stock market indices (NIFTY 50, SENSEX, NIFTY BANK, NIFTY IT) with their current levels, changes, and small trend line charts. Cards are dynamically styled based on performance.
 - **Detailed Index View**: Clicking on an index card redirects to a dedicated page providing comprehensive details, an interactive chart with various time ranges (1D, 5D, 1M, 3M, 6M, 1Y, 5Y), customizable moving averages, and a detailed table of market data.
 - **Popular Stocks**: Displays real-time data for popular Indian stocks.
 - **Real-time Ticker Bar**: Displays live updates of key stock prices and their changes.
 
-### IPO Calendar
+### IPO Calendar 🗓️
 - **Comprehensive Listings**: View upcoming and past Initial Public Offerings (IPOs).
 - **Filtering**: Filter IPOs by Mainboard and SME categories.
 - **Search Functionality**: Easily search for IPOs by company name.
 - **Recommendation System**: Provides recommendations based on premium and other factors.
 
-### User Settings
+### User Settings ⚙️
 - **Account Details Management**: Update personal information such as name and email.
 - **Profile Image Upload**: Upload and manage user profile pictures.
 - **Notification Preferences**: Customize notification settings.
 - **Password Management**: Securely change your account password.
 
-### General Features
+### General Features 📱
 - **Responsive Design**: The application is designed to be responsive across different screen sizes.
 
-## Technologies Used
+## Technologies Used 💻
 
 ### Frontend (Client)
 - **React**: A JavaScript library for building user interfaces.
@@ -58,7 +58,7 @@ This project is a comprehensive full-stack web application built with the MERN (
 - **twilio**: For sending SMS messages (e.g., OTP via phone call).
 - **node-cron**: For scheduling tasks (e.g., removing unverified accounts).
 
-## Project Structure
+## Project Structure 📁
 
 ```
 financial-dashboard/
@@ -96,15 +96,19 @@ financial-dashboard/
 └── README.md               # Project documentation
 ```
 
-## Getting Started
+## Project Demo 🎥
+
+[![Project Demo](https://img.youtube.com/vi/akQ9g7HR79A/maxresdefault.jpg)](https://www.youtube.com/watch?v=akQ9g7HR79A)
+
+## Getting Started ▶️
 
 To set up and run this project, please refer to the [Setup and Installation Guide](SETUP.md).
 
-## Development Notes
+## Development Notes 📝
 
 For specific instructions and conventions related to developing with the Gemini CLI agent, please refer to [GEMINI.md](GEMINI.md).
 
-## Usage
+## Usage 🚀
 
 1.  **Access the Application**: Open your web browser and navigate to `http://localhost:5173`.
 2.  **Register**: Click on the "Register" tab. Fill in your details, including a valid Indian phone number (starting with 6, 7, 8, or 9 and 10 digits long). Select your preferred verification method (Email or Phone).
@@ -115,14 +119,14 @@ For specific instructions and conventions related to developing with the Gemini 
     -   **IPO Calendar**: Visit `/ipo-calendar` to see upcoming and past IPOs, with filtering and search options.
     -   **Settings**: Go to `/settings` to manage your account details, upload a profile image, update notification preferences, and change your password.
 
-## Scrapers
+## Scrapers 🕷️
 
 This project includes two Python-based web scrapers located in the `scraper` directory:
 
 -   **IPO Data Scraper (`ipo_data_scraper.py`)**: This scraper fetches IPO data and stores it in the MongoDB database. It is intended to be run periodically to keep the IPO data up-to-date.
 -   **Financial Data Scraper (`financial_data_scraper.py`)**: This scraper fetches detailed financial data for a given company from `screener.in`. It is designed to be run on-demand to retrieve data for a specific company.
 
-### Running the Scrapers
+### Running the Scrapers 🏃
 
 To run the scrapers, follow these steps:
 

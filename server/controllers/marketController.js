@@ -198,6 +198,41 @@ export const getStocksData = catchAsyncError(async (req, res, next) => {
   }
 });
 
+export const getLiveStockData = catchAsyncError(async (req, res, next) => {
+  const { tickers } = req.query;
+
+  if (!tickers) {
+    return res.status(200).json({ success: true, liveData: {} });
+  }
+
+  const tickerArray = tickers.split(',');
+  const liveData = {};
+
+  try {
+    const quotes = await Promise.all(
+      tickerArray.map(ticker => yahooFinance.quote(ticker, { validateResult: false }))
+    );
+
+    quotes.forEach(quote => {
+      if (quote && quote.symbol) {
+        liveData[quote.symbol] = {
+          currentPrice: quote.regularMarketPrice || null,
+          regularMarketChange: quote.regularMarketChange || null,
+          regularMarketChangePercent: quote.regularMarketChangePercent || null,
+        };
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      liveData,
+    });
+  } catch (error) {
+    console.error('Error fetching live stock data:', error);
+    return next(new Error('Failed to fetch live stock data', 500));
+  }
+});
+
 export const getSentimentNews = catchAsyncError(async (req, res, next) => {
   const { ticker_or_company, company_name } = req.query;
 

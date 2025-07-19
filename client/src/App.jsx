@@ -11,10 +11,8 @@ import Stocks from "./pages/Stocks";
 import StockDetailPage from "./pages/StockDetailPage";
 import Markets from "./pages/Markets";
 import IpoCalendar from "./pages/IpoCalendar";
-import Global from "./pages/Global";
 import Portfolio from "./pages/Portfolio";
-import Performance from "./pages/Performance";
-import Analysis from "./pages/Analysis";
+import "./styles/Portfolio.css";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import Layout from "./layout/Layout";
@@ -65,10 +63,7 @@ const App = () => {
             <Route path="/markets" element={<><PageTitle title="Markets" /><Markets /></>} />
             <Route path="/markets/indices/:ticker" element={<><PageTitle title="Index Details" /><IndexDetailPage /></>} />
             <Route path="/ipo-calendar" element={<><PageTitle title="IPO Calendar" /><IpoCalendar /></>} />
-            <Route path="/global" element={<><PageTitle title="Global" /><Global /></>} />
             <Route path="/portfolio" element={<><PageTitle title="Portfolio" /><Portfolio /></>} />
-            <Route path="/performance" element={<><PageTitle title="Performance" /><Performance /></>} />
-            <Route path="/analysis" element={<><PageTitle title="Analysis" /><Analysis /></>} />
             <Route path="/settings" element={<><PageTitle title="Settings" /><Settings /></>} />
             <Route path="*" element={<><PageTitle title="Page Not Found" /><NotFound /></>} />
           </Route>

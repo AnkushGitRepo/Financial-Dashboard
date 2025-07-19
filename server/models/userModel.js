@@ -30,6 +30,12 @@ const userSchema = new mongoose.Schema({
   ipoInvestmentAdvice: { type: Boolean, default: false },
   newsletter: { type: Boolean, default: false },
   promotionalMails: { type: Boolean, default: false },
+  portfolioItems: [
+    {
+      type: mongoose.Schema.ObjectId,
+      ref: 'Portfolio',
+    },
+  ],
   accountVerified: { type: Boolean, default: false },
   verificationCode: Number,
   verificationCodeExpire: Date,

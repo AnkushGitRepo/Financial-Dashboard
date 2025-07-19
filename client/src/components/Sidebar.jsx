@@ -39,10 +39,7 @@ export function Sidebar({ isCollapsed, onToggle }) {
     { title: 'Stocks', icon: BarChart, href: '/stocks' },
     { title: 'Markets', icon: BarChart3, href: '/markets' },
     { title: 'IPO Calendar', icon: Calendar, href: '/ipo-calendar' },
-    { title: 'Global', icon: Globe, href: '/global' },
     { title: 'Portfolio', icon: Wallet, href: '/portfolio' },
-    { title: 'Performance', icon: LineChart, href: '/performance' },
-    { title: 'Analysis', icon: PieChart, href: '/analysis' },
   ];
 
   const settingsItem = { title: 'Settings', icon: Settings, href: '/settings' };

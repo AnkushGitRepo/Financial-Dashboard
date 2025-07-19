@@ -23,41 +23,40 @@ client/
 │   │   ├── ActionBar.jsx   # Component for mobile action bar
 │   │   ├── Hero.jsx        # Hero section component
 │   │   ├── MarketIndices.jsx # Displays key market indices with charts
+│   │   ├── MarketNews.jsx  # Displays market news articles
 │   │   ├── Navbar.jsx      # Navigation bar component
 │   │   ├── Notification.jsx# Notification display component
 │   │   ├── PageTitle.jsx   # Component to dynamically set page titles
 │   │   ├── Security.jsx    # Security settings component
-│   │   ├── Sidebar.css     # Styles for the Sidebar component
 │   │   ├── Sidebar.jsx     # Sidebar navigation component
-│   │   ├── TickerBar.jsx   # Real-time stock ticker bar component
-│   │   └── TickerBar.css   # Styles for the TickerBar component
+│   │   └── TickerBar.jsx   # Real-time stock ticker bar component
 │   ├── layout/             # Layout components for consistent page structure
 │   │   ├── Footer.jsx      # Footer component
 │   │   ├── Layout.jsx      # Main layout component that wraps pages
 │   │   ├── PageLayout.css  # Styles for PageLayout
-│   │   └── PageLayout.jsx  # Component for consistent page layout
+│   │   ├── PageLayout.jsx  # Component for consistent page layout
+│   │   └── TickerBarLayout.jsx # Layout for the TickerBar
 │   ├── lib/                # Utility functions and libraries
 │   │   └── utils.js        # General utility functions
 │   ├── pages/              # Page-level React components (views)
-│   │   ├── Analysis.jsx    # Analysis page
 │   │   ├── Auth.jsx        # Authentication page (Login/Register)
 │   │   ├── ForgotPassword.jsx # Forgot password page
-│   │   ├── Global.jsx      # Global market data page
 │   │   ├── Home.jsx        # Home page
 │   │   ├── IndexDetailPage.jsx # Detailed page for individual market indices
 │   │   ├── IpoCalendar.jsx # IPO Calendar page
 │   │   ├── Markets.jsx     # Markets overview page
 │   │   ├── NotFound.jsx    # 404 Not Found page
 │   │   ├── OtpVerification.jsx # OTP verification page
-│   │   ├── Performance.jsx # Performance tracking page
 │   │   ├── Portfolio.jsx   # User portfolio page
 │   │   ├── ResetPassword.jsx # Reset password page
 │   │   ├── Settings.jsx    # User settings page
 │   │   ├── StockDashboard.jsx # Stock dashboard page
-│   │   ├── Stocks.jsx      # Stocks listing page with real-time data
+│   │   ├── StockDetailPage.jsx # Detailed page for individual stocks
+│   │   └── Stocks.jsx      # Stocks listing page with real-time data
 │   ├── styles/             # Global and component-specific CSS files
 │   │   ├── ActionBar.css
 │   │   ├── Auth.css
+│   │   ├── FinancialData.css
 │   │   ├── Footer.css
 │   │   ├── ForgotPassword.css
 │   │   ├── Hero.css
@@ -66,14 +65,15 @@ client/
 │   │   ├── Instructor.css
 │   │   ├── IpoCalendar.css
 │   │   ├── MarketIndices.css # Styles for the MarketIndices component
+│   │   ├── Markets.css
+│   │   ├── MarketSection.css
 │   │   ├── Navbar.css
 │   │   ├── NotFound.css
 │   │   ├── OtpVerification.css
+│   │   ├── Portfolio.css
 │   │   ├── ResetPassword.css
 │   │   ├── Settings.css
 │   │   ├── Sidebar.css
-│   │   ├── MarketSection.css
-│   │   ├── Markets.css
 │   │   ├── StockDashboard.css
 │   │   ├── StockDetailPage.css
 │   │   ├── Stocks.css

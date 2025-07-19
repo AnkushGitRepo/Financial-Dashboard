@@ -10,6 +10,7 @@ import DataUriParser from "datauri/parser.js";
 import { config } from "dotenv";
 import mongoose from "mongoose";
 import { Stock } from "../models/stockModel.js";
+import { Portfolio } from "../models/portfolioModel.js";
 
 config();
 
@@ -562,5 +563,99 @@ export const getListedCompanies = catchAsyncError(async (req, res, next) => {
   } catch (error) {
     return next(new ErrorHandler("Failed to fetch listed companies data.", 500));
   }
+});
+
+export const addPortfolioItem = catchAsyncError(async (req, res, next) => {
+  const { stock, purchasePrice, quantity, purchaseDate } = req.body;
+  const user = req.user; // Authenticated user
+
+  if (!stock || !purchasePrice || !quantity) {
+    return next(new ErrorHandler("Stock, purchase price, and quantity are required.", 400));
+  }
+
+  const portfolioItem = await Portfolio.create({
+    user: user._id,
+    stock,
+    purchasePrice,
+    quantity,
+    purchaseDate: purchaseDate || Date.now(), // Use provided date or default to now
+  });
+
+  // Link the portfolio item to the user
+  user.portfolioItems.push(portfolioItem._id);
+  await user.save();
+
+  res.status(201).json({
+    success: true,
+    message: "Stock added to portfolio successfully!",
+    portfolioItem,
+  });
+});
+
+export const getPortfolioItems = catchAsyncError(async (req, res, next) => {
+  const user = req.user;
+
+  const portfolioItems = await Portfolio.find({ user: user._id }).populate("user");
+
+  res.status(200).json({
+    success: true,
+    portfolioItems,
+  });
+});
+
+export const deletePortfolioItem = catchAsyncError(async (req, res, next) => {
+  const { id } = req.params;
+
+  const portfolioItem = await Portfolio.findById(id);
+
+  if (!portfolioItem) {
+    return next(new ErrorHandler("Portfolio item not found.", 404));
+  }
+
+  // Ensure the item belongs to the authenticated user
+  if (portfolioItem.user.toString() !== req.user._id.toString()) {
+    return next(new ErrorHandler("You are not authorized to delete this item.", 403));
+  }
+
+  await portfolioItem.deleteOne();
+
+  // Remove the reference from the user's portfolioItems array
+  req.user.portfolioItems = req.user.portfolioItems.filter(
+    (item) => item.toString() !== id
+  );
+  await req.user.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Portfolio item deleted successfully!",
+  });
+});
+
+export const updatePortfolioItem = catchAsyncError(async (req, res, next) => {
+  const { id } = req.params;
+  const { purchasePrice, quantity, purchaseDate } = req.body;
+
+  const portfolioItem = await Portfolio.findById(id);
+
+  if (!portfolioItem) {
+    return next(new ErrorHandler("Portfolio item not found.", 404));
+  }
+
+  // Ensure the item belongs to the authenticated user
+  if (portfolioItem.user.toString() !== req.user._id.toString()) {
+    return next(new ErrorHandler("You are not authorized to update this item.", 403));
+  }
+
+  portfolioItem.purchasePrice = purchasePrice;
+  portfolioItem.quantity = quantity;
+  portfolioItem.purchaseDate = purchaseDate;
+
+  await portfolioItem.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Portfolio item updated successfully!",
+    portfolioItem,
+  });
 });
   
