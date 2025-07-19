@@ -1,6 +1,40 @@
 @import url("https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,500;1,700&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
 @import "./styles/TickerBar.css";
 
+:root {
+  --primary-color: #007bff;
+  --secondary-color: #6c757d;
+  --success-color: #28a745;
+  --danger-color: #dc3545;
+  --warning-color: #ffc107;
+  --info-color: #17a2b8;
+  --light-color: #f8f9fa;
+  --dark-color: #343a40;
+  --text-color: #333;
+  --background-color: #f4f7f6;
+  --border-color: #dee2e6;
+  --font-family-sans-serif: "Helvetica Neue", Arial, sans-serif;
+  --font-family-monospace: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --navbar-height: 4rem;
+  --sidebar-width: 250px;
+  --sidebar-collapsed-width: 60px;
+  --tickerbar-height: 32px;
+  --color-positive: #28a745;
+  --color-negative: #dc3545;
+  --color-text-primary: #333;
+
+  /* Financial Data Section Variables */
+  --card-background: #ffffff;
+  --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  --text-color-primary: #333333;
+  --text-color-secondary: #555555;
+  --accent-color: #007bff;
+  --header-background: #f2f2f2;
+  --header-text-color: #333333;
+  --table-row-even-background: #f9f9f9;
+  --table-row-hover-background: #f1f1f1;
+}
+
 html, body {
   height: 100%;
   margin: 0;

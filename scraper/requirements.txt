@@ -1,4 +1,7 @@
 selenium
+webdriver-manager
 beautifulsoup4
+Flask
+flask-cors
 pymongo[srv]
 python-dotenv

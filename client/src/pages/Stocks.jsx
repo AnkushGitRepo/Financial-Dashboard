@@ -40,6 +40,8 @@ const Stocks = () => {
     return () => clearInterval(interval);
   }, []);
 
+  
+
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
       if (searchQuery.length > 0) {

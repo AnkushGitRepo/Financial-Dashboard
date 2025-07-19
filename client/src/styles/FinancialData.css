@@ -1,0 +1,114 @@
+.financial-data-section {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: var(--card-background);
+  border-radius: 8px;
+  box-shadow: var(--card-shadow);
+}
+
+.financial-data-section h2 {
+  color: var(--text-color-primary);
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 1.8em;
+  font-weight: bold;
+}
+
+.financial-table-container {
+  margin-bottom: 30px;
+  background-color: var(--background-color);
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: var(--card-shadow);
+}
+
+.financial-table-container h3 {
+  color: var(--text-color-secondary);
+  margin-bottom: 15px;
+  font-size: 1.5em;
+  border-bottom: 2px solid var(--accent-color);
+  padding-bottom: 10px;
+}
+
+.table-scroll-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* Enable smooth scrolling on iOS */
+}
+
+.financial-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px; /* Ensure table is wide enough for scrolling */
+}
+
+.financial-table th,
+.financial-table td {
+  border: 1px solid var(--border-color);
+  padding: 12px 15px;
+  text-align: left;
+  color: var(--text-color-primary);
+  white-space: nowrap; /* Prevent text wrapping in cells */
+}
+
+.financial-table th {
+  background-color: var(--header-background);
+  font-weight: bold;
+  color: var(--header-text-color);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.financial-table tbody tr:nth-child(even) {
+  background-color: var(--table-row-even-background);
+}
+
+.financial-table tbody tr:hover {
+  background-color: var(--table-row-hover-background);
+  transition: background-color 0.3s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .financial-data-section {
+    padding: 15px;
+  }
+
+  .financial-data-section h2 {
+    font-size: 1.5em;
+  }
+
+  .financial-table-container {
+    padding: 10px;
+  }
+
+  .financial-table-container h3 {
+    font-size: 1.3em;
+  }
+
+  .financial-table th,
+  .financial-table td {
+    padding: 8px 10px;
+    font-size: 0.9em;
+  }
+}
+
+@media (max-width: 480px) {
+  .financial-data-section {
+    padding: 10px;
+  }
+
+  .financial-data-section h2 {
+    font-size: 1.3em;
+  }
+
+  .financial-table-container h3 {
+    font-size: 1.1em;
+  }
+
+  .financial-table th,
+  .financial-table td {
+    padding: 6px 8px;
+    font-size: 0.8em;
+  }
+}

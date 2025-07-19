@@ -169,3 +169,6 @@ financial-dashboard/
 31. **Stocks Page Data Fetching 404 Error:**
     *   **Feature:** Resolved 404 error when fetching popular stocks data.
     *   **Resolution:** Corrected the API endpoint in `client/src/pages/Stocks.jsx` from `/api/v1/user/stocks/data` to `/api/v1/market/stocks/data`.
+32. **Financial Data API Network Error (CORS):**
+    *   **Feature:** Resolved network error when fetching financial data for `StockDetailPage`.
+    *   **Resolution:** Updated `client/src/pages/StockDetailPage.jsx` to use the correct API endpoint and removed `.NS` suffix. Added `flask-cors` to `scraper/requirements.txt` and enabled CORS in `scraper/financial_data_scraper.py`.

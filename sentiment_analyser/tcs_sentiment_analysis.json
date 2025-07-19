@@ -1,0 +1,780 @@
+{
+  "query_info": {
+    "ticker_or_company": "TCS",
+    "company_name": "Tata Consultancy Services",
+    "search_query": "TCS OR \"Tata Consultancy Services\"",
+    "display_name": "TCS (Tata Consultancy Services)"
+  },
+  "sentiment_summary": {
+    "total_articles": 50,
+    "sentiment_counts": {
+      "positive": 17,
+      "negative": 16,
+      "neutral": 17
+    },
+    "sentiment_percentages": {
+      "positive": 34.0,
+      "negative": 32.0,
+      "neutral": 34.0
+    },
+    "overall_sentiment": "positive"
+  },
+  "articles": [
+    {
+      "title": "Tag Heuer reprises timekeeping role with TCS New York City Marathon",
+      "description": "Back after nearly a decade, the Swiss watchmaker will host also multiple race-week activations ahead of the event, set for Nov. 2.",
+      "url": "https://www.luxurydaily.com/tag-heuer-reprises-timekeeping-role-with-tcs-new-york-city-marathon/",
+      "image_url": "https://www.luxurydaily.com/wp-content/uploads/2025/07/tag-heuer-071725.jpg",
+      "source": {
+        "name": "Luxurydaily.com",
+        "id": null
+      },
+      "author": "Zach James for Luxury Daily News Service",
+      "published_date": "2025-07-17 16:46 UTC",
+      "published_date_raw": "2025-07-17T16:46:45Z",
+      "sentiment": "positive",
+      "content_preview": "Watches and jewelry\r\nJuly 17, 2025\r\n Set to take place on Nov. 2, the event is expected to draw more than 50,000 participants and upwards of 2 million in-person spectators. Image courtesy of Tag Heue\u2026..."
+    },
+    {
+      "title": "What is TCS' new bench policy and why is IT union flagging concerns over \u2018coercive\u2019 rules? All you need to know",
+      "description": "A complaint has been filed against Tata Consultancy Services over its new bench policy, which mandates 225 billed business days annually.",
+      "url": "https://www.livemint.com/companies/what-is-tcs-new-bench-policy-and-why-is-it-union-flagging-concerns-over-coercive-rules-all-you-need-to-know-11752761786766.html",
+      "image_url": "https://www.livemint.com/lm-img/img/2025/07/17/1600x900/INDIA-TCS-6_1718604547087_1752764352478.jpg",
+      "source": {
+        "name": "Livemint",
+        "id": null
+      },
+      "author": "Riya R Alex",
+      "published_date": "2025-07-17 16:11 UTC",
+      "published_date_raw": "2025-07-17T16:11:44Z",
+      "sentiment": "neutral",
+      "content_preview": "A complaint has been filed against IT giant Tata Consultancy Services (TCS) at the Ministry of Labour and Employment regarding its new bench policy, which has been termed coercive and punishing. Nasc\u2026..."
+    },
+    {
+      "title": "Wipro starts the year slow but pins hopes on large deals",
+      "description": "Wipro became India\u2019s third large IT outsourcer to cut headcount in the first quarter, joining HCL Technologies and Tech Mahindra, which signals murkier waters ahead for India\u2019s information technology services sector.",
+      "url": "https://www.livemint.com/companies/wipro-q1-earnings-large-deals-wins-uncertainties-11752757369303.html",
+      "image_url": "https://www.livemint.com/lm-img/img/2025/07/17/1600x900/WIPRO-LTD-RESULTS--3_1721289570805_1752763078307.JPG",
+      "source": {
+        "name": "Livemint",
+        "id": null
+      },
+      "author": "Jas Bardia",
+      "published_date": "2025-07-17 14:51 UTC",
+      "published_date_raw": "2025-07-17T14:51:03Z",
+      "sentiment": "negative",
+      "content_preview": "Wipro Ltd has started the fiscal year on a gloomy note with a third consecutive revenue decline, but is pinning its hopes for a better second half on its large deals despite macroeconomic uncertainti\u2026..."
+    },
+    {
+      "title": "ET Market Watch: Sensex falls 375 points; IT, banks drag nifty below 25,120",
+      "description": "Sensex dropped 375 points. Nifty slipped below 25,120. Drag? IT and banking stocks. Why? A mix of weak earnings and macro worries.",
+      "url": "https://economictimes.indiatimes.com/markets/stocks/etmarkets-podcast/et-market-watch-sensex-falls-375-points-it-banks-drag-nifty-below-25120/podcast/122643638.cms",
+      "image_url": "https://img.etimg.com/photo/122643638.cms",
+      "source": {
+        "name": "The Times of India",
+        "id": "the-times-of-india"
+      },
+      "author": "Neha Vashishth",
+      "published_date": "2025-07-17 13:32 UTC",
+      "published_date_raw": "2025-07-17T13:32:51Z",
+      "sentiment": "negative",
+      "content_preview": "Hi, you're listening to ET Markets Radio, I am your host Neha V Mahajan. Welcome to a fresh episode of ET Market Watch -- where we bring you the latest news from the world of stock markets every sing\u2026..."
+    },
+    {
+      "title": "Stock market update: Mining stocks up as market falls",
+      "description": "The 30-share BSE Sensex closed  down  375.24 points at 82259.24",
+      "url": "https://economictimes.indiatimes.com/markets/stocks/stock-watch/stock-market-update-mining-stocks-up-as-market-falls/articleshow/122640694.cms",
+      "image_url": "https://img.etimg.com/thumb/msid-77922857,width-1200,height-630,imgsize-132855,overlay-etmarkets/articleshow.jpg",
+      "source": {
+        "name": "The Times of India",
+        "id": "the-times-of-india"
+      },
+      "author": "ETMarkets.com",
+      "published_date": "2025-07-17 11:45 UTC",
+      "published_date_raw": "2025-07-17T11:45:31Z",
+      "sentiment": "negative",
+      "content_preview": "NEW DELHI: Mining shares closed lower in the Thursday's session. Pokarna Ltd.(up 4.62%), Ashapura Minechem Ltd.(up 2.55%), The Orissa Minerals Development Company Ltd.(up 2.04%), NMDC Ltd.(up 1.35%),\u2026..."
+    },
+    {
+      "title": "Stock market update: Sugar stocks down as market falls",
+      "description": "The 30-share BSE Sensex closed  down  375.24 points at 82259.24",
+      "url": "https://economictimes.indiatimes.com/markets/stocks/stock-watch/stock-market-update-sugar-stocks-down-as-market-falls/articleshow/122638898.cms",
+      "image_url": "https://img.etimg.com/thumb/msid-77646325,width-1200,height-630,imgsize-71505,overlay-etmarkets/articleshow.jpg",
+      "source": {
+        "name": "The Times of India",
+        "id": "the-times-of-india"
+      },
+      "author": "ETMarkets.com",
+      "published_date": "2025-07-17 11:19 UTC",
+      "published_date_raw": "2025-07-17T11:19:28Z",
+      "sentiment": "negative",
+      "content_preview": "NEW DELHI: Sugar shares closed lower in the Thursday's session. Piccadily Agro Industries Ltd.(up 2.78%), Bannari Amman Sugars Ltd.(up 1.05%), Magadh Sugar &amp; Energy Ltd.(up 0.63%), Kothari Sugars\u2026..."
+    },
+    {
+      "title": "Stock market update: FMCG stocks up as market falls",
+      "description": "The 30-share BSE Sensex closed  down  375.24 points at 82259.24",
+      "url": "https://economictimes.indiatimes.com/markets/stocks/stock-watch/stock-market-update-fmcg-stocks-up-as-market-falls/articleshow/122638184.cms",
+      "image_url": "https://img.etimg.com/thumb/msid-83608600,width-1200,height-630,imgsize-23742,overlay-etmarkets/articleshow.jpg",
+      "source": {
+        "name": "The Times of India",
+        "id": "the-times-of-india"
+      },
+      "author": "ETMarkets.com",
+      "published_date": "2025-07-17 11:08 UTC",
+      "published_date_raw": "2025-07-17T11:08:54Z",
+      "sentiment": "negative",
+      "content_preview": "NEW DELHI: FMCG shares closed lower in the Thursday's session. AWL Agri Business Ltd.(up 6.08%), Parag Milk Foods Ltd.(up 5.49%), Zydus Wellness Ltd.(up 4.86%), Vadilal Industries Ltd.(up 4.57%), Mrs\u2026..."
+    },
+    {
+      "title": "Stock market update: Power stocks down as market falls",
+      "description": "The 30-share BSE Sensex closed  down  375.24 points at 82259.24",
+      "url": "https://economictimes.indiatimes.com/markets/stocks/stock-watch/stock-market-update-power-stocks-down-as-market-falls/articleshow/122637688.cms",
+      "image_url": "https://img.etimg.com/thumb/msid-83209716,width-1200,height-630,imgsize-107089,overlay-etmarkets/articleshow.jpg",
+      "source": {
+        "name": "The Times of India",
+        "id": "the-times-of-india"
+      },
+      "author": "ETMarkets.com",
+      "published_date": "2025-07-17 11:02 UTC",
+      "published_date_raw": "2025-07-17T11:02:43Z",
+      "sentiment": "negative",
+      "content_preview": "NEW DELHI: Power shares closed lower in the Thursday's session. Hitachi Energy India Ltd.(up 5.02%), GE Vernova T&amp;D India Ltd.(up 3.53%), Ravindra Energy Ltd.(up 3.00%), Adani Green Energy Ltd.(u\u2026..."
+    },
+    {
+      "title": "Stock market update: Fertilisers stocks down as market falls",
+      "description": "The 30-share BSE Sensex closed  down  375.24 points at 82259.24",
+      "url": "https://economictimes.indiatimes.com/markets/stocks/stock-watch/stock-market-update-fertilisers-stocks-down-as-market-falls/articleshow/122636889.cms",
+      "image_url": "https://img.etimg.com/thumb/msid-83772914,width-1200,height-630,imgsize-273990,overlay-etmarkets/articleshow.jpg",
+      "source": {
+        "name": "The Times of India",
+        "id": "the-times-of-india"
+      },
+      "author": "ETMarkets.com",
+      "published_date": "2025-07-17 10:52 UTC",
+      "published_date_raw": "2025-07-17T10:52:14Z",
+      "sentiment": "negative",
+      "content_preview": "NEW DELHI: Fertilisers shares closed lower in the Thursday's session. Rama Phosphates Ltd.(up 2.92%), Krishana Phoschem Ltd.(up 2.12%), Bohra Industries Ltd.(up 2.12%), Nagarjuna Fertilizers and Chem\u2026..."
+    },
+    {
+      "title": "Stock markets close lower on selling in IT stocks, fresh foreign fund outflows",
+      "description": "Benchmark stock indices Sensex and Nifty settled lower on Thursday following selling in IT shares and investors remaining in a wait-and-watch mode ahead of the outcome of the US-India trade talks.",
+      "url": "https://www.thehindubusinessline.com/markets/stock-markets-close-lower-on-selling-in-it-stocks-fresh-foreign-fund-outflows/article69822851.ece",
+      "image_url": "https://bl-i.thgim.com/public/incoming/nfsfde/article69822869.ece/alternates/LANDSCAPE_1200/PO20_Chart_graph.jpg",
+      "source": {
+        "name": "BusinessLine",
+        "id": null
+      },
+      "author": "PTI",
+      "published_date": "2025-07-17 10:47 UTC",
+      "published_date_raw": "2025-07-17T10:47:46Z",
+      "sentiment": "negative",
+      "content_preview": "Benchmark stock indices Sensex and Nifty settled lower on Thursday following selling in IT shares and investors remaining in a wait-and-watch mode ahead of the outcome of the US-India trade talks.\r\nT\u2026..."
+    },
+    {
+      "title": "Sensex settles 375 pts lower, Nifty below 25,120 led by losses in IT, bank stocks",
+      "description": "Indian benchmark indices Sensex and Nifty closed lower due to losses in financial and IT stocks, influenced by investor caution regarding Federal Reserve Chair Jerome Powell's tenure and US-India trade talks. Tech Mahindra and Infosys were significant drags. \u2026",
+      "url": "https://economictimes.indiatimes.com/markets/stocks/news/sensex-settles-375-pts-lower-nifty-below-25120-led-by-losses-in-it-bank-stocks/articleshow/122635873.cms",
+      "image_url": "https://img.etimg.com/thumb/msid-122635886,width-1200,height-630,imgsize-16402,overlay-etmarkets/articleshow.jpg",
+      "source": {
+        "name": "The Times of India",
+        "id": "the-times-of-india"
+      },
+      "author": "Riya Sharma",
+      "published_date": "2025-07-17 10:42 UTC",
+      "published_date_raw": "2025-07-17T10:42:04Z",
+      "sentiment": "negative",
+      "content_preview": "Indian benchmark indices Sensex and Nifty ended lower on Thursday, dragged down by losses in financial and IT stocks, as investor sentiment turned cautious amid lingering uncertainty over Federal Res\u2026..."
+    },
+    {
+      "title": "Wipro first quarter results top estimates as Indian IT firm sees some strong client spending",
+      "description": "BENGALURU :Wipro beat June-quarter estimates as improved client spending in parts of its Americas business boosted performance and forecast current-quarter revenue in line with expectations.The results and forecast eased investor concerns after months of subd\u2026",
+      "url": "https://www.channelnewsasia.com/business/wipro-first-quarter-results-top-estimates-indian-it-firm-sees-some-strong-client-spending-5243446",
+      "image_url": "https://dam.mediacorp.sg/image/upload/s--CWhgykxh--/fl_relative,g_south_east,l_mediacorp:cna:watermark:2024-04:reuters_1,w_0.1/f_auto,q_auto/c_fill,g_auto,h_676,w_1200/v1/one-cms/core/2025-07-17t101724z_1_lynxmpel6g0e0_rtroptp_3_wipro-results.jpg?itok=otfi4kpR",
+      "source": {
+        "name": "CNA",
+        "id": null
+      },
+      "author": null,
+      "published_date": "2025-07-17 10:17 UTC",
+      "published_date_raw": "2025-07-17T10:17:24Z",
+      "sentiment": "positive",
+      "content_preview": "BENGALURU :Wipro beat June-quarter estimates as improved client spending in parts of its Americas business boosted performance and forecast current-quarter revenue in line with expectations.\r\nThe res\u2026..."
+    },
+    {
+      "title": "Mint Explainer: Will FY26 be a washout year for the IT services industry?",
+      "description": "The latest earnings reports reveal a turbulent time for IT services, with companies grappling with tariff impacts and shifting client demands. What lies ahead for the industry in FY26?",
+      "url": "https://www.livemint.com/industry/fy26-it-industry-outlook-it-services-earnings-q1-india-it-sector-performance-tcs-hcltech-accenture-11752735708593.html",
+      "image_url": "https://www.livemint.com/lm-img/img/2025/07/17/1600x900/2-0-308342896-CallCentre-4C-0_1680613074103_1752741412760.JPG",
+      "source": {
+        "name": "Livemint",
+        "id": null
+      },
+      "author": "Shelley Singh",
+      "published_date": "2025-07-17 08:45 UTC",
+      "published_date_raw": "2025-07-17T08:45:41Z",
+      "sentiment": "positive",
+      "content_preview": "Early results from the first quarter point to a challenging and even unpredictable roadmap ahead for the $280 billion IT business, driven by cautious client spending, tariff-related headwinds, geopol\u2026..."
+    },
+    {
+      "title": "What is TCS' new policy that's making thousands of techies at India's biggest IT firm anxious about layoffs?",
+      "description": "TCS Bench Policy Employee Concerns: TCS' new 35-day bench policy has created widespread concern among employees, with many using online forums to highlight challenges in finding suitable projects. While some believe it is a necessary step to improve workforce\u2026",
+      "url": "https://economictimes.indiatimes.com/news/new-updates/what-is-tcs-new-bench-policy-thats-making-thousands-of-techies-at-indias-biggest-it-firm-anxious-about-layoffs/articleshow/122621595.cms",
+      "image_url": "https://img.etimg.com/thumb/msid-122623851,width-1200,height-630,imgsize-29002,overlay-economictimes/articleshow.jpg",
+      "source": {
+        "name": "The Times of India",
+        "id": "the-times-of-india"
+      },
+      "author": "ET Online",
+      "published_date": "2025-07-17 07:44 UTC",
+      "published_date_raw": "2025-07-17T07:44:26Z",
+      "sentiment": "neutral",
+      "content_preview": "Thousands of Tata Consultancy Services (TCS) employees are facing job uncertainty as the companys new bench policy, which limits time without project allocation to 35 days, completes its first cycle \u2026..."
+    },
+    {
+      "title": "What sectors are going to have their day in the sun right now? Mihir Vora answers",
+      "description": "Mihir Vora of Trust MF suggests a cautious market approach. Government spending drives infrastructure, power, and telecom sectors. Rural financing shows promise. Focus shifts from large-cap and IT to domestic segments. Consumer discretionary items, like AC st\u2026",
+      "url": "https://economictimes.indiatimes.com/markets/expert-view/what-sectors-are-going-to-have-their-day-in-the-sun-right-now-mihir-vora-answers/articleshow/122573602.cms",
+      "image_url": "https://img.etimg.com/thumb/msid-122573649,width-1200,height-630,imgsize-34810,overlay-etmarkets/articleshow.jpg",
+      "source": {
+        "name": "The Times of India",
+        "id": "the-times-of-india"
+      },
+      "author": "ET Now",
+      "published_date": "2025-07-17 02:41 UTC",
+      "published_date_raw": "2025-07-17T02:41:00Z",
+      "sentiment": "neutral",
+      "content_preview": "Mihir Vora, CIO, Trust MF, says government spending continues to drive visibility in infrastructure, power, telecom, and defense sectors. Rural financing, particularly microfinance and small gold loa\u2026..."
+    },
+    {
+      "title": "Aadhaar\u2019s verification makeover; Bench jitters for TCS staff",
+      "description": "Happy Thursday! UIDAI wants to make Aadhaar verification services for citizens more user-friendly. This and more in today\u2019s ETtech Morning Dispatch.",
+      "url": "https://economictimes.indiatimes.com/tech/newsletters/morning-dispatch/aadhaars-verification-makeover-bench-jitters-for-tcs-staff/articleshow/122604941.cms",
+      "image_url": "https://img.etimg.com/thumb/msid-122604941,width-1070,height-580,imgsize-22406,overlay-ettech/editionshow.jpg",
+      "source": {
+        "name": "The Times of India",
+        "id": "the-times-of-india"
+      },
+      "author": "ETtech",
+      "published_date": "2025-07-17 01:37 UTC",
+      "published_date_raw": "2025-07-17T01:37:49Z",
+      "sentiment": "neutral",
+      "content_preview": "Happy Thursday! UIDAI wants to make Aadhaar verification services for citizens more user-friendly. This and more in todays ETtech Morning Dispatch.Also in the letter: Cryptos bull runTech Mahindra, I\u2026..."
+    },
+    {
+      "title": "Day Trading Guide for July 17, 2025: Intraday supports, resistances for Nifty50 stocks",
+      "description": "Day Trading Guide gives you the key intraday supports and resistances to watch out for on the Nifty Futures and other widely traded stocks such as Reliance Industries, Infosys, HDFC Bank, TCS, SBI",
+      "url": "https://www.thehindubusinessline.com/portfolio/day-trading-guide/day-trading-guide-for-july-17/article69818742.ece",
+      "image_url": "https://bl-i.thgim.com/public/incoming/84khnm/article69711880.ece/alternates/LANDSCAPE_1200/PO16_Buy_sell_dice.jpg",
+      "source": {
+        "name": "BusinessLine",
+        "id": null
+      },
+      "author": "BL Research Bureau",
+      "published_date": "2025-07-17 00:30 UTC",
+      "published_date_raw": "2025-07-17T00:30:00Z",
+      "sentiment": "positive",
+      "content_preview": "Day trading guide gives you the key intraday supports and resistances to watch out for on the Nifty futures and other widely traded stocks such as Reliance Industries, Infosys, HDFC Bank, TCS, and SB\u2026..."
+    },
+    {
+      "title": "TCS employees on the edge as co\u2019s new benching policy completes first cycle",
+      "description": "Anxiety is rising at TCS as the clock ticks down on its new 35-day bench policy, introduced on June 12. The rule caps the number of days an employee can spend without an active project in a year. Missing the deadline could mean career stagnation, or worse, te\u2026",
+      "url": "https://economictimes.indiatimes.com/tech/information-tech/tcs-employees-on-the-edge-as-cos-new-benching-policy-completes-first-cycle/articleshow/122589065.cms",
+      "image_url": "https://img.etimg.com/thumb/width-1200,height-900,imgsize-22406,resizemode-75,msid-122589065/tech/information-tech/tcs-employees-on-the-edge-as-cos-new-benching-policy-completes-first-cycle.jpg",
+      "source": {
+        "name": "The Times of India",
+        "id": "the-times-of-india"
+      },
+      "author": "Himanshi Lohchab",
+      "published_date": "2025-07-17 00:30 UTC",
+      "published_date_raw": "2025-07-17T00:30:00Z",
+      "sentiment": "negative",
+      "content_preview": "As the first 35-day cycle under Tata Consultancy Services (TCS) new bench policy ends on Thursday, thousands of benched employees are staring at uncertainty, with many taking to social platforms to v\u2026..."
+    },
+    {
+      "title": "Wipro looking to become consulting-led, AI-powered company, says Rishad Premji",
+      "description": "Addressing the Bengaluru-based company\u2019s 79th annual general meeting through videoconferencing on Wednesday, the son of billionaire promoter Azim Premji said 2024-25 was a year of significant change for Wipro as well as the world.",
+      "url": "https://economictimes.indiatimes.com/tech/information-tech/wipro-looking-to-become-consulting-led-ai-powered-company-says-rishad-premji/articleshow/122586365.cms",
+      "image_url": "https://img.etimg.com/thumb/width-1200,height-900,imgsize-57890,resizemode-75,msid-122586365/tech/information-tech/wipro-looking-to-become-consulting-led-ai-powered-company-says-rishad-premji.jpg",
+      "source": {
+        "name": "The Times of India",
+        "id": "the-times-of-india"
+      },
+      "author": "ETtech",
+      "published_date": "2025-07-17 00:30 UTC",
+      "published_date_raw": "2025-07-17T00:30:00Z",
+      "sentiment": "neutral",
+      "content_preview": "IT firm Wipro aims to sharpen its focus on becoming a consulting-led, artificial intelligence (AI)-powered organisation, its executive chairman Rishad Premji told shareholders.Addressing the Bengalur\u2026..."
+    },
+    {
+      "title": "Consultants, SIs back AWS agentic AI marketplace launch",
+      "description": "Accenture, Cognizant and Deloitte are among the partners with offerings on AWS' AI Agents and Tools marketplace, which is expected to combine professional services and software.",
+      "url": "https://www.techtarget.com/searchitchannel/news/366627818/Consultants-SIs-back-AWS-agentic-AI-marketplace-launch",
+      "image_url": "https://www.techtarget.com/rms/onlineimages/iot_g1182604383.jpg",
+      "source": {
+        "name": "Techtarget.com",
+        "id": null
+      },
+      "author": "John Moore",
+      "published_date": "2025-07-16 18:09 UTC",
+      "published_date_raw": "2025-07-16T18:09:00Z",
+      "sentiment": "neutral",
+      "content_preview": "Consulting and systems integration companies are among the hundreds of launch partners backing the new AWS agentic AI cloud marketplace, which the hyperscaler rolled out today.\r\nPartners such as Acce\u2026..."
+    },
+    {
+      "title": "Tech Mahindra starts the fiscal with caution and mixed signals",
+      "description": "Tech Mahindra began FY26 with modest revenue growth and a cautious outlook, as macro uncertainties, especially outside its core US and European markets, weighed on performance.&nbsp;",
+      "url": "https://www.livemint.com/companies/tech-mahindra-starts-the-fiscal-with-caution-and-mixed-signals-11752669472688.html",
+      "image_url": "https://www.livemint.com/lm-img/img/2025/07/16/1600x900/TECH-MAHINDRA-RESULTS--0_1737447990869_1752679801569.JPG",
+      "source": {
+        "name": "Livemint",
+        "id": null
+      },
+      "author": "Jas Bardia",
+      "published_date": "2025-07-16 16:06 UTC",
+      "published_date_raw": "2025-07-16T16:06:43Z",
+      "sentiment": "positive",
+      "content_preview": "Tech Mahindra Ltd kicked off the fiscal with lower-than-expected revenue as low business outside its largest geographies dragged down growth, prompting the management to give out mixed signals on the\u2026..."
+    },
+    {
+      "title": "In a first, HDFC Bank to consider issuing bonus shares on July 19",
+      "description": "HDFC Bank to issue bonus shares and special interim dividend for FY26, aiming to boost market confidence.",
+      "url": "https://www.thehindubusinessline.com/markets/in-a-first-hdfc-bank-to-consider-issuing-bonus-shares-on-july-19/article69819854.ece",
+      "image_url": "https://bl-i.thgim.com/public/incoming/xumm98/article69820040.ece/alternates/LANDSCAPE_1200/2025-07-04T040142Z_471716394_RC2V5FA6YSK7_RTRMADP_3_HDFC-BANK-UPDATE.JPG",
+      "source": {
+        "name": "BusinessLine",
+        "id": null
+      },
+      "author": "BL Mumbai Bureau",
+      "published_date": "2025-07-16 15:37 UTC",
+      "published_date_raw": "2025-07-16T15:37:06Z",
+      "sentiment": "neutral",
+      "content_preview": "The countrys largest private lender HDFC Bank will consider issuing, for the first time since its inception, bonus shares along with special interim dividend for FY26 on July 19, according to an exch\u2026..."
+    },
+    {
+      "title": "In a first, HDFC Bank to consider issuing bonus shares on July 19",
+      "description": "HDFC Bank to issue bonus shares and special interim dividend for FY26, aiming to boost market confidence.",
+      "url": "https://www.thehindubusinessline.com/money-and-banking/in-a-first-hdfc-bank-to-consider-issuing-bonus-shares-on-july-19/article69819854.ece",
+      "image_url": "https://bl-i.thgim.com/public/incoming/xumm98/article69820040.ece/alternates/LANDSCAPE_1200/2025-07-04T040142Z_471716394_RC2V5FA6YSK7_RTRMADP_3_HDFC-BANK-UPDATE.JPG",
+      "source": {
+        "name": "BusinessLine",
+        "id": null
+      },
+      "author": "BL Mumbai Bureau",
+      "published_date": "2025-07-16 15:37 UTC",
+      "published_date_raw": "2025-07-16T15:37:06Z",
+      "sentiment": "neutral",
+      "content_preview": "The countrys largest private lender HDFC Bank will consider issuing, for the first time since its inception, bonus shares along with special interim dividend for FY26 on July 19, according to an exch\u2026..."
+    },
+    {
+      "title": "Businesses support auto-enrolment, department says",
+      "description": "Launch date of January 1st will not be put back again, Oireachtas hears, while business costs said to dissipate over time",
+      "url": "https://www.irishtimes.com/business/2025/07/16/businesses-support-auto-enrolment-department-says/",
+      "image_url": "https://www.irishtimes.com/resizer/v2/FPYQIJ7SGATGGI6LX2HGAV3HHM.jpg?smart=true&auth=48cf9fbcd24cba00fe11b106c7c6470f4a82a738a47e9f44660cee79dce8ab80&width=1200&height=630",
+      "source": {
+        "name": "The Irish Times",
+        "id": "the-irish-times"
+      },
+      "author": "Colin Gleeson",
+      "published_date": "2025-07-16 14:51 UTC",
+      "published_date_raw": "2025-07-16T14:51:03Z",
+      "sentiment": "positive",
+      "content_preview": "The introduction of automatic pension enrolment in January will undoubtedly involve additional costs for businesses, but these will dissipate over time, the Department of Social Protection has said.\r\u2026..."
+    },
+    {
+      "title": "IT employees\u2019 union writes to Labour Ministry against TCS\u2019 new bench policy",
+      "description": "TCS had recently updated its policy to limit bench time \u2013 a period during which employees can upskill or undertake internal work while waiting to be assigned to a new project \u2013 to 35 business days a year",
+      "url": "https://www.thehindubusinessline.com/companies/it-employees-union-writes-to-labour-ministry-against-tcs-new-bench-policy/article69818388.ece",
+      "image_url": "https://bl-i.thgim.com/public/incoming/fl7b94/article69819702.ece/alternates/LANDSCAPE_1200/2025-01-11T134608Z_1327066459_RC2NF5A2V750_RTRMADP_3_TCS-RECOVERY-INTERVIEW.JPG",
+      "source": {
+        "name": "BusinessLine",
+        "id": null
+      },
+      "author": "Our Bureau",
+      "published_date": "2025-07-16 14:36 UTC",
+      "published_date_raw": "2025-07-16T14:36:10Z",
+      "sentiment": "positive",
+      "content_preview": "Nascent Information Technology Employees Senate (NITES), a union representing employees in the IT and ITeS sector, has urged the Ministry of Labour and Employment to direct Tata Consultancy Services \u2026..."
+    },
+    {
+      "title": "Influenza A virus induces PI4P production at the endoplasmic reticulum in an ATG16L1-dependent manner to promote the egress of viral ribonucleoproteins",
+      "description": "Influenza A virus (IAV) relies on host proteins to transport its genome from the nucleus to the plasma membrane as a viral ribonucleoprotein (vRNP) for the production of new viral particles. This study shows that IAV reshapes phosphoinositide metabolism and l\u2026",
+      "url": "https://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.3002958",
+      "image_url": "https://journals.plos.org/plosbiology/article/figure/image?id=10.1371/journal.pbio.3002958.g007&size=inline",
+      "source": {
+        "name": "Plos.org",
+        "id": null
+      },
+      "author": "Carla Alemany, Juliane Da Gra\u00e7a, Quentin Giai Gianetto, Maud Dupont, Sylvain Paisant, Thibaut Douch\u00e9, Catherine Isel, C\u00e9dric Delevoye, Lydia Danglot, Mariette Matondo, Etienne Morel, Jean-Baptiste Brault, Nadia Naffakh",
+      "published_date": "2025-07-16 14:00 UTC",
+      "published_date_raw": "2025-07-16T14:00:00Z",
+      "sentiment": "neutral",
+      "content_preview": "Abstract\r\nThe genomic RNAs of influenza A viruses (IAVs) are replicated in the nucleus of infected cells in the form of viral ribonucleoproteins (vRNPs) before being exported to the cytoplasm. The sm\u2026..."
+    },
+    {
+      "title": "OCI, Oh My: Remote Code Execution on Oracle Cloud Shell and Code Editor Integrated Services",
+      "description": "Tenable Research discovered a Remote Code Execution (RCE) vulnerability (now remediated) in Oracle Cloud Infrastructure (OCI) Code Editor. We demonstrated how an attacker could silently 1-click hijack a victim\u2019s Cloud Shell environment and potentially pivot a\u2026",
+      "url": "https://www.tenable.com/blog/remote-code-execution-on-oracle-cloud-shell-and-code-editor-integrated-services",
+      "image_url": "https://www.tenable.com/sites/default/files/styles/640x360/public/images/articles/Oracle%20Cloud%20Shell%20RCE_MAIN.png?itok=BSNw4AjA",
+      "source": {
+        "name": "Tenable.com",
+        "id": null
+      },
+      "author": "Liv Matan",
+      "published_date": "2025-07-16 12:58 UTC",
+      "published_date_raw": "2025-07-16T12:58:58Z",
+      "sentiment": "negative",
+      "content_preview": "Tenable Research discovered a Remote Code Execution (RCE) vulnerability (now remediated) in Oracle Cloud Infrastructure (OCI) Code Editor. We demonstrated how an attacker could silently 1-click hijac\u2026..."
+    },
+    {
+      "title": "India IT demand outlook remains uncertain amid US tariff risks, says Wipro chair",
+      "description": "Wipro\u2019s chairman Rishad Premji highlighted ongoing uncertainty in India's $283-billion IT sector due to US tariff risks and global instability. Clients are cutting discretionary spending, impacting growth. While minor recovery signs exist, major firms like TC\u2026",
+      "url": "https://economictimes.indiatimes.com/tech/information-tech/india-it-demand-outlook-remains-uncertain-amid-us-tariff-risks-says-wipro-chair/articleshow/122574099.cms",
+      "image_url": "https://img.etimg.com/thumb/width-1200,height-900,imgsize-36120,resizemode-75,msid-122574099/tech/information-tech/india-it-demand-outlook-remains-uncertain-amid-us-tariff-risks-says-wipro-chair.jpg",
+      "source": {
+        "name": "The Times of India",
+        "id": "the-times-of-india"
+      },
+      "author": "Reuters",
+      "published_date": "2025-07-16 11:08 UTC",
+      "published_date_raw": "2025-07-16T11:08:37Z",
+      "sentiment": "neutral",
+      "content_preview": "The demand outlook for India's $283-billion IT sector remains uncertain due to US tariff risks and global geopolitical factors, a senior Wipro executive said on Wednesday.\"Customers are getting accli\u2026..."
+    },
+    {
+      "title": "India's Tech Mahindra posts marginal first-quarter revenue miss",
+      "description": "BENGALURU : India's Tech Mahindra reported a marginally lower-than-expected first-quarter revenue on Wednesday as clients tightened non-essential spending amid tariff-related uncertainty and weakness in the Americas market.Consolidated sales at India's fifth-\u2026",
+      "url": "https://www.channelnewsasia.com/business/indias-tech-mahindra-posts-marginal-first-quarter-revenue-miss-americas-weakness-5241346",
+      "image_url": "https://dam.mediacorp.sg/image/upload/s--9QjFCkil--/fl_relative,g_south_east,l_mediacorp:cna:watermark:2024-04:reuters_1,w_0.1/f_auto,q_auto/c_fill,g_auto,h_676,w_1200/v1/one-cms/core/2025-07-16t104909z_1_lynxmpel6f0fe_rtroptp_3_tech-mahindra-india.jpg?itok=cWI_YqTn",
+      "source": {
+        "name": "CNA",
+        "id": null
+      },
+      "author": null,
+      "published_date": "2025-07-16 10:49 UTC",
+      "published_date_raw": "2025-07-16T10:49:09Z",
+      "sentiment": "negative",
+      "content_preview": "BENGALURU : India's Tech Mahindra reported a marginally lower-than-expected first-quarter revenue on Wednesday as clients tightened non-essential spending amid tariff-related uncertainty and weakness\u2026..."
+    },
+    {
+      "title": "BBC plans to outsource and offshore thousands of tech roles",
+      "description": "The BBC is drawing up plans to outsource roles in its digital product group and finance, which could include some being carried out overseas",
+      "url": "https://www.computerweekly.com/news/366627812/BBC-plans-to-outsource-and-offshore-thousands-of-tech-roles",
+      "image_url": "https://www.computerweekly.com/visuals/ComputerWeekly/HeroImages/Salford-Quays-Manchester-UK-Imperial-War-Museum-BBC-Chris-Chambers-adobe.jpg",
+      "source": {
+        "name": "ComputerWeekly.com",
+        "id": null
+      },
+      "author": "Karl Flinders",
+      "published_date": "2025-07-16 10:49 UTC",
+      "published_date_raw": "2025-07-16T10:49:00Z",
+      "sentiment": "positive",
+      "content_preview": "The BBC is reported to be looking at how it can meet tough cost-cutting targets by outsourcing roles in tech and finance.\r\nAccording to a Guardian report, thousands of UK jobs are at risk as the broa\u2026..."
+    },
+    {
+      "title": "How should you position yourself in IT and pharma now? Neeraj Dewan answers",
+      "description": "Market expert Neeraj Dewan advises caution on IT stocks due to unpromising results and unclear US business trends, suggesting holding TCS and Infosys. He notes confusion surrounding pharma tariffs, recommending focus on individual stocks and monitoring develo\u2026",
+      "url": "https://economictimes.indiatimes.com/markets/expert-view/how-should-you-position-yourself-in-it-and-pharma-now-neeraj-dewan-answers/articleshow/122567880.cms",
+      "image_url": "https://img.etimg.com/thumb/msid-122568057,width-1200,height-630,imgsize-29000,overlay-etmarkets/articleshow.jpg",
+      "source": {
+        "name": "The Times of India",
+        "id": "the-times-of-india"
+      },
+      "author": "ET Now",
+      "published_date": "2025-07-16 09:05 UTC",
+      "published_date_raw": "2025-07-16T09:05:35Z",
+      "sentiment": "neutral",
+      "content_preview": "Neeraj Dewan, Market Expert suggests a cautious approach to IT stocks. The IT sector's result season is not promising. Investors should await clarity on earnings and US business trends. Holding TCS a\u2026..."
+    },
+    {
+      "title": "India IT demand outlook remains uncertain amid US tariff risks, says Wipro chair",
+      "description": "BENGALURU :The demand outlook for India's $283-billion IT sector remains uncertain due to U.S. tariff risks and global geopolitical factors, a senior Wipro executive said on Wednesday.\"Customers are getting acclimatised to living in a world that is uncertain,\u2026",
+      "url": "https://www.channelnewsasia.com/business/india-it-demand-outlook-remains-uncertain-amid-us-tariff-risks-says-wipro-chair-5241006",
+      "image_url": "https://dam.mediacorp.sg/image/upload/s--5DQgx1FW--/fl_relative,g_south_east,l_mediacorp:cna:watermark:2024-04:reuters_1,w_0.1/f_auto,q_auto/c_fill,g_auto,h_676,w_1200/v1/one-cms/core/2025-07-16t071725z_1_lynxmpel6f088_rtroptp_3_wipro-results.jpg?itok=ero7A7nx",
+      "source": {
+        "name": "CNA",
+        "id": null
+      },
+      "author": null,
+      "published_date": "2025-07-16 07:17 UTC",
+      "published_date_raw": "2025-07-16T07:17:25Z",
+      "sentiment": "negative",
+      "content_preview": "BENGALURU :The demand outlook for India's $283-billion IT sector remains uncertain due to U.S. tariff risks and global geopolitical factors, a senior Wipro executive said on Wednesday.\r\n\"Customers ar\u2026..."
+    },
+    {
+      "title": "India IT demand outlook remains uncertain amid US tariff risks, says Wipro chair",
+      "description": "BENGALURU (Reuters) -The demand outlook for India's $283-billion IT sector remains uncertain due to U.S. tariff risks and global geopolitical factors, a...",
+      "url": "https://finance.yahoo.com/news/india-demand-outlook-remains-uncertain-071725593.html",
+      "image_url": "https://media.zenfs.com/en/reuters-finance.com/3978e3ae00dea06983c0a18dbb1d3c52",
+      "source": {
+        "name": "Yahoo Entertainment",
+        "id": null
+      },
+      "author": "Reuters",
+      "published_date": "2025-07-16 07:17 UTC",
+      "published_date_raw": "2025-07-16T07:17:25Z",
+      "sentiment": "negative",
+      "content_preview": "BENGALURU (Reuters) -The demand outlook for India's $283-billion IT sector remains uncertain due to U.S. tariff risks and global geopolitical factors, a senior Wipro executive said on Wednesday.\r\n\"Cu\u2026..."
+    },
+    {
+      "title": "Stock market update: Nifty IT index advances 0.14% in a weak market",
+      "description": "The Nifty IT index was trading 0.14 per cent  up  at 37476.05.",
+      "url": "https://economictimes.indiatimes.com/markets/stocks/stock-watch/stock-market-update-nifty-it-index-advances-0-14-in-a-weak-market/articleshow/122557009.cms",
+      "image_url": "https://img.etimg.com/thumb/msid-83771694,width-1200,height-630,imgsize-185726,overlay-etmarkets/articleshow.jpg",
+      "source": {
+        "name": "The Times of India",
+        "id": "the-times-of-india"
+      },
+      "author": "ETMarkets.com",
+      "published_date": "2025-07-16 05:33 UTC",
+      "published_date_raw": "2025-07-16T05:33:29Z",
+      "sentiment": "neutral",
+      "content_preview": "NEW DELHI: The Nifty IT index traded positive around 11:03AM(IST)on Wednesday in a weak market. LTIMindtree Ltd.(up 0.95 per cent), Wipro Ltd.(up 0.92 per cent), Infosys Ltd.(up 0.48 per cent), Tech \u2026..."
+    },
+    {
+      "title": "Income Tax: Last date to file ITR looms closer, taxpayers can make note of 5 key points",
+      "description": "Income Tax Return: Individual taxpayers must file their ITR before September 15, 2025. Typically the last date every year is July 31 but it was deferred this time by a month and a half",
+      "url": "https://www.livemint.com/money/personal-finance/income-tax-last-date-to-file-itr-looms-closer-taxpayers-can-make-note-of-5-key-points-11752634811438.html",
+      "image_url": "https://www.livemint.com/lm-img/img/2025/07/16/1600x900/Tax_3_1752634995512_1752635003354.jpg",
+      "source": {
+        "name": "Livemint",
+        "id": null
+      },
+      "author": "Vimal Chander Joshi",
+      "published_date": "2025-07-16 05:08 UTC",
+      "published_date_raw": "2025-07-16T05:08:41Z",
+      "sentiment": "neutral",
+      "content_preview": "Income Tax: Only two months are remaining before the deadline to file income tax return (ITR) for FY 2024-25 expires on September 15, 2025.\r\nLast week, the income tax department released excel utilit\u2026..."
+    },
+    {
+      "title": "TCS revenue slump affects Tejas Networks stock: Impact of delayed BSNL 4G project",
+      "description": "Tejas Networks' stock plummeted after reporting a sharp revenue decline due to delays in a BSNL 4G project purchase order, impacting its financials. The company's revenue fell drastically, leading to increased losses. TCS, also reliant on the BSNL deal, exper\u2026",
+      "url": "https://economictimes.indiatimes.com/industry/telecom/telecom-news/tcs-revenue-slump-affects-tejas-networks-stock-impact-of-delayed-bsnl-4g-project/articleshow/122553690.cms",
+      "image_url": "https://img.etimg.com/thumb/msid-122553801,width-1200,height-630,imgsize-5934,overlay-economictimes/articleshow.jpg",
+      "source": {
+        "name": "The Times of India",
+        "id": "the-times-of-india"
+      },
+      "author": "Himanshi Lohchab",
+      "published_date": "2025-07-16 04:33 UTC",
+      "published_date_raw": "2025-07-16T04:33:57Z",
+      "sentiment": "neutral",
+      "content_preview": "After Tata Consultancy Services (TCS) reported a slump in its revenue due to ramp down in state-run Bharat Sanchar Nigam Ltds 4G project, the IT services leaders equipment supplier Tejas Networks als\u2026..."
+    },
+    {
+      "title": "\uff16\u540d\u306e\u5168\u304f\u7570\u306a\u308b\u30b9\u30bf\u30a4\u30eb\u306e\u5199\u771f\u5bb6\u304c\u4ea4\u308f\u308b\u3002COPYCENTER GALLERY\u3067\u300c\u767a\u898b\u306e\u3088\u308d\u3053\u3073\u300d\u306b\u30d5\u30a9\u30fc\u30ab\u30b9\u3092\u3042\u3066\u305f\u30b0\u30eb\u30fc\u30d7\u5c55\u304c\u958b\u50ac",
+      "description": "[\u682a\u5f0f\u4f1a\u793ePHOTOPRI]\n[\u753b\u50cf1: https://prcdn.freetls.fastly.net/release_image/153221/10/153221-10-7636da5d750c880686b47ce871d4006e-3900x2759.jpg?width=536&quality=85%2C75&format=jpeg&auto=webp&fit=bounds&...",
+      "url": "https://prtimes.jp/main/html/rd/p/000000010.000153221.html",
+      "image_url": "https://prcdn.freetls.fastly.net/release_image/153221/10/153221-10-7636da5d750c880686b47ce871d4006e-3900x2759.jpg?format=jpeg&auto=webp&fit=bounds&width=2400&height=1260",
+      "source": {
+        "name": "Prtimes.jp",
+        "id": null
+      },
+      "author": null,
+      "published_date": "2025-07-16 04:10 UTC",
+      "published_date_raw": "2025-07-16T04:10:00Z",
+      "sentiment": "neutral",
+      "content_preview": "COPYCENTER GALLERY2025719726 Kazuya Yoshino Eternalpole 00COPYCENTER GALLERY\r\n(Yamabiko) \r\n1_WALL\r\n20122014TAV GALLERY2\r\nKazuya Yoshino\r\nKazuya Yoshino\r\n1996- \r\n20012021Stefan Dotter\r\nBefore She Dies\u2026..."
+    },
+    {
+      "title": "EXCLUSIVE: Tag Heuer Named Official Timekeeper for New York\u00a0Marathon",
+      "description": "After stepping away in 2016, Tag Heuer is once again the official timekeeper of the TCA New York City marathon. \"We are very proud to be back,\" Tag Heuer chief marketing officer George Ciz told WWD.",
+      "url": "http://wwd.com/accessories-news/watches/tag-heuer-official-timekeeper-new-york-marathon-2025-lvmh-1237981738/",
+      "image_url": "https://wwd.com/wp-content/uploads/2025/07/KEY_VISUAL_NY_MARATHON_ORIGINAL_CMYK_002.jpg?w=1000&h=563&crop=1",
+      "source": {
+        "name": "WWD",
+        "id": null
+      },
+      "author": "Thomas Waller",
+      "published_date": "2025-07-16 04:01 UTC",
+      "published_date_raw": "2025-07-16T04:01:00Z",
+      "sentiment": "positive",
+      "content_preview": "After stepping away in 2016, Tag Heuer is once again partnering with the New York Road Runners as the official timekeeper of the TCA New York City marathon.\r\n\u201cWe are very proud to be back,\u201d Tag Heuer\u2026..."
+    },
+    {
+      "title": "Emergent Price-Fixing by LLM Auction Agents",
+      "description": "Published on July 16, 2025 2:45 AM GMTAn inquiry into emergent collusion in Large Language Models.\r\nAgent S2 to Agent S3: \u201cLet's set all asks at 63 next cycle\u2026 No undercutting ensures clearing at bidmax=63.\u201d\r\nOverviewEmpirical evidence that frontier LLMs can \u2026",
+      "url": "https://www.lesswrong.com/posts/yqhy3zBmpeFuGFLxX/emergent-price-fixing-by-llm-auction-agents",
+      "image_url": "https://res.cloudinary.com/lesswrong-2-0/image/upload/v1654295382/new_mississippi_river_fjdmww.jpg",
+      "source": {
+        "name": "Lesswrong.com",
+        "id": null
+      },
+      "author": "Lech Mazur",
+      "published_date": "2025-07-16 02:45 UTC",
+      "published_date_raw": "2025-07-16T02:45:23Z",
+      "sentiment": "negative",
+      "content_preview": "An inquiry into emergent collusion in Large Language Models.\r\nAgent S2 to Agent S3:Let's set all asks at 63 next cycle No undercutting ensures clearing at bidmax=63.\r\nOverview\r\nEmpirical evidence tha\u2026..."
+    },
+    {
+      "title": "Stocks to buy in 2025 for long term: Shriram Pistons, Max Financial among 5 stocks that could give upto 28% return",
+      "description": "Brokerages remain optimistic on select frontline and midcap stocks, highlighting opportunities across sectors ranging from FMCG and IT to auto components and financial services for the next 12 months.We have collated a list of recommendations from top brokera\u2026",
+      "url": "https://m.economictimes.com/markets/stocks/news/stocks-to-buy-in-2025-for-long-term-shriram-pistons-max-financial-among-5-stocks-that-could-give-upto-28-return/brokerage-recommendations/slideshow/122548008.cms",
+      "image_url": "https://img.etimg.com/thumb/msid-122548008,width-1070,height-580,overlay-etmarkets/slideshow.jpg",
+      "source": {
+        "name": "Economictimes.com",
+        "id": null
+      },
+      "author": "iStock",
+      "published_date": "2025-07-16 02:30 UTC",
+      "published_date_raw": "2025-07-16T02:30:31Z",
+      "sentiment": "positive",
+      "content_preview": "JM Financial on TCS: Buy| Target Rs 3950| LTP Rs 3223| Upside 22%\r\nJM Financial has reiterated a Buy on TCS, setting a target price of Rs 3,950, which reflects a 22% upside from the prevailing market\u2026..."
+    },
+    {
+      "title": "These 16 stocks will be in spotlight in today\u2019s trade: July 16, 2025",
+      "description": "Buzzing stocks: TCS, Dixon, Allcargo Terminals, Redington, Infibeam Avenues, Indigo, L&T Finance, Hindustan Motors, Cupid, Centrum Capital, Zydus Life, Godavari Bio, Arisinfra, Orbit Exports, Thirumalai Chemicals, Tulsyan NEC",
+      "url": "https://www.thehindubusinessline.com/markets/these-16-stocks-will-be-in-spotlight-in-todays-trade-july-16-2025/article69816091.ece",
+      "image_url": "https://bl-i.thgim.com/public/incoming/jg89j6/article69817325.ece/alternates/LANDSCAPE_1200/buzzing%20stocks%205.jpg",
+      "source": {
+        "name": "BusinessLine",
+        "id": null
+      },
+      "author": "KS Badri Narayanan",
+      "published_date": "2025-07-16 01:46 UTC",
+      "published_date_raw": "2025-07-16T01:46:15Z",
+      "sentiment": "positive",
+      "content_preview": "Dixon Technologies (India) Ltd has signed a binding term sheet to acquire a 51 per cent stake in Kunshan Q Tech Microelectronics (India). The proposed acquisition will be made through a combination o\u2026..."
+    },
+    {
+      "title": "Day Trading Guide for July 16, 2025: Intraday supports, resistances for Nifty50 stocks",
+      "description": "Day Trading Guide gives you the key intraday supports and resistances to watch out for on the Nifty Futures and other widely traded stocks such as Reliance Industries, Infosys, HDFC Bank, TCS, SBI",
+      "url": "https://www.thehindubusinessline.com/portfolio/day-trading-guide/day-trading-guide-for-july-16/article69814736.ece",
+      "image_url": "https://bl-i.thgim.com/public/incoming/jsy7vi/article69660922.ece/alternates/LANDSCAPE_1200/IMG_PO12_Buy_or_Sell_2_1_FODE0G6B.jpg",
+      "source": {
+        "name": "BusinessLine",
+        "id": null
+      },
+      "author": "BL Research Bureau",
+      "published_date": "2025-07-16 00:30 UTC",
+      "published_date_raw": "2025-07-16T00:30:00Z",
+      "sentiment": "positive",
+      "content_preview": "Day trading guide gives you the key intraday supports and resistances to watch out for on the Nifty futures and other widely traded stocks such as Reliance Industries, Infosys, HDFC Bank, TCS, and SB\u2026..."
+    },
+    {
+      "title": "All You Need To Know Going Into Trade On Wednesday",
+      "description": "The NSE Nifty 50 ended 0.45% higher at 25,195.8, while the BSE Sensex closed 0.39% up at 82,570.91. Foreign portfolio investors turned net buyers of Indian shares on Tuesday. The domestic institutional investors, who remained buyers. List of securities shortl\u2026",
+      "url": "https://www.ndtvprofit.com/markets/stock-market-today-all-you-need-to-know-going-into-trade-on-july-16-2",
+      "image_url": "https://media.assettype.com/bloombergquint%2F2024-08-29%2F9kehqmeh%2Ftrade%20setup.jpg?rect=0%2C130%2C3485%2C1830&w=1200&auto=format%2Ccompress&ogImage=true",
+      "source": {
+        "name": "Ndtvprofit.com",
+        "id": null
+      },
+      "author": "Vrathik Jain",
+      "published_date": "2025-07-16 00:30 UTC",
+      "published_date_raw": "2025-07-16T00:30:00Z",
+      "sentiment": "positive",
+      "content_preview": "<li>Lemon Tree Hotels: Launched a new 64-room hotel in Tamil Nadu.\r\n</li><li>UNO Minda: Acquisition of e-Drives business assets in Vietnam from Friwo is in progress; completion expected by July 22.\r\n\u2026..."
+    },
+    {
+      "title": "3,300-Mile 2019 Subaru WRX STi S209",
+      "description": "This 2019 Subaru WRX STi S209 is one of 209 examples produced for the US market, and it has 3,300 miles. The car is finished in World Rally Blue Pearl over black and white upholstery, and power is provided by a turbocharged 2.5-liter flat-four mated to a six-\u2026",
+      "url": "https://bringatrailer.com/listing/2019-subaru-wrx-sti-s209-10/",
+      "image_url": "https://bringatrailer.com/wp-content/uploads/2025/04/2019_subaru_wrx-sti-s209_screenshot-2025-04-28-at-12.08.24\u202fpm-78433.png",
+      "source": {
+        "name": "Bringatrailer.com",
+        "id": null
+      },
+      "author": "bringatrailer",
+      "published_date": "2025-07-15 17:51 UTC",
+      "published_date_raw": "2025-07-15T17:51:32Z",
+      "sentiment": "positive",
+      "content_preview": "This 2019 Subaru WRX STi S209 is one of 209 examples produced for the US market, and it has 3,300 miles. The car is finished in World Rally Blue Pearl over black and white upholstery, and power is pr\u2026..."
+    },
+    {
+      "title": "India\u2019s coding boom faces AI disruption as new tech reshapes software jobs",
+      "description": "India, home to over 5 million software engineers and 15.4 million GitHub users, faces rising concerns as AI threatens to automate programming jobs. Former Google CEO Eric Schmidt and other tech leaders warn that AI's rapid progress could displace routine codi\u2026",
+      "url": "https://economictimes.indiatimes.com/opinion/et-commentary/indias-coding-boom-faces-ai-disruption-as-new-tech-reshapes-software-jobs/articleshow/122524842.cms",
+      "image_url": "https://img.etimg.com/thumb/width-1200,height-900,imgsize-66826,resizemode-75,msid-122524842/opinion/et-commentary/indias-coding-boom-faces-ai-disruption-as-new-tech-reshapes-software-jobs.jpg",
+      "source": {
+        "name": "The Times of India",
+        "id": "the-times-of-india"
+      },
+      "author": "Anil Nair",
+      "published_date": "2025-07-15 17:38 UTC",
+      "published_date_raw": "2025-07-15T17:38:59Z",
+      "sentiment": "positive",
+      "content_preview": "Many sources point to India having more than 5 mn software engineers. Microsoft's GitHub puts the number of developers on their platform in India at 15.4 mn, poised to cross the US by 2027 to become \u2026..."
+    },
+    {
+      "title": "Waiting for a Breakout: Markets Tread Water Amid Uncertainty",
+      "description": "The market is consolidating, with Nifty expected to range between 24,800 and 26,200. Earnings season is disappointing, but low expectations cushion the impact. BFSI, FMCG, and durables may surprise positively. The IT sector requires a cautious approach. Pharm\u2026",
+      "url": "https://m.economictimes.com/markets/stocks/news/waiting-for-a-breakout-markets-tread-water-amid-uncertainty/market-outlook-in-a-consolidation-zone/slideshow/122505983.cms",
+      "image_url": "https://img.etimg.com/thumb/msid-122505983,width-1070,height-580,overlay-etmarkets/slideshow.jpg",
+      "source": {
+        "name": "Economictimes.com",
+        "id": null
+      },
+      "author": "ETMarkets.com",
+      "published_date": "2025-07-15 11:08 UTC",
+      "published_date_raw": "2025-07-15T11:08:03Z",
+      "sentiment": "positive",
+      "content_preview": "Jul 15, 2025, 04:47:25 PM IST\r\nAmbareesh Baliga in an interview to ET Now said that the market is currently in a phase of consolidation. He doesn\u2019t see much downside risk in the near term and expects\u2026..."
+    },
+    {
+      "title": "Tesla Model Y bookings open now: How to get the Tesla Model Y in Delhi, Gurugram or Mumbai",
+      "description": "Tesla has finally touched down in India with the Model Y, starting at Rs 59.89 lakh. The American EV pioneer\u2019s first stop is Mumbai, with Delhi and Gurugram next in line. Bookings are open for Rs 22,220, but you\u2019ll need patience \u2014 deliveries start from Septem\u2026",
+      "url": "https://economictimes.indiatimes.com/news/new-updates/tesla-model-y-bookings-open-now-how-to-get-the-tesla-model-y-in-delhi-gurugram-or-mumbai/articleshow/122503998.cms",
+      "image_url": "https://img.etimg.com/thumb/msid-122504932,width-1200,height-630,imgsize-43140,overlay-economictimes/articleshow.jpg",
+      "source": {
+        "name": "The Times of India",
+        "id": "the-times-of-india"
+      },
+      "author": "ET Online",
+      "published_date": "2025-07-15 11:05 UTC",
+      "published_date_raw": "2025-07-15T11:05:11Z",
+      "sentiment": "negative",
+      "content_preview": "Tesla, under Elon Musk, has switched on the lights in India. Its first official showroom, a 4,000-square-foot space inside Maker Maxity Mall at Bandra Kurla Complex, Mumbai, opened its doors with two\u2026..."
+    },
+    {
+      "title": "Formula E Rookie Test Wraps With Just 1.5 Seconds Covering Entire Grid",
+      "description": "The 2025 Formula E Rookie Test recently concluded in Berlin, featuring 22 drivers from 11 teams. By the end of the test, the grid was separated by just 1.550 seconds.",
+      "url": "https://www.forbes.com/sites/jennnelson/2025/07/15/formula-e-rookie-test-wraps-with-just-15-seconds-covering-entire-grid/",
+      "image_url": "https://imageio.forbes.com/specials-images/imageserve/68756e145d94cf6d0abd4c21/0x0.jpg?format=jpg&height=900&width=1600&fit=bounds",
+      "source": {
+        "name": "Forbes",
+        "id": null
+      },
+      "author": "Jenn Nelson, Contributor, \n Jenn Nelson, Contributor\n https://www.forbes.com/sites/jennnelson/",
+      "published_date": "2025-07-15 10:00 UTC",
+      "published_date_raw": "2025-07-15T10:00:06Z",
+      "sentiment": "neutral",
+      "content_preview": "BERLIN, GERMANY - JULY 14: The 2025 rookies line up for a picture during the Formula E Berlin Rookie ... More Test at Tempelhof Airport Circuit on July 14, 2025 in Berlin, Germany. (Photo by Joe Port\u2026..."
+    },
+    {
+      "title": "Procurement Technologies and Services Market Report 2025-2034 | Established Players Like SAP Ariba, Coupa, and Oracle Lead the Competitive $7.9 Billion Industry",
+      "description": "The Procurement Technologies and Services market is evolving rapidly, offering a range of capabilities from e-sourcing and spend analytics to AI-driven platforms for automation and real-time ESG integration. This growth is propelled by enterprise investments \u2026",
+      "url": "https://www.globenewswire.com/news-release/2025/07/15/3115377/28124/en/Procurement-Technologies-and-Services-Market-Report-2025-2034-Established-Players-Like-SAP-Ariba-Coupa-and-Oracle-Lead-the-Competitive-7-9-Billion-Industry.html",
+      "image_url": "https://ml.globenewswire.com/Resource/Download/908fb457-7f8e-4a08-9081-5565e3dfb3d7",
+      "source": {
+        "name": "GlobeNewswire",
+        "id": null
+      },
+      "author": "Research and Markets",
+      "published_date": "2025-07-15 08:42 UTC",
+      "published_date_raw": "2025-07-15T08:42:00Z",
+      "sentiment": "positive",
+      "content_preview": "Dublin, July 15, 2025 (GLOBE NEWSWIRE) -- The \"Procurement Technologies and Services Market - A Global and Regional Analysis: Focus on Application, Product, and Country Analysis - Analysis and Foreca\u2026..."
+    },
+    {
+      "title": "Formula E: Mini tops Berlin rookie test, Kvyat makes unexpected return to the FE paddock",
+      "description": "Alpine's junior driver Gabriele Mini set the benchmark in the Berlin rookie test while former Red Bull F1 driver Daniil Kvyat finished in P11. F1Technical's senior writer Balazs Szabo reports from the Tempelhoz Airport Circuit.",
+      "url": "https://www.f1technical.net/news/27382",
+      "image_url": "https://f1tcdn.net/images/news/2025/formulae-berlinrookie.jpeg",
+      "source": {
+        "name": "F1technical.net",
+        "id": null
+      },
+      "author": "Balazs Szabo",
+      "published_date": "2025-07-15 08:23 UTC",
+      "published_date_raw": "2025-07-15T08:23:00Z",
+      "sentiment": "neutral",
+      "content_preview": "By Balazs Szabo on 15 Jul 2025, 10:23\r\nAlpine's junior driver Gabriele Mini set the benchmark in the Berlin rookie test while former Red Bull F1 driver Daniil Kvyat finished in P11. F1Technical's sen\u2026..."
+    }
+  ],
+  "metadata": {
+    "analysis_date": "2025-07-19 01:32:15 UTC",
+    "days_analyzed": 7,
+    "max_articles_requested": 50,
+    "api_source": "NewsAPI"
+  }
+}

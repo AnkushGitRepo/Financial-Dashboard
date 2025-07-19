@@ -34,6 +34,7 @@ const IndexDetailPage = () => {
   const [maPeriod, setMaPeriod] = useState(50); // State for selected MA period, default to 50
   const [showPrice, setShowPrice] = useState(true); // State to control Price line visibility
   const [showMa, setShowMa] = useState(true); // State to control MA line visibility
+  const [stockNews, setStockNews] = useState([]);
 
   useEffect(() => {
     const fetchIndexData = async () => {
@@ -83,6 +84,22 @@ const IndexDetailPage = () => {
     const interval = setInterval(fetchIndexData, 5000); // Refresh every 4 seconds
     return () => clearInterval(interval);
   }, [ticker, selectedRange, maPeriod]); // Add maPeriod to dependencies
+
+  useEffect(() => {
+    const fetchStockNews = async () => {
+      if (indexData?.longName) {
+        try {
+          const { data } = await axios.get(`/api/v1/market/sentiment-news?ticker_or_company=${encodeURIComponent(indexData.longName)}&max_articles=5`);
+          setStockNews(data.articles || []);
+        } catch (error) {
+          console.error('Error fetching stock news:', error);
+          setStockNews([]);
+        }
+      }
+    };
+
+    fetchStockNews();
+  }, [ticker, indexData?.longName]);
 
   const calculateMovingAverage = (data, windowSize) => {
     const movingAverages = [];
@@ -315,6 +332,28 @@ const IndexDetailPage = () => {
           </tbody>
         </table>
       </div>
+      <section className="stock-news-section">
+        <h2>Latest News</h2>
+        {stockNews.length > 0 ? (
+          <div className="news-list">
+            {stockNews.map((article, index) => (
+              <div key={index} className="news-card">
+                {article.image_url && <img src={article.image_url} alt="Article Thumbnail" className="news-thumbnail" />}
+                <div className="news-card-content">
+                  <h3><a href={article.url} target="_blank" rel="noopener noreferrer">{article.title}</a></h3>
+                  <p>{article.description}</p>
+                  <div className="news-meta">
+                    <span className="news-source">{article.source.name}</span>
+                    <span className={`news-sentiment ${article.sentiment.toLowerCase()}`}>{article.sentiment}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p>No news available for this index.</p>
+        )}
+      </section>
     </div>
   );
 };

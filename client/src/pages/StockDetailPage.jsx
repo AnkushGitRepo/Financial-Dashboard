@@ -14,6 +14,7 @@ import {
   Filler,
 } from 'chart.js';
 import '../../src/styles/StockDetailPage.css';
+import '../../src/styles/FinancialData.css';
 
 ChartJS.register(
   CategoryScale,
@@ -30,11 +31,13 @@ const StockDetailPage = () => {
   const { stockIdentifier } = useParams();
   const [stockData, setStockData] = useState(null);
   const [historicalData, setHistoricalData] = useState([]);
-  const [dividendData, setDividendData] = useState([]);
+  const [financialData, setFinancialData] = useState(null);
+  
   const [selectedRange, setSelectedRange] = useState('1y');
   const [maPeriod, setMaPeriod] = useState(50);
   const [showPrice, setShowPrice] = useState(true);
   const [showMa, setShowMa] = useState(true);
+  const [stockNews, setStockNews] = useState([]);
 
   useEffect(() => {
     const fetchStockData = async () => {
@@ -81,28 +84,36 @@ const StockDetailPage = () => {
 
     const fetchFinancialData = async () => {
       try {
-        const response = await axios.get(`/api/v1/market/stock/financials/${stockIdentifier}`);
-        setFinancialData(response.data.data);
+        const response = await axios.get(`http://127.0.0.1:5001/api/financial_data/${stockIdentifier.replace('.NS', '')}`);
+        console.log('Financial Data API Response:', response.data);
+        setFinancialData(response.data);
       } catch (error) {
         console.error(`Error fetching financial data for ${stockIdentifier}:`, error);
       }
     };
 
-    const fetchDividendData = async () => {
-      try {
-        const response = await axios.get(`/api/v1/market/stock/dividends/${stockIdentifier}`);
-        setDividendData(response.data.data);
-      } catch (error) {
-        console.error(`Error fetching dividend data for ${stockIdentifier}:`, error);
-      }
-    };
-
     fetchStockData();
-    fetchDividendData();
+    fetchFinancialData();
 
     const interval = setInterval(fetchStockData, 5000); // Refresh every 5 seconds
     return () => clearInterval(interval);
   }, [stockIdentifier, selectedRange, maPeriod]);
+
+  useEffect(() => {
+    const fetchStockNews = async () => {
+      if (stockData?.longName) {
+        try {
+          const { data } = await axios.get(`/api/v1/market/sentiment-news?ticker_or_company=${encodeURIComponent(stockData.longName)}&max_articles=5`);
+          setStockNews(data.articles || []);
+        } catch (error) {
+          console.error('Error fetching stock news:', error);
+          setStockNews([]);
+        }
+      }
+    };
+
+    fetchStockNews();
+  }, [stockIdentifier, stockData?.longName]);
 
   const calculateMovingAverage = (data, windowSize) => {
     const movingAverages = [];
@@ -330,21 +341,218 @@ const StockDetailPage = () => {
       </div>
     
 
-      {dividendData && (
-        <div className="details-section">
-          <h3>Dividend Info</h3>
-          <table className="details-table">
-            <tbody>
-              {dividendData.dividendYield && <tr><td><strong>Dividend Yield:</strong></td><td>{(dividendData.dividendYield * 100).toFixed(2)}%</td></tr>}
-              {dividendData.dividendRate && <tr><td><strong>Dividend Rate:</strong></td><td>{dividendData.dividendRate.toFixed(2)}</td></tr>}
-              {dividendData.exDividendDate && <tr><td><strong>Ex-Dividend Date:</strong></td><td>{new Date(dividendData.exDividendDate * 1000).toLocaleDateString()}</td></tr>}
-              {!dividendData.exDividendDate && <tr><td><strong>Ex-Dividend Date:</strong></td><td>N/A</td></tr>}
-              {dividendData.payoutRatio && <tr><td><strong>Payout Ratio:</strong></td><td>{(dividendData.payoutRatio * 100).toFixed(2)}%</td></tr>}
-              {!dividendData.dividendYield && !dividendData.dividendRate && !dividendData.exDividendDate && !dividendData.payoutRatio && <tr><td colSpan="2">No dividend data available.</td></tr>}
-            </tbody>
-          </table>
-        </div>
+      
+
+      {financialData && (
+        <section className="financial-data-section">
+          <h2>Financial Data</h2>
+
+          {financialData['balance-sheet'] && (
+            <div className="financial-table-container">
+              <h3>Balance Sheet</h3>
+              <div className="table-scroll-wrapper">
+                <table className="financial-table">
+                  <thead>
+                    <tr>
+                      {financialData['balance-sheet'].headers.map((header, index) => (
+                        <th key={index}>{header}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {financialData['balance-sheet'].rows.map((row, rowIndex) => (
+                      <tr key={rowIndex}>
+                        {row.map((cell, cellIndex) => (
+                          <td key={cellIndex}>{cell}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {financialData['profit-loss'] && (
+            <div className="financial-table-container">
+              <h3>Profit & Loss</h3>
+              <div className="table-scroll-wrapper">
+                <table className="financial-table">
+                  <thead>
+                    <tr>
+                      {financialData['profit-loss'].headers.map((header, index) => (
+                        <th key={index}>{header}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {financialData['profit-loss'].rows.map((row, rowIndex) => (
+                      <tr key={rowIndex}>
+                        {row.map((cell, cellIndex) => (
+                          <td key={cellIndex}>{cell}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {financialData['cashflow'] && (
+            <div className="financial-table-container">
+              <h3>Cashflow</h3>
+              <div className="table-scroll-wrapper">
+                <table className="financial-table">
+                  <thead>
+                    <tr>
+                      {financialData['cashflow'].headers.map((header, index) => (
+                        <th key={index}>{header}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {financialData['cashflow'].rows.map((row, rowIndex) => (
+                      <tr key={rowIndex}>
+                        {row.map((cell, cellIndex) => (
+                          <td key={cellIndex}>{cell}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {financialData['ratios'] && (
+            <div className="financial-table-container">
+              <h3>Ratios</h3>
+              <div className="table-scroll-wrapper">
+                <table className="financial-table">
+                  <thead>
+                    <tr>
+                      {financialData['ratios'].headers.map((header, index) => (
+                        <th key={index}>{header}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {financialData['ratios'].rows.map((row, rowIndex) => (
+                      <tr key={rowIndex}>
+                        {row.map((cell, cellIndex) => (
+                          <td key={cellIndex}>{cell}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {financialData['quarters'] && (
+            <div className="financial-table-container">
+              <h3>Quarters</h3>
+              <div className="table-scroll-wrapper">
+                <table className="financial-table">
+                  <thead>
+                    <tr>
+                      {financialData['quarters'].headers.map((header, index) => (
+                        <th key={index}>{header}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {financialData['quarters'].rows.map((row, rowIndex) => (
+                      <tr key={rowIndex}>
+                        {row.map((cell, cellIndex) => (
+                          <td key={cellIndex}>{cell}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {financialData['shareholding'] && (
+            <div className="financial-table-container">
+              <h3>Shareholding</h3>
+              <div className="table-scroll-wrapper">
+                <table className="financial-table">
+                  <thead>
+                    <tr>
+                      {financialData['shareholding'].headers.map((header, index) => (
+                        <th key={index}>{header}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {financialData['shareholding'].rows.map((row, rowIndex) => (
+                      <tr key={rowIndex}>
+                        {row.map((cell, cellIndex) => (
+                          <td key={cellIndex}>{cell}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {financialData['peers'] && (
+            <div className="financial-table-container">
+              <h3>Peers</h3>
+              <div className="table-scroll-wrapper">
+                <table className="financial-table">
+                  <thead>
+                    <tr>
+                      {financialData['peers'].headers.map((header, index) => (
+                        <th key={index}>{header}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {financialData['peers'].rows.map((row, rowIndex) => (
+                      <tr key={rowIndex}>
+                        {row.map((cell, cellIndex) => (
+                          <td key={cellIndex}>{cell}</td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </section>
       )}
+
+      <section className="stock-news-section">
+        <h2>Latest Stock News</h2>
+        {stockNews.length > 0 ? (
+          <div className="news-list">
+            {stockNews.map((article, index) => (
+              <div key={index} className="news-card">
+                {article.image_url && <img src={article.image_url} alt="Article Thumbnail" className="news-thumbnail" />}
+                <div className="news-card-content">
+                  <h3><a href={article.url} target="_blank" rel="noopener noreferrer">{article.title}</a></h3>
+                  <p>{article.description}</p>
+                  <div className="news-meta">
+                    <span className="news-source">{article.source.name}</span>
+                    <span className={`news-sentiment ${article.sentiment.toLowerCase()}`}>{article.sentiment}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p>No news available for this stock.</p>
+        )}
+      </section>
     </div>
   );
 };

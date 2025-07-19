@@ -162,31 +162,8 @@ export const searchIndianStocks = catchAsyncError(async (req, res, next) => {
   }
 });
 
-export const getStockDetails = catchAsyncError(async (req, res, next) => {
-  const { stockIdentifier } = req.params;
 
-  try {
-    const stockData = await Stock.findOne({
-      $or: [
-        { "Security Id": stockIdentifier },
-        { "Yahoo Finance Ticker (NSE)": stockIdentifier },
-        { "Yahoo Finance Ticker (BSE)": stockIdentifier },
-      ],
-    });
 
-    if (!stockData) {
-      return next(new Error('Stock not found', 404));
-    }
-
-    res.status(200).json({
-      success: true,
-      stockData,
-    });
-  } catch (error) {
-    console.error('Error fetching stock details:', error);
-    return next(new Error('Failed to fetch stock details', 500));
-  }
-});
 
 export const getStocksData = catchAsyncError(async (req, res, next) => {
   const { tickers } = req.query; // tickers will be a comma-separated string
@@ -218,6 +195,104 @@ export const getStocksData = catchAsyncError(async (req, res, next) => {
   } catch (error) {
     console.error('Error fetching stocks data:', error);
     return next(new Error('Failed to fetch stocks data', 500));
+  }
+});
+
+export const getSentimentNews = catchAsyncError(async (req, res, next) => {
+  const { ticker_or_company, company_name } = req.query;
+
+  if (!ticker_or_company) {
+    return next(new Error('Missing ticker or company name for sentiment analysis', 400));
+  }
+
+  try {
+    let pythonApiUrl = `http://127.0.0.1:5000/analyze-sentiment?ticker_or_company=${ticker_or_company}`;
+    if (company_name) {
+      pythonApiUrl += `&company_name=${company_name}`;
+    }
+    const response = await axios.get(pythonApiUrl);
+    res.status(200).json(response.data);
+  } catch (error) {
+    console.error('Error fetching sentiment news from Python API:', error);
+    return next(new Error('Failed to fetch sentiment news', 500));
+  }
+});
+
+export const getStockDetails = catchAsyncError(async (req, res, next) => {
+  const { ticker: stockIdentifier } = req.params; // Rename ticker to stockIdentifier for clarity
+  const { range } = req.query;
+
+  try {
+    // First, get the stock details from your database to find the Yahoo Finance ticker
+    const stockData = await Stock.findOne({
+      $or: [
+        { "Security Id": stockIdentifier },
+        { "Yahoo Finance Ticker (NSE)": stockIdentifier },
+        { "Yahoo Finance Ticker (BSE)": stockIdentifier },
+      ],
+    });
+
+    if (!stockData) {
+      return next(new Error('Stock not found in database', 404));
+    }
+
+    // Determine the Yahoo Finance ticker to use
+    const yahooTicker = stockData['Yahoo Finance Ticker (NSE)'] || stockData['Yahoo Finance Ticker (BSE)'];
+
+    if (!yahooTicker) {
+      return next(new Error('Yahoo Finance ticker not found for this stock', 404));
+    }
+
+    const { period1, period2 } = getDateRange(range);
+
+    const queryOptions = {
+      period1: period1.toISOString().split('T')[0],
+      period2: period2.toISOString().split('T')[0],
+    };
+
+    // Fetch historical and current data in parallel using the yahooTicker
+    const [historicalResult, quote] = await Promise.all([
+      yahooFinance.historical(yahooTicker, queryOptions),
+      yahooFinance.quote(yahooTicker, { validateResult: false })
+    ]);
+
+    // Format historical data
+    const historical = historicalResult.map(item => ({
+      date: item.date.toISOString().split('T')[0],
+      price: item.close,
+    }));
+
+    const currentData = {
+      symbol: quote.symbol || null,
+      longName: quote.longName || quote.shortName || quote.symbol || null,
+      regularMarketPrice: quote.regularMarketPrice?.raw !== undefined ? quote.regularMarketPrice.raw : quote.regularMarketPrice || null,
+      regularMarketChange: quote.regularMarketChange?.raw !== undefined ? quote.regularMarketChange.raw : quote.regularMarketChange || null,
+      regularMarketChangePercent: quote.regularMarketChangePercent?.raw !== undefined ? quote.regularMarketChangePercent.raw : quote.regularMarketChangePercent || null,
+      fiftyTwoWeekHigh: quote.fiftyTwoWeekHigh?.raw !== undefined ? quote.fiftyTwoWeekHigh.raw : quote.fiftyTwoWeekHigh || null,
+      fiftyTwoWeekLow: quote.fiftyTwoWeekLow?.raw !== undefined ? quote.fiftyTwoWeekLow.raw : quote.fiftyTwoWeekLow || null,
+      regularMarketDayHigh: quote.regularMarketDayHigh?.raw !== undefined ? quote.regularMarketDayHigh.raw : quote.regularMarketDayHigh || null,
+      regularMarketDayLow: quote.regularMarketDayLow?.raw !== undefined ? quote.regularMarketDayLow.raw : quote.regularMarketDayLow || null,
+      regularMarketPreviousClose: quote.regularMarketPreviousClose?.raw !== undefined ? quote.regularMarketPreviousClose.raw : quote.regularMarketPreviousClose || null,
+      regularMarketOpen: quote.regularMarketOpen?.raw !== undefined ? quote.regularMarketOpen.raw : quote.regularMarketOpen || null,
+      regularMarketVolume: quote.regularMarketVolume?.raw !== undefined ? quote.regularMarketVolume.raw : quote.regularMarketVolume || null,
+      marketState: quote.marketState || null,
+      exchange: quote.exchange || null,
+      fullExchangeName: quote.fullExchangeName || null,
+      currency: quote.currency || null,
+      gmtOffSetMilliseconds: quote.gmtOffSetMilliseconds?.raw !== undefined ? quote.gmtOffSetMilliseconds.raw : quote.gmtOffSetMilliseconds || null,
+      quoteType: quote.quoteType || null,
+    };
+
+    res.status(200).json({
+      success: true,
+      data: {
+        current: currentData,
+        historical: historical,
+      },
+    });
+  } catch (error) {
+    console.error(`Error fetching data for ${stockIdentifier}:`, error);
+    return next(new Error(`Failed to fetch data for ${stockIdentifier}`, 500));
   }
 });
 
