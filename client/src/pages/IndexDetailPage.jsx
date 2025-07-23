@@ -89,7 +89,7 @@ const IndexDetailPage = () => {
     const fetchStockNews = async () => {
       if (indexData?.longName) {
         try {
-          const { data } = await axios.get(`/api/v1/market/sentiment-news?ticker_or_company=${encodeURIComponent(indexData.longName)}&max_articles=5`);
+          const { data } = await axios.get(`/api/sentiment/analyze-sentiment/?ticker_or_company=${encodeURIComponent(indexData.longName)}&max_articles=5`);
           setStockNews(data.articles || []);
         } catch (error) {
           console.error('Error fetching stock news:', error);

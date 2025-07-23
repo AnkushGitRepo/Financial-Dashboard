@@ -74,10 +74,15 @@ financial-dashboard/
 │   │   ├── App.jsx         # Main React application component and routing
 │   │   └── main.jsx        # Entry point for the React application
 │   └── package.json        # Frontend dependencies
+├── api/                    # Django REST Framework application for financial data and news sentiment
+│   ├── core/               # Django project core settings
+│   ├── financials/         # Django app for financial data scraping
+│   ├── sentiment/          # Django app for news sentiment analysis
+│   ├── manage.py           # Django project management utility
+│   └── requirements.txt    # Python dependencies for Django
 ├── scraper/                # Python-based web scraper for IPO data
 │   ├── .env                # Environment variables for the scraper
 │   ├── ipo_data_scraper.py # Main scraper script
-│   ├── financial_data_scraper.py # Scraper for detailed financial data from screener.in
 │   └── requirements.txt    # Python dependencies
 ├── server/                 # Backend Node.js/Express application
 │   ├── automation/         # Scheduled tasks (e.g., remove unverified accounts)
@@ -121,14 +126,13 @@ For specific instructions and conventions related to developing with the Gemini 
 
 ## Scrapers 🕷️
 
-This project includes two Python-based web scrapers located in the `scraper` directory:
+This project includes a Python-based web scraper located in the `scraper` directory:
 
 -   **IPO Data Scraper (`ipo_data_scraper.py`)**: This scraper fetches IPO data and stores it in the MongoDB database. It is intended to be run periodically to keep the IPO data up-to-date.
--   **Financial Data Scraper (`financial_data_scraper.py`)**: This scraper fetches detailed financial data for a given company from `screener.in`. It is designed to be run on-demand to retrieve data for a specific company.
 
 ### Running the Scrapers 🏃
 
-To run the scrapers, follow these steps:
+To run the scraper, follow these steps:
 
 1.  **Navigate to the `scraper` directory**:
 
@@ -149,7 +153,7 @@ To run the scrapers, follow these steps:
     pip install -r requirements.txt
     ```
 
-4.  **Set up environment variables** (for IPO Scraper):
+4.  **Set up environment variables**:
 
     Create a `.env` file in the `scraper` directory and add the following variables:
 
@@ -157,17 +161,12 @@ To run the scrapers, follow these steps:
     MONGO_URI=your_mongodb_connection_string
     ```
 
-5.  **Run the desired scraper**:
+5.  **Run the IPO data scraper**:
 
-    -   To run the IPO data scraper:
+    ```bash
+    python ipo_data_scraper.py
+    ```
 
-        ```bash
-        python ipo_data_scraper.py
-        ```
+## Django API Backend 🐍
 
-    -   To run the Financial Data API server:
-
-        ```bash
-        python financial_data_scraper.py
-        ```
-        This will start a Flask API server at `http://127.0.0.1:5001`. The frontend will fetch financial data from this server.
+The financial data and news sentiment analysis APIs are now part of the Django backend. Refer to `api/README.md` for setup and running instructions.

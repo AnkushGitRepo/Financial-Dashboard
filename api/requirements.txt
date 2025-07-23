@@ -1,0 +1,8 @@
+Django
+djangorestframework
+django-cors-headers
+requests
+python-dotenv
+beautifulsoup4
+selenium
+webdriver-manager

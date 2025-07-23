@@ -84,7 +84,7 @@ const StockDetailPage = () => {
 
     const fetchFinancialData = async () => {
       try {
-        const response = await axios.get(`http://127.0.0.1:5001/api/financial_data/${stockIdentifier.replace('.NS', '')}`);
+        const response = await axios.get(`/api/financials/financial_data/${stockIdentifier.replace('.NS', '')}/`);
         console.log('Financial Data API Response:', response.data);
         setFinancialData(response.data);
       } catch (error) {
@@ -103,7 +103,7 @@ const StockDetailPage = () => {
     const fetchStockNews = async () => {
       if (stockData?.longName) {
         try {
-          const { data } = await axios.get(`/api/v1/market/sentiment-news?ticker_or_company=${encodeURIComponent(stockData.longName)}&max_articles=5`);
+          const { data } = await axios.get(`/api/sentiment/analyze-sentiment/?ticker_or_company=${encodeURIComponent(stockData.longName)}&max_articles=5`);
           setStockNews(data.articles || []);
         } catch (error) {
           console.error('Error fetching stock news:', error);

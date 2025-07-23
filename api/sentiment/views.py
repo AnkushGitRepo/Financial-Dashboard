@@ -4,11 +4,11 @@ import json
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Union
 from dotenv import load_dotenv
-from flask import Flask, request, jsonify
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
 
 load_dotenv()
-
-app = Flask(__name__)
 
 class NewsSentimentAnalyzer:
     """
@@ -236,24 +236,27 @@ class NewsSentimentAnalyzer:
             "metadata": full_result["metadata"]
         }
 
-@app.route('/analyze-sentiment', methods=['GET'])
-def analyze_sentiment_api():
-    ticker_or_company = request.args.get('ticker_or_company')
-    company_name = request.args.get('company_name')
-    days_back = request.args.get('days_back', type=int, default=3)
-    max_articles = request.args.get('max_articles', type=int, default=10)
+class AnalyzeSentimentAPIView(APIView):
+    def get(self, request):
+        ticker_or_company = request.query_params.get('ticker_or_company')
+        company_name = request.query_params.get('company_name')
+        days_back_str = request.query_params.get('days_back', '3')
+        max_articles_str = request.query_params.get('max_articles', '10')
 
-    if not ticker_or_company:
-        return jsonify({"error": "Missing 'ticker_or_company' parameter"}), 400
+        try:
+            days_back = int(days_back_str)
+            max_articles = int(max_articles_str)
+        except ValueError:
+            return Response({"error": "'days_back' and 'max_articles' must be integers"}, status=status.HTTP_400_BAD_REQUEST)
 
-    try:
-        analyzer = NewsSentimentAnalyzer()
-        result = analyzer.analyze_sentiment(ticker_or_company, company_name, days_back, max_articles)
-        return jsonify(result)
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
-    except Exception as e:
-        return jsonify({"error": f"An unexpected error occurred: {str(e)}"}), 500
+        if not ticker_or_company:
+            return Response({"error": "Missing 'ticker_or_company' parameter"}, status=status.HTTP_400_BAD_REQUEST)
 
-if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+        try:
+            analyzer = NewsSentimentAnalyzer()
+            result = analyzer.analyze_sentiment(ticker_or_company, company_name, days_back, max_articles)
+            return Response(result, status=status.HTTP_200_OK)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": f"An unexpected error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

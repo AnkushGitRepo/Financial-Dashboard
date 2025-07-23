@@ -29,6 +29,12 @@ financial-dashboard/
 │   │   ├── App.jsx         # Main React application component and routing
 │   │   └── main.jsx        # Entry point for the React application
 │   └── package.json        # Frontend dependencies
+├── api/                    # Django REST Framework application for financial data and news sentiment
+│   ├── core/               # Django project core settings
+│   ├── financials/         # Django app for financial data scraping
+│   ├── sentiment/          # Django app for news sentiment analysis
+│   ├── manage.py           # Django project management utility
+│   └── requirements.txt    # Python dependencies for Django
 ├── scraper/                # Python-based web scraper for IPO data
 │   ├── .env                # Environment variables for the scraper
 │   ├── ipo_data_scraper.py # Main scraper script
@@ -51,124 +57,15 @@ financial-dashboard/
 ```
 
 ## Recent Conversation Summary:
-
-1.  **Range Buttons to Radio Buttons:**
-    *   **Feature:** Converted range selection buttons to radio buttons with a new, styled appearance.
-    *   **Resolution:** Updated `client/src/pages/IndexDetailPage.jsx` to use radio button inputs and `client/src/styles/IndexDetailPage.css` with new styles for the radio buttons.
-
-2.  **Radio Buttons Alignment:**
-    *   **Feature:** Aligned the newly implemented radio buttons to the right side of the chart controls.
-    *   **Resolution:** Modified `client/src/styles/IndexDetailPage.css` to adjust the alignment of the radio button container.
-
-3.  **Chart Tooltip Enhancement:**
-    *   **Feature:** Improved chart tooltip to display price and date clearly on hover.
-    *   **Resolution:** Updated `chartOptions` in `client/src/pages/IndexDetailPage.jsx` with custom tooltip callbacks for better formatting of date and price.
-
-4.  **Market Indices Card and Chart Sizing:**
-    *   **Feature:** Adjusted the size of the market indices cards and their embedded charts to be smaller without affecting the `IndexDetailPage`.
-    *   **Resolution:** Modified `client/src/styles/MarketIndices.css` to reduce `grid-template-columns` for the grid and `height` for the chart container within the cards. Also, made the `.chart-container` selector more specific to `.index-card .chart-container` to avoid conflicts with `IndexDetailPage`.
-
-5.  **Market Indices Chart Y-axis and Color Logic:**
-    *   **Feature:** Removed the y-axis labels from the charts in `MarketIndices.jsx` and updated the chart line and fill color logic to be based on the index's overall change (positive/negative) instead of its relation to a moving average.
-    *   **Resolution:** Modified `client/src/components/MarketIndices.jsx` to set `display: false` for the y-axis in `chartOptions` and updated the `getChartData` function to use `index.change` for determining `borderColor` and `fillColor`.
-
-6.  **Index Detail Page - MAX Range Button Logic:**
-    *   **Feature:** Added a "MAX" radio button to the range selection in `IndexDetailPage.jsx` to display the maximum available historical data.
-    *   **Resolution:** Updated `client/src/pages/IndexDetailPage.jsx` to include the "MAX" radio button and adjusted the `handleRangeChange` logic to set `selectedRange` to 'max' and `maPeriod` to `null` when selected. Modified `server/controllers/marketController.js` to set `period1Date` to `new Date('1970-01-01')` for the 'max' range and simplified the `getHistoricalIndexData` function to always use `getDateRange`.
-
-7.  **Removed `getTopMovers` function:**
-    *   **Feature:** Removed the `getTopMovers` function from `server/controllers/marketController.js` and all its usages.
-    *   **Resolution:** Deleted the function from `server/controllers/marketController.js` and removed its import and route definition from `server/routes/marketRoutes.js`.
-
-8.  **Index Detail Page Table Display Issues:**
-    *   **Feature:** Addressed issues where important fields were not displayed in the table on `IndexDetailPage.jsx` and "NA" was shown for Change/Change Percent.
+33. **Flask to Django Migration & API Consolidation:**
+    *   **Feature:** Migrated existing Flask applications (`financial_data_scraper.py` and `news_sentiment_analyzer.py`) into a new Django REST Framework project (`api/`) to consolidate backend APIs.
     *   **Resolution:**
-        *   Ensured `regularMarketPreviousClose` is sent from the backend in `server/controllers/marketController.js`.
-        *   Modified `client/src/pages/IndexDetailPage.jsx` to display "N/A" for missing data and conditionally render rows to hide fields with `null` or `undefined` values.
-        *   Corrected the calculation of `regularMarketChange` and `regularMarketChangePercent` in `server/controllers/marketController.js` to use `chartPreviousClose` and handle `null` values.
-
-9.  **Removed Zero from Volume in Index Detail Page Table:**
-    *   **Feature:** Prevented the display of "0" for Volume in the `IndexDetailPage` table when the value is zero.
-    *   **Resolution:** Modified `client/src/pages/IndexDetailPage.jsx` to conditionally render the Volume row only if the value is not zero.
-
-10. **Updated Last Update Time in Index Detail Page:**
-    *   **Feature:** Changed "Last Update Time" to reflect the time the page data is loaded.
-    *   **Resolution:** Modified `client/src/pages/IndexDetailPage.jsx` to use `new Date().toLocaleString()` for "Last Update Time".
-
-11. **Data Refresh Rate for `IndexDetailPage`:**
-    *   **Feature:** Changed data refresh rate for `IndexDetailPage` to 15 seconds.
-    *   **Resolution:** Modified `client/src/pages/IndexDetailPage.jsx` to set `setInterval` to 15000ms.
-
-12. **Data Refresh Rate for `MarketIndices.jsx`:**
-    *   **Feature:** Changed data refresh rate for `MarketIndices.jsx` to 500ms.
-    *   **Resolution:** Modified `client/src/components/MarketIndices.jsx` to set `setInterval` to 500ms.
-
-13. **TickerBar Dynamic Data (Attempted and Reverted):**
-    *   **Feature:** Attempted to implement dynamic Nifty 50 stock data for `TickerBar.jsx` using `yahoo-finance2`.
-    *   **Resolution:**
-        *   Added `getNifty50Tickers` to `server/controllers/marketController.js` and a route in `server/routes/marketRoutes.js`.
-        *   Modified `client/src/components/TickerBar.jsx` to fetch data from the new API.
-        *   Encountered "Too Many Requests" error from Yahoo Finance.
-        *   Implemented caching for Nifty 50 tickers in `server/controllers/marketController.js`.
-        *   **Reverted all TickerBar related changes** due to persistent issues and user request to avoid risk. This includes reverting changes in `server/controllers/marketController.js`, `server/routes/marketRoutes.js`, and `client/src/components/TickerBar.jsx`. Also, fixed a `SyntaxError` in `marketController.js` and a `ReferenceError` in `app.js` that arose during the TickerBar implementation and subsequent reverts.
-14. **Market Card Styling**:
-    *   **Feature**: Enhanced styling for market cards in `IndianMarket.jsx` and `GlobalMarket.jsx` to visually represent positive/negative changes with colored borders and background.
-    *   **Resolution**: Modified `client/src/styles/MarketSection.css` to add `border-left-color` and `background-color` based on `positive` or `negative` classes. Also added a subtle `updated` animation.
-15. **Market Card Text Color**:
-    *   **Feature**: Ensured market change values and percentages are colored red for negative and green for positive changes.
-    *   **Resolution**: Modified `client/src/styles/MarketSection.css` to apply `color: var(--color-positive) !important;` and `color: var(--color-negative) !important;` to `.market-card.positive .market-change` and `.market-card.negative .market-change` respectively. Also set the default text color of `.market-card` to `var(--color-text-primary)`.
-16. **Market Card Navigation**:
-    *   **Feature**: Corrected navigation for market cards in `IndianMarket.jsx` and `GlobalMarket.jsx` to prevent 404 errors when clicking on indices.
-    *   **Resolution**: Updated `Link` `to` prop in both `IndianMarket.jsx` and `GlobalMarket.jsx` from `/indices/:ticker` to `/markets/indices/:ticker`.
-17. **Index Detail Page Data Loading**:
-    *   **Feature**: Resolved the "Loading..." issue on `IndexDetailPage` where data was not loading.
-    *   **Resolution**: Modified `server/controllers/marketController.js` to ensure the `getHistoricalIndexData` function returns data in the format expected by `IndexDetailPage` (i.e., with `current` and `historical` properties).
-18. **Server Stability (Global News)**:
-    *   **Feature**: Addressed server crashes caused by the deprecated `google-finance` package when fetching global news.
-    *   **Resolution**: Replaced `google-finance` with `yahoo-finance2` in `server/controllers/marketController.js` for fetching global news. Removed `google-finance` dependency from `server/package.json`.
-19. **Market News Section Redesign**:
-    *   **Feature**: Redesigned the `MarketNews` component to have a professional layout with one large main article, two secondary articles, and a list of other articles.
-    *   **Resolution**: Modified `client/src/components/MarketNews.jsx` to structure the news display. Added new styles to `client/src/styles/MarketSection.css` for `.news-grid-container`, `.news-card-large`, `.news-image-large`, `.news-content-large`, `.secondary-news-container`, `.news-card-medium`, `.news-image-medium`, `.news-content-medium`, `.news-source`, `.other-news-list`, and `.news-source-list`.
-20. **Markets Page Title Styling**:
-    *   **Feature**: Added a styled `h1` title to `client/src/pages/Markets.jsx` with a custom background, centered and bold text, rounded edges, and adjusted height.
-    *   **Resolution**: Created `client/src/styles/Markets.css` with styles for `.title-container` and `.market-title`. Imported this new CSS file into `client/src/pages/Markets.jsx` and applied the classes.
-21. **Markets Page Title Readability**:
-    *   **Feature**: Improved readability of the "Market Overview" title on the Markets page.
-    *   **Resolution**: Changed the `color` of `.market-title` in `client/src/styles/Markets.css` to `#333333` (dark charcoal).
-22. **Indian/Global Market Title Boldness**:
-    *   **Feature**: Made the titles "Indian Market" and "Global Market" bold.
-    *   **Resolution**: Added `font-weight: bold;` to `.market-section h2` in `client/src/styles/MarketSection.css`.
-23. **Server Startup Error (SyntaxError):**
-    *   **Feature:** Resolved `SyntaxError` due to `getStockDividendData` import in `server/routes/marketRoutes.js`.
-    *   **Resolution:** Removed unused `getStockDividendData` import and its corresponding route from `server/routes/marketRoutes.js`.
-24. **Server Startup Error (ReferenceError):**
-    *   **Feature:** Resolved `ReferenceError` due to `getStockFinancialData` in `server/routes/marketRoutes.js`.
-    *   **Resolution:** Removed unused `getStockFinancialData` route from `server/routes/marketRoutes.js`.
-25. **Stocks Page Title Styling:**
-    *   **Feature:** Added a styled `h1` title "Stocks Dashboard" to `client/src/pages/Stocks.jsx` with a custom background and white text.
-    *   **Resolution:** Wrapped the `h1` in a `div` with `stocks-title-container` class and applied background styles. Created `client/src/styles/Stocks.css` for the new styles.
-26. **Stocks Page Title Text Color:**
-    *   **Feature:** Ensured the title text color is white.
-    *   **Resolution:** Added `color: white !important;` to `.stocks-page-title` in `client/src/styles/Stocks.css`.
-27. **Stocks Page Title Styling Conflict:**
-    *   **Feature:** Prevented styling conflicts with other pages by making Stocks page title styles more specific.
-    *   **Resolution:** Renamed `.title-container` to `.stocks-title-container` and `.stock-title` to `.stocks-page-title` in `client/src/styles/Stocks.css` and `client/src/pages/Stocks.jsx`.
-28. **Stocks Page Title Alignment:**
-    *   **Feature:** Centered the title text on the Stocks page.
-    *   **Resolution:** Added `width: 100%;` to `.stocks-page-title` in `client/src/styles/Stocks.css` to ensure `text-align: center` works correctly.
-29. **Stocks Page Text Updates:**
-    *   **Feature:** Removed "Welcome to your personalized stocks overview." line and made "Search Stocks" and "Popular Indian Stocks" bold.
-    *   **Resolution:** Removed the `<p>` tag and wrapped the `h2` tags with `<b>` for bolding in `client/src/pages/Stocks.jsx`.
-30. **Stocks Page Popular Stocks Data Fetching:**
-    *   **Feature:** Replaced hardcoded popular stock data with real-time data fetched from Yahoo Finance using a new backend API.
-    *   **Resolution:**
-        *   Added `getStocksData` function to `server/controllers/marketController.js` to fetch data for multiple tickers.
-        *   Added a new route `/api/v1/market/stocks/data` in `server/routes/marketRoutes.js` for `getStocksData`.
-        *   Modified `client/src/pages/Stocks.jsx` to fetch data from this new API, format it, and update the `popularIndianStocks` state.
-        *   Implemented a 60-second refresh interval for popular stocks data.
-31. **Stocks Page Data Fetching 404 Error:**
-    *   **Feature:** Resolved 404 error when fetching popular stocks data.
-    *   **Resolution:** Corrected the API endpoint in `client/src/pages/Stocks.jsx` from `/api/v1/user/stocks/data` to `/api/v1/market/stocks/data`.
-32. **Financial Data API Network Error (CORS):**
-    *   **Feature:** Resolved network error when fetching financial data for `StockDetailPage`.
-    *   **Resolution:** Updated `client/src/pages/StockDetailPage.jsx` to use the correct API endpoint and removed `.NS` suffix. Added `flask-cors` to `scraper/requirements.txt` and enabled CORS in `scraper/financial_data_scraper.py`.
+        *   Created a new `api/` directory with a Django project (`core/`) and two Django apps (`financials/` for financial data and `sentiment/` for news sentiment).
+        *   Transferred relevant logic from old Flask apps to their respective Django views and utility files.
+        *   Configured Django `settings.py` and `urls.py` to include the new apps and their API endpoints.
+        *   Updated `client/src/pages/IndexDetailPage.jsx` and `client/src/pages/StockDetailPage.jsx` to consume data from the new Django API endpoints (`/api/financials/` and `/api/sentiment/`).
+        *   Corrected `client/vite.config.js` to properly proxy requests: `/api/financials` and `/api/sentiment` to `http://localhost:8000` (Django), and a general `/api` to `http://localhost:4000` (Express).
+        *   Fixed a `TypeError` in `api/sentiment/views.py` by explicitly converting `days_back` and `max_articles` to integers.
+        *   Created `api/README.md` for the new Django project.
+        *   Updated the main `README.md` to reflect the new project structure and API changes.
+        *   Removed the deprecated `sentiment_analyser/` directory and `scraper/financial_data_scraper.py` file.
