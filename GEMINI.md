@@ -69,3 +69,11 @@ financial-dashboard/
         *   Created `api/README.md` for the new Django project.
         *   Updated the main `README.md` to reflect the new project structure and API changes.
         *   Removed the deprecated `sentiment_analyser/` directory and `scraper/financial_data_scraper.py` file.
+34. **Django API Home Page & Interactive Testing:**
+    *   **Feature:** Implemented a professional and user-friendly home page for the Django API backend.
+    *   **Resolution:**
+        *   Created a new `index.html` template with a modern design, improved typography, and a clear layout.
+        *   Added interactive forms to the home page, allowing users to test the `/api/financials/` and `/api/sentiment/` endpoints directly from the browser.
+        *   Implemented asynchronous JavaScript to handle form submissions, fetch data from the API, and display the JSON response without reloading the page.
+        *   Fixed a `django.db.utils.OperationalError: no such table: django_session` by running `python manage.py migrate`.
+        *   Updated `api/README.md` and the main `README.md` to reflect the new API home page and its features.

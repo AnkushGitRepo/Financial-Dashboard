@@ -169,4 +169,4 @@ To run the scraper, follow these steps:
 
 ## Django API Backend 🐍
 
-The financial data and news sentiment analysis APIs are now part of the Django backend. Refer to `api/README.md` for setup and running instructions.
+The financial data and news sentiment analysis APIs are now served by a dedicated Django backend. This backend includes an interactive home page that allows you to test the API endpoints directly from your browser. For detailed setup and usage instructions, please refer to the [Django API Backend README](api/README.md).

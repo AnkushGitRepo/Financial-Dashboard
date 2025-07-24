@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Dashboard API</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Roboto', sans-serif; 
+            line-height: 1.6; 
+            margin: 0;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        .container { 
+            max-width: 960px; 
+            margin: 0 auto; 
+            padding: 2em; 
+        }
+        .header {
+            background-color: #fff;
+            padding: 2rem;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+        }
+        h1, h2, h3 { 
+            color: #2c3e50; 
+            font-weight: 500;
+        }
+        h1 { font-size: 2.5em; }
+        h2 { font-size: 2em; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-top: 40px;}
+        code { 
+            background-color: #e8e8e8; 
+            padding: 4px 8px; 
+            border-radius: 4px; 
+            font-family: 'Courier New', Courier, monospace;
+        }
+        a { 
+            color: #007bff; 
+            text-decoration: none; 
+        }
+        a:hover { 
+            text-decoration: underline; 
+        }
+        .endpoint {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 2em;
+            margin-bottom: 2em;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .endpoint-meta {
+            display: flex;
+            align-items: center;
+            gap: 1em;
+            margin-bottom: 1em;
+        }
+        .method {
+            background-color: #28a745;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        .endpoint-url {
+            font-size: 1.1em;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .form-group {
+            margin-bottom: 1em;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+            border-radius: 5px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        pre {
+            background-color: #2c3e50;
+            color: #f8f8f2;
+            padding: 1.5em;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            margin-top: 40px;
+            font-size: 0.9em;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Financial Dashboard API</h1>
+        <p>Welcome to the official API for the Financial Dashboard application. This backend service provides real-time financial data and news sentiment analysis.</p>
+        <a href="http://localhost:5173" class="btn">Launch App</a>
+    </div>
+
+    <div class="container">
+        <h2>API Endpoints</h2>
+        
+        <div class="endpoint">
+            <div class="endpoint-meta">
+                <span class="method">GET</span>
+                <span class="endpoint-url">/api/financials/financial_data/&lt;TICKER&gt;/</span>
+            </div>
+            <p>Fetches comprehensive financial data for a specified company ticker from screener.in.</p>
+            <form id="financials-form">
+                <div class="form-group">
+                    <label for="ticker">Ticker Symbol</label>
+                    <input type="text" id="ticker" name="ticker" placeholder="e.g., RELIANCE" required>
+                </div>
+                <button type="submit" class="btn">Test Endpoint</button>
+            </form>
+            <pre id="financials-response"></pre>
+        </div>
+
+        <div class="endpoint">
+            <div class="endpoint-meta">
+                <span class="method">GET</span>
+                <span class="endpoint-url">/api/sentiment/analyze-sentiment/</span>
+            </div>
+            <p>Analyzes the sentiment of recent financial news for a given ticker or company name.</p>
+            <form id="sentiment-form">
+                <div class="form-group">
+                    <label for="ticker_or_company">Ticker or Company</label>
+                    <input type="text" id="ticker_or_company" name="ticker_or_company" placeholder="e.g., TSLA" required>
+                </div>
+                <button type="submit" class="btn">Test Endpoint</button>
+            </form>
+            <pre id="sentiment-response"></pre>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2024 Financial Dashboard. All Rights Reserved.</p>
+    </div>
+
+    <script>
+        document.getElementById('financials-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const ticker = e.target.ticker.value;
+            const responseContainer = document.getElementById('financials-response');
+            responseContainer.textContent = 'Fetching data...';
+
+            try {
+                const response = await fetch(`/api/financials/financial_data/${ticker}/`);
+                const data = await response.json();
+                responseContainer.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                responseContainer.textContent = `Error: ${error.message}`;
+            }
+        });
+
+        document.getElementById('sentiment-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const tickerOrCompany = e.target.ticker_or_company.value;
+            const responseContainer = document.getElementById('sentiment-response');
+            responseContainer.textContent = 'Fetching data...';
+
+            try {
+                const response = await fetch(`/api/sentiment/analyze-sentiment/?ticker_or_company=${tickerOrCompany}`);
+                const data = await response.json();
+                responseContainer.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                responseContainer.textContent = `Error: ${error.message}`;
+            }
+        });
+
+        document.querySelectorAll('input[type="text"]').forEach(input => {
+            input.addEventListener('input', function () {
+                this.value = this.value.toUpperCase();
+            });
+        });
+    </script>
+</body>
+</html>
