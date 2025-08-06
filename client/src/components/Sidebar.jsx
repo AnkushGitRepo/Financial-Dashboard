@@ -13,6 +13,95 @@ export function Sidebar({ isCollapsed, onToggle }) {
   const location = useLocation();
   const navigateTo = useNavigate();
   const { isAuthenticated, setIsAuthenticated, setUser } = useContext(Context);
+  const [marketStatus, setMarketStatus] = useState('Loading market status...');
+  const [timeRemaining, setTimeRemaining] = useState('');
+
+  // Hardcoded Indian market holidays for 2025 (example, should be fetched from API in real app)
+  const indianHolidays = [
+    '2025-01-26', // Republic Day
+    '2025-03-08', // Maha Shivaratri
+    '2025-03-25', // Holi
+    '2025-04-14', // Dr. Ambedkar Jayanti / Good Friday
+    '2025-05-01', // Maharashtra Day
+    '2025-08-15', // Independence Day
+    '2025-10-02', // Gandhi Jayanti
+    '2025-10-24', // Diwali (Laxmi Pujan)
+    '2025-12-25', // Christmas
+  ];
+
+  const isHoliday = (date) => {
+    const dateString = date.toISOString().slice(0, 10);
+    return indianHolidays.includes(dateString);
+  };
+
+  const calculateMarketStatus = () => {
+    const now = new Date();
+    // Get current UTC time
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    // Create new Date object for IST (UTC + 5 hours 30 minutes)
+    const istTime = new Date(utc + (330 * 60 * 1000));
+    
+    const dayOfWeek = istTime.getDay(); // Sunday - 0, Saturday - 6
+    const currentHour = istTime.getHours();
+    const currentMinute = istTime.getMinutes();
+
+    const marketOpenHour = 9;
+    const marketOpenMinute = 30;
+    const marketCloseHour = 15; // 3 PM
+    const marketCloseMinute = 30;
+
+    // Check for weekends
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      setMarketStatus('Markets are Closed');
+      setTimeRemaining('Weekend');
+      return;
+    }
+
+    // Check for holidays
+    if (isHoliday(now)) { // Use 'now' for holiday check as it's date-based
+      setMarketStatus('Markets are Closed');
+      setTimeRemaining('Holiday');
+      return;
+    }
+
+    // Create Date objects for market open and close today in IST
+    const marketOpenToday = new Date(now);
+    marketOpenToday.setHours(marketOpenHour, marketOpenMinute, 0, 0);
+
+    const marketCloseToday = new Date(now);
+    marketCloseToday.setHours(marketCloseHour, marketCloseMinute, 0, 0);
+
+    if (istTime >= marketOpenToday && istTime < marketCloseToday) {
+      // Market is open
+      setMarketStatus('Markets are Open');
+      const timeDiff = marketCloseToday.getTime() - istTime.getTime();
+      const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+      const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+      setTimeRemaining(`Closes in ${hours}h ${minutes}m ${seconds}s`);
+    } else {
+      // Market is closed
+      setMarketStatus('Markets are Closed');
+      let nextOpen = new Date(now);
+      nextOpen.setHours(marketOpenHour, marketOpenMinute, 0, 0);
+
+      // If current time is past today's closing, set next open to tomorrow
+      if (istTime >= marketCloseToday) {
+        nextOpen.setDate(nextOpen.getDate() + 1);
+      }
+
+      // Find next trading day
+      while (nextOpen.getDay() === 0 || nextOpen.getDay() === 6 || isHoliday(nextOpen)) {
+        nextOpen.setDate(nextOpen.getDate() + 1);
+      }
+
+      const timeDiff = nextOpen.getTime() - istTime.getTime();
+      const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+      const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+      setTimeRemaining(`Opens in ${hours}h ${minutes}m ${seconds}s`);
+    }
+  };
 
   useEffect(() => {
     const calculateHeight = () => {
@@ -33,6 +122,13 @@ export function Sidebar({ isCollapsed, onToggle }) {
       window.removeEventListener('resize', calculateHeight);
     };
   }, [isCollapsed]);
+
+  useEffect(() => {
+    calculateMarketStatus(); // Initial calculation
+    const interval = setInterval(calculateMarketStatus, 1000); // Update every second
+
+    return () => clearInterval(interval); // Cleanup interval on component unmount
+  }, []);
 
   const mainNavItems = [
     { title: 'Dashboard', icon: Home, href: '/' },
@@ -124,8 +220,8 @@ export function Sidebar({ isCollapsed, onToggle }) {
           <div className="sidebar-footer">
             <div className="sidebar-footer-content">
               <p className="font-medium">Market Status</p>
-              <p>Markets are open</p>
-              <p className="text-xxs">Closes in 3h 45m</p>
+              <p>{marketStatus}</p>
+              <p className="text-xxs">{timeRemaining}</p>
             </div>
           </div>
         </div>

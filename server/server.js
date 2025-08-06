@@ -15,8 +15,7 @@ const runScraper = () => {
       console.error(`exec error: ${error}`);
       return;
     }
-    console.log(`stdout: ${stdout}`);
-    console.error(`stderr: ${stderr}`);
+    console.log(`stdout`);
   });
 };
 
@@ -25,10 +24,10 @@ runScraper();
 
 // Schedule the scraper to run every hour
 cron.schedule("0 * * * *", () => {
-  console.log("Running IPO data scraper...");
+  console.log(" 🔎 Running IPO data scraper...");
   runScraper();
 });
 
 app.listen(process.env.PORT, () => {
-  console.log(`Server listening on port http://localhost:${process.env.PORT}`);
+  console.log(` 🌐 Server listening on port http://localhost:${process.env.PORT}`);
 });

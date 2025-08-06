@@ -49,7 +49,6 @@ const getLiveMarketData = async () => {
           price: result.regularMarketPrice,
           change: result.regularMarketChange,
           changePercent: result.regularMarketChangePercent,
-          // Add other relevant data points as needed
         };
       })
     );

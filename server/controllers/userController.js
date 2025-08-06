@@ -566,30 +566,59 @@ export const getListedCompanies = catchAsyncError(async (req, res, next) => {
 });
 
 export const addPortfolioItem = catchAsyncError(async (req, res, next) => {
-  const { stock, purchasePrice, quantity, purchaseDate } = req.body;
+  const { stock, purchasePrice: rawPurchasePrice, quantity: rawQuantity, purchaseDate } = req.body;
+  const purchasePrice = Number(rawPurchasePrice);
+  const quantity = Number(rawQuantity);
   const user = req.user; // Authenticated user
 
   if (!stock || !purchasePrice || !quantity) {
     return next(new ErrorHandler("Stock, purchase price, and quantity are required.", 400));
   }
 
-  const portfolioItem = await Portfolio.create({
+  // Find if the stock already exists in the user's portfolio
+  let existingPortfolioItem = await Portfolio.findOne({
     user: user._id,
-    stock,
-    purchasePrice,
-    quantity,
-    purchaseDate: purchaseDate || Date.now(), // Use provided date or default to now
+    "stock.Security Id": stock["Security Id"], // Match by Security Id
   });
 
-  // Link the portfolio item to the user
-  user.portfolioItems.push(portfolioItem._id);
-  await user.save();
+  if (existingPortfolioItem) {
+    // If stock exists, update quantity and average purchase price
+    const oldTotalCost = existingPortfolioItem.purchasePrice * existingPortfolioItem.quantity;
+    const newTotalCost = purchasePrice * quantity;
+    const updatedQuantity = existingPortfolioItem.quantity + quantity;
+    const updatedPurchasePrice = (oldTotalCost + newTotalCost) / updatedQuantity;
 
-  res.status(201).json({
-    success: true,
-    message: "Stock added to portfolio successfully!",
-    portfolioItem,
-  });
+    existingPortfolioItem.quantity = updatedQuantity;
+    existingPortfolioItem.purchasePrice = updatedPurchasePrice;
+    existingPortfolioItem.purchaseDate = purchaseDate || existingPortfolioItem.purchaseDate; // Update date with new transaction date
+
+    await existingPortfolioItem.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Stock quantity and average price updated in portfolio!",
+      portfolioItem: existingPortfolioItem,
+    });
+  } else {
+    // If stock does not exist, create a new portfolio item
+    const portfolioItem = await Portfolio.create({
+      user: user._id,
+      stock,
+      purchasePrice,
+      quantity,
+      purchaseDate: purchaseDate || Date.now(), // Use provided date or default to now
+    });
+
+    // Link the portfolio item to the user
+    user.portfolioItems.push(portfolioItem._id);
+    await user.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Stock added to portfolio successfully!",
+      portfolioItem,
+    });
+  }
 });
 
 export const getPortfolioItems = catchAsyncError(async (req, res, next) => {
