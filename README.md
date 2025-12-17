@@ -170,3 +170,20 @@ To run the scraper, follow these steps:
 ## Django API Backend 🐍
 
 The financial data and news sentiment analysis APIs are now served by a dedicated Django backend. This backend includes an interactive home page that allows you to test the API endpoints directly from your browser. For detailed setup and usage instructions, please refer to the [Django API Backend README](api/README.md).
+
+## Deployment 🚀
+
+The project is configured for deployment on **Render** (Backend) and **Vercel** (Frontend).
+
+### Render (Backend)
+- A `render.yaml` file is provided to deploy both the Node.js server and the Django API as a Blueprint.
+- The Django service includes a Chrome buildpack to support Selenium scraping.
+- **Environment Variables**: You will need to configure `MONGO_URI`, `JWT_SECRET`, and `CLIENT_URL` (for CORS) in the Render dashboard.
+
+### Vercel (Frontend)
+- A `vercel.json` file handles routing and redirects API calls to your Render backends.
+- **Setup**:
+    1.  Deploy the backends on Render first.
+    2.  Update `client/vercel.json` with your actual Render URLs.
+    3.  Deploy the `client` directory to Vercel.
+

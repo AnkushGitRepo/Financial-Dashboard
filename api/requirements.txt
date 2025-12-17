@@ -6,3 +6,5 @@ python-dotenv
 beautifulsoup4
 selenium
 webdriver-manager
+gunicorn
+whitenoise

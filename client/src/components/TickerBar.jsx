@@ -20,8 +20,8 @@ function formatChange(change) {
     }
     return (
         <span className={className}>
-      {arrow} {sign}{roundedChange}%
-    </span>
+            {arrow} {sign}{roundedChange}%
+        </span>
     );
 }
 
@@ -40,9 +40,9 @@ export function TickerBar() {
     const DURATION = 80;
 
     const popularTickers = [
-        "RELIANCE.NS", "TCS.NS", "HDFCBANK.NS", "ICICIBANK.NS", "INFY.NS", 
-        "BAJAJFINSV.NS", "BAJFINANCE.NS", "MARUTI.NS", "TATAMOTORS.NS", 
-        "TATASTEEL.NS", "JSWSTEEL.NS", "HINDALCO.NS", "NTPC.NS", 
+        "RELIANCE.NS", "TCS.NS", "HDFCBANK.NS", "ICICIBANK.NS", "INFY.NS",
+        "BAJAJFINSV.NS", "BAJFINANCE.NS", "MARUTI.NS", "TATAMOTORS.NS",
+        "TATASTEEL.NS", "JSWSTEEL.NS", "HINDALCO.NS", "NTPC.NS",
         "POWERGRID.NS", "COALINDIA.NS", "SBIN.NS", "KOTAKBANK.NS", "AXISBANK.NS",
         "BHARTIARTL.NS", "ASIANPAINT.NS", "HINDUNILVR.NS", "ITC.NS", "LT.NS", "WIPRO.NS"
     ];
@@ -68,7 +68,15 @@ export function TickerBar() {
     }, []);
 
     if (tickerData.length === 0) {
-        return null;
+        return (
+            <div className="ticker-bar">
+                <div className="ticker-track">
+                    <div className="ticker-item">
+                        <span className="ticker-symbol" style={{ color: '#b0b7c3' }}>Loading Market Data...</span>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     const scrollingData = [...tickerData, ...tickerData];

@@ -25,7 +25,9 @@ SECRET_KEY = "django-insecure-umxib3(a((mth@wi+4g_27v45jl=ij!up$96c!i&1xvnpkz_k&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+import os
+
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", ".onrender.com"]
 
 
 # Application definition
@@ -45,6 +47,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware", # Add WhiteNoise for static files
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -54,7 +57,8 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = True # Ideally restrict this in production, but keeping open for now to avoid issues
+
 
 ROOT_URLCONF = "core.urls"
 

@@ -10,7 +10,7 @@ connection();
 
 // Function to run the Python scraper
 const runScraper = () => {
-  exec("python ../scraper/ipo_data_scraper.py", (error, stdout, stderr) => {
+  exec("../scraper/venv/bin/python ../scraper/ipo_data_scraper.py", (error, stdout, stderr) => {
     if (error) {
       console.error(`exec error: ${error}`);
       return;

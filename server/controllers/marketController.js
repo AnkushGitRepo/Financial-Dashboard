@@ -176,17 +176,26 @@ export const getStocksData = catchAsyncError(async (req, res, next) => {
 
   try {
     const quotes = await Promise.all(
-      tickerArray.map(ticker => yahooFinance.quote(ticker, { validateResult: false }))
+      tickerArray.map(async (ticker) => {
+        try {
+          return await yahooFinance.quote(ticker, { validateResult: false });
+        } catch (e) {
+          console.error(`Failed to fetch quote for ${ticker}:`, e);
+          return null;
+        }
+      })
     );
 
-    const stocksData = quotes.map(quote => ({
-      symbol: quote.symbol || null,
-      longName: quote.longName || quote.shortName || quote.symbol || null,
-      regularMarketPrice: quote.regularMarketPrice?.raw !== undefined ? quote.regularMarketPrice.raw : quote.regularMarketPrice || null,
-      regularMarketChange: quote.regularMarketChange?.raw !== undefined ? quote.regularMarketChange.raw : quote.regularMarketChange || null,
-      regularMarketChangePercent: quote.regularMarketChangePercent?.raw !== undefined ? quote.regularMarketChangePercent.raw : quote.regularMarketChangePercent || null,
-      marketState: quote.marketState || null,
-    }));
+    const stocksData = quotes
+      .filter(quote => quote && quote.symbol) // Filter out null, undefined, and missing symbols
+      .map(quote => ({
+        symbol: quote.symbol || null,
+        longName: quote.longName || quote.shortName || quote.symbol || null,
+        regularMarketPrice: quote.regularMarketPrice?.raw !== undefined ? quote.regularMarketPrice.raw : quote.regularMarketPrice || null,
+        regularMarketChange: quote.regularMarketChange?.raw !== undefined ? quote.regularMarketChange.raw : quote.regularMarketChange || null,
+        regularMarketChangePercent: quote.regularMarketChangePercent?.raw !== undefined ? quote.regularMarketChangePercent.raw : quote.regularMarketChangePercent || null,
+        marketState: quote.marketState || null,
+      }));
 
     res.status(200).json({
       success: true,

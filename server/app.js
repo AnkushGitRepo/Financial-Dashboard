@@ -28,7 +28,7 @@ app.get("/api/v1/market/live", async (req, res) => {
 
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: ["http://localhost:5173", process.env.CLIENT_URL],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })

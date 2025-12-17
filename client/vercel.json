@@ -1,0 +1,24 @@
+{
+    "rewrites": [
+        {
+            "source": "/api/v1/market/:match*",
+            "destination": "https://your-node-server-url.onrender.com/api/v1/market/:match*"
+        },
+        {
+            "source": "/api/v1/user/:match*",
+            "destination": "https://your-node-server-url.onrender.com/api/v1/user/:match*"
+        },
+        {
+            "source": "/api/financials/:match*",
+            "destination": "https://your-django-api-url.onrender.com/api/financials/:match*"
+        },
+        {
+            "source": "/api/sentiment/:match*",
+            "destination": "https://your-django-api-url.onrender.com/api/sentiment/:match*"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
+        }
+    ]
+}
