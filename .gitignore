@@ -5,6 +5,10 @@ npm-debug.log
 *.env
 config.env
 
+# Python
+__pycache__/
+*.pyc
+
 # React
 build/
 dist/
