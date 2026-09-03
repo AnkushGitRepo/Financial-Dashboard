@@ -100,6 +100,11 @@ Headings: `font-weight: 800`, negative letter-spacing (`-0.02em` to `-0.045em`, 
 - **Iconography:** inline SVG, 18–22px, `stroke-width: 1.9` (feature icons) or `2.3` (logo mark), `stroke-linecap/linejoin: round`, `aria-hidden="true"` (all icons here are decorative — adjacent text carries the meaning).
 - **Scroll reveals:** `Reveal`/`RevealGroup`/`RevealItem` (`src/components/landing/Reveal.tsx`) — Framer Motion `whileInView`, `viewport={{ once: true, margin: '-80px' }}`, opacity+translateY(22px)→0, staggered via `RevealGroup`'s `stagger` prop (default 0.09s). Reuse these for any new page's scroll-triggered content rather than hand-rolling IntersectionObserver logic.
 
+## Layout gotchas learned the hard way
+
+- **CSS Grid:** use `minmax(0, 1fr)`, never plain `1fr`, for `grid-template-columns`. A plain `1fr` track won't shrink below its content's min-content width — this caused a real, silent mobile overflow (invisibly clipped by a parent's `overflow: hidden` rather than showing a scrollbar) on the auth pages. Default to `minmax(0, 1fr)` everywhere on this project now.
+- **Third-party embedded UI (Clerk, or anything similar):** don't assume your own container styling is enough. Check `getComputedStyle()` on every ancestor element the third-party library renders, not just the elements you can see clickable states on — a nested wrapper with its own `border-radius` + `overflow: hidden` can clip corners even when every element you actually styled computes correctly. See `/docs/archive/auth-pages.md` for the full story (a Clerk-internal `cardBox` wrapper, not `card`, was the actual clipping culprit).
+
 ## When it's OK to hardcode
 
 Large bespoke multi-stop gradients (page/section backgrounds) and one-off pixel values inside a single, non-reused SVG icon are the only accepted exceptions to "always use a token." Everything else — color, spacing, font-size, radius, shadow, duration — goes through a token. If you find yourself reaching for a raw hex or px value outside those two cases, either an existing token fits (check this doc first) or a new token belongs in `tokens.css`, not inline in a component.

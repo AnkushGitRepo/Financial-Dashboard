@@ -8,7 +8,7 @@ MarketMitra is a financial dashboard (Indian markets: indices, stocks, IPOs, new
 
 ## Current phase
 
-**Phases 0-2 complete** (context architecture, v1 teardown, Next.js/Clerk/MongoDB/Vercel scaffold — live at https://marketmitra-v2.vercel.app). **Phase 3 in progress**: landing page built, awaiting approval; dashboard shell still placeholder.
+**Phases 0-3, 5, 6 complete.** Context architecture, v1 teardown, Next.js/Clerk/MongoDB/Vercel scaffold (live at https://marketmitra-v2.vercel.app), landing page, dashboard shell, on-brand auth pages, README rewrite, MIT license, pushed to the `v2` branch on GitHub (not merged to `main`). **Phase 4 starting**: first feature is market indices/prices (real public market-data API), per the user's explicit choice.
 
 ## Stack (non-negotiable constraints)
 
@@ -34,7 +34,7 @@ MarketMitra is a financial dashboard (Indian markets: indices, stocks, IPOs, new
 
 ## Active focus
 
-Phase 3: landing page (`/`) is fully built from an approved design export — see `/docs/architecture.md` "Landing page component structure" — and **awaiting explicit user approval**. Do not run the context maintenance protocol (archive step) until that approval lands. Dashboard route (`/dashboard`) is still the Phase 2 empty-state placeholder; no design provided for it yet.
+Phase 4, first feature: **market indices/prices** — research public market-data APIs for Indian indices/stocks first (rate limits, cost, ToS — see `/docs/data-sources.md`), per the "public APIs first" policy and the mandatory research-before-implementation step, before writing any code. Ship UI (dashboard) + documented API endpoint together, per the non-negotiable constraints above. Landing/dashboard/auth pages are done and archived — see `/docs/archive/` for their build detail if touching them again.
 
 ## Context maintenance protocol
 
