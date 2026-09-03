@@ -14,6 +14,13 @@ export const clerkAppearance = {
     fontFamily: 'var(--font-sans)',
   },
   elements: {
+    rootBox: {
+      width: '100%',
+    },
+    cardBox: {
+      width: '100%',
+      boxShadow: 'none',
+    },
     card: {
       boxShadow: 'none',
       border: 'none',

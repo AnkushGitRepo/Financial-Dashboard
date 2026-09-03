@@ -1,8 +1,31 @@
-.page {
+.pageBg {
   min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8) var(--space-6);
+  background:
+    radial-gradient(900px 520px at 8% 8%, rgba(220, 246, 231, 0.55) 0%, rgba(220, 246, 231, 0) 62%),
+    radial-gradient(
+      760px 480px at 94% 88%,
+      rgba(255, 230, 207, 0.45) 0%,
+      rgba(255, 230, 207, 0) 64%
+    ),
+    linear-gradient(180deg, #fdfbf7 0%, #fbfaf8 40%, #faf9f5 100%);
+}
+
+.container {
+  width: 100%;
+  max-width: 1080px;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  background: var(--color-bg);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  background: var(--color-surface);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-2xl);
+  box-shadow:
+    0 2px 4px rgba(21, 23, 28, 0.03),
+    0 40px 80px -32px rgba(21, 23, 28, 0.28);
+  overflow: hidden;
 }
 
 .formSide {
@@ -10,18 +33,18 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--space-8) var(--space-6);
+  padding: var(--space-12) var(--space-8);
 }
 
 .formInner {
   width: 100%;
-  max-width: 420px;
+  max-width: 360px;
 }
 
 .logoRow {
   display: flex;
   justify-content: center;
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--space-6);
 }
 
 .switchRow {
@@ -41,7 +64,7 @@
 }
 
 .backRow {
-  margin-top: var(--space-10);
+  margin-top: var(--space-8);
   text-align: center;
 }
 
@@ -59,26 +82,42 @@
 }
 
 .showcaseSide {
-  position: relative;
-  overflow: hidden;
-  background: var(--color-bg-alt);
+  display: flex;
   border-left: 1px solid var(--border-hairline);
   background:
-    radial-gradient(900px 520px at 90% 8%, rgba(255, 230, 207, 0.5) 0%, rgba(255, 230, 207, 0) 62%),
     radial-gradient(
-      760px 480px at 10% 92%,
+      560px 360px at 88% 10%,
+      rgba(255, 230, 207, 0.5) 0%,
+      rgba(255, 230, 207, 0) 62%
+    ),
+    radial-gradient(
+      480px 320px at 12% 90%,
       rgba(220, 246, 231, 0.55) 0%,
       rgba(220, 246, 231, 0) 64%
     ),
-    linear-gradient(180deg, #faf9f5 0%, #f4f2ec 100%);
+    var(--color-bg-alt);
 }
 
 @media (max-width: 968px) {
-  .page {
-    grid-template-columns: 1fr;
+  .container {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .showcaseSide {
     display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .pageBg {
+    padding: var(--space-4);
+  }
+
+  .container {
+    border-radius: var(--radius-lg);
+  }
+
+  .formSide {
+    padding: var(--space-8) var(--space-5);
   }
 }
