@@ -6,3 +6,8 @@ Rolling log of work sessions, most recent first is NOT required — append chron
 - Did: Cloned v1 repo (Financial-Dashboard) into MarketMitra_V2. Built the full Phase 0 context architecture (`CLAUDE.md`, `/docs/architecture.md`, `/docs/decisions/0001-0006`, `/docs/data-sources.md`, `/docs/api-surface.md`, this log, `/docs/archive/`).
 - Decided: Rebuild as v2 from scratch ([ADR 0001](./decisions/0001-teardown-and-rebuild.md)). Stack: Next.js App Router + TS ([ADR 0002](./decisions/0002-nextjs-app-router.md)), CSS Modules + tokens, no framework ([ADR 0003](./decisions/0003-css-modules-no-framework.md)), Next.js API routes as backend, no separate Express server — user chose this explicitly over keeping v1's Express server ([ADR 0004](./decisions/0004-nextjs-api-routes-as-backend.md)), Clerk auth ([ADR 0005](./decisions/0005-clerk-auth.md)), Vercel + MongoDB Atlas ([ADR 0006](./decisions/0006-vercel-mongodb-atlas-deployment.md)).
 - Next: Phase 1 teardown (delete v1 app code, keep `.git` + README.md placeholder, commit as `chore: teardown v1 for v2 rebuild`), then Phase 2 scaffold.
+
+## 2026-09-03 — v1 teardown complete
+- Did: Removed all v1 application code — `/client` (React+Vite), `/server` (Express), `/api` (Django), `/scraper` (Python), plus `.idea/`, `GEMINI.md`, `SETUP.md`, root `package.json`/`package-lock.json`, `render.yaml`. 141 files deleted, 19,513 lines removed. `.git` history and `README.md` kept.
+- Decided: Nothing new — executed ADR 0001 as agreed.
+- Next: Phase 2 scaffold — `create-next-app` (TS, App Router, no Tailwind), ESLint+Prettier, MongoDB Atlas connection + env scaffolding, Clerk sign-up/sign-in + protected `/dashboard`, deploy blank shell to Vercel and confirm end-to-end before Phase 3.
