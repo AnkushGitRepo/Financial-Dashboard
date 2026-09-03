@@ -19,11 +19,11 @@ v2 is a teardown-and-rebuild of the v1 Financial-Dashboard repo (see [ADR 0001](
 
 ## Route structure
 
-| Route                     | Purpose                                                     | Auth                                  |
-| ------------------------- | ------------------------------------------------------------ | -------------------------------------- |
-| `/`                       | Landing page — full marketing content, live                  | public                                |
-| `/sign-in/[[...sign-in]]` | Clerk hosted sign-in                                          | public                                |
-| `/sign-up/[[...sign-up]]` | Clerk hosted sign-up                                          | public                                |
+| Route                     | Purpose                                                          | Auth                                  |
+| ------------------------- | ---------------------------------------------------------------- | ------------------------------------- |
+| `/`                       | Landing page — full marketing content, live                      | public                                |
+| `/sign-in/[[...sign-in]]` | Clerk hosted sign-in                                             | public                                |
+| `/sign-up/[[...sign-up]]` | Clerk hosted sign-up                                             | public                                |
 | `/dashboard`              | Post-auth shell (empty state — real dashboard UI still Phase 4+) | protected, enforced in `src/proxy.ts` |
 
 `src/proxy.ts` runs `clerkMiddleware`, protects `/dashboard(.*)`, and redirects unauthenticated visitors to `/sign-in?redirect_url=...`. Verified end-to-end in production.
@@ -34,23 +34,37 @@ Built from an approved Claude Design export (`MarketMitra Landing.dc.html`) reim
 
 All components live in `src/components/landing/`, each with a co-located `.module.css`:
 
-| Component | Notes |
-| --- | --- |
-| `Logo` | Shared SVG mark + wordmark; `animated` prop plays a draw-in keyframe on mount (navbar only) |
-| `Navbar` | Sticky pill nav; scroll-triggered shadow/background (client, scroll listener); mobile hamburger panel; auth-aware CTA via Clerk `<Show>` (Get Started vs Dashboard link) |
-| `Hero` | Headline/subhead/CTA, CSS fade+up on load |
-| `DashboardPreview` | Mocked portfolio dashboard (candlestick chart, tabs, activity feed) — illustrative demo data, not live; client component for tab/range state |
-| `FeaturesGrid` | 4 feature cards, scroll-triggered stagger reveal (Framer Motion), hover lift on pointer devices |
-| `HowItWorks` | 4-step numbered card, staggered reveal |
-| `OpenSourceSection` | Dark gradient panel; GitHub stars/contributors/release intentionally show `—` (no API wired yet) rather than invented numbers |
-| `PricingCards` | Hosted vs self-hosted tiers per [ADR 0008](./decisions/0008-hosted-vs-self-hosted-distribution.md) |
-| `FAQAccordion` | Single-open accordion, CSS `grid-template-rows` 0fr→1fr expand (client) |
-| `Footer` | 5-column nav, stacks on mobile; copyright year computed at render, not hardcoded |
-| `Reveal` / `RevealGroup` / `RevealItem` (`Reveal.tsx`) | Shared Framer Motion scroll-reveal wrappers; respect `prefers-reduced-motion` via `useReducedMotion()` |
+| Component                                              | Notes                                                                                                                                                                    |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `Logo`                                                 | Shared SVG mark + wordmark; `animated` prop plays a draw-in keyframe on mount (navbar only)                                                                              |
+| `Navbar`                                               | Sticky pill nav; scroll-triggered shadow/background (client, scroll listener); mobile hamburger panel; auth-aware CTA via Clerk `<Show>` (Get Started vs Dashboard link) |
+| `Hero`                                                 | Headline/subhead/CTA, CSS fade+up on load                                                                                                                                |
+| `DashboardPreview`                                     | Mocked portfolio dashboard (candlestick chart, tabs, activity feed) — illustrative demo data, not live; client component for tab/range state                             |
+| `FeaturesGrid`                                         | 4 feature cards, scroll-triggered stagger reveal (Framer Motion), hover lift on pointer devices                                                                          |
+| `HowItWorks`                                           | 4-step numbered card, staggered reveal                                                                                                                                   |
+| `OpenSourceSection`                                    | Dark gradient panel; GitHub stars/contributors/release intentionally show `—` (no API wired yet) rather than invented numbers                                            |
+| `PricingCards`                                         | Hosted vs self-hosted tiers per [ADR 0008](./decisions/0008-hosted-vs-self-hosted-distribution.md)                                                                       |
+| `FAQAccordion`                                         | Single-open accordion, CSS `grid-template-rows` 0fr→1fr expand (client)                                                                                                  |
+| `Footer`                                               | 5-column nav, stacks on mobile; copyright year computed at render, not hardcoded                                                                                         |
+| `Reveal` / `RevealGroup` / `RevealItem` (`Reveal.tsx`) | Shared Framer Motion scroll-reveal wrappers; respect `prefers-reduced-motion` via `useReducedMotion()`                                                                   |
 
 Page composition: `src/app/page.tsx` assembles `Navbar → Hero → DashboardPreview` inside a shared gradient "hero band" wrapper, followed by `FeaturesGrid → HowItWorks → OpenSourceSection → PricingCards → FAQAccordion → Footer` (`src/app/page.module.css` holds the page-level background gradients).
 
 Design tokens (`src/styles/tokens.css`) were fully overhauled from the Phase 2 placeholder dark theme to the approved design's warm/cream light palette; fonts are Manrope + JetBrains Mono via `next/font/google`, wired in `src/app/layout.tsx`.
+
+**Full design system reference: [`/docs/design-system.md`](./design-system.md)** — colors, type scale, spacing, component patterns. Build every new page against that doc, not against whichever page was built most recently.
+
+## Auth pages (`/sign-in`, `/sign-up`) — component structure
+
+Restyled to match the design system (previously plain default Clerk widgets on the Phase 2 dark placeholder theme). Split layout, left/right, via `src/components/auth/`:
+
+| Component | Notes |
+| --- | --- |
+| `AuthLayout` | Two-column shell: left = logo + heading + Clerk form slot + switch-account link + back-to-home link; right = `FeatureCarousel`. Right column hidden below 968px (`AuthLayout.module.css`). |
+| `FeatureCarousel` | Auto-advancing (5s), pausable on hover, dot-navigable carousel reusing the landing page's 4 feature messages with small on-brand mock visuals (portfolio stat rows, a price/chart strip, a dark insight card, a tool-chip row) — no stock photography, no fabricated testimonials. Crossfade via Framer Motion `AnimatePresence`, `useReducedMotion()`-gated. |
+| `clerkAppearance.ts` | Shared Clerk `appearance` config: `variables` map Clerk's theme vars to our CSS custom properties (color, radius, font); `elements.header`/`elements.footer` are hidden — the page renders its own heading and switch-account link instead, styled with our type scale. |
+
+**Clerk branding note:** hiding the "Secured by Clerk" footer via `elements.footer` is a supported appearance option, not a documented guarantee for every Clerk plan tier — flagged to the user as a ToS consideration worth checking against Clerk's current terms for this account's plan, not something to treat as unconditionally safe.
 
 ## Data flow
 

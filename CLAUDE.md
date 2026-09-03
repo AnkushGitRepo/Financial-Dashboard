@@ -23,6 +23,7 @@ MarketMitra is a financial dashboard (Indian markets: indices, stocks, IPOs, new
 ## Docs map
 
 - `/docs/architecture.md` — current system architecture (routes, components, data flow)
+- `/docs/design-system.md` — colors/type/spacing/component patterns; **build every new page against this, not the last page**
 - `/docs/decisions/` — ADRs, one per decision, numbered, **never pruned**
 - `/docs/data-sources.md` — every external API/scraper: endpoint, auth, rate limits, cost, ToS
 - `/docs/api-surface.md` — public API endpoints for agent consumers: request/response, auth, limits
