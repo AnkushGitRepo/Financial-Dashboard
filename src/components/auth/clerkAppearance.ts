@@ -20,6 +20,13 @@ export const clerkAppearance = {
     cardBox: {
       width: '100%',
       boxShadow: 'none',
+      // Clerk's cardBox ships with its own border-radius + overflow:hidden.
+      // Our own AuthLayout container already provides the outer rounded
+      // card, and this box sits flush (zero gap) against its children's
+      // edges - the combination was clipping the corners off the Continue
+      // button and the social buttons. Kill it entirely on this inner box.
+      borderRadius: '0',
+      overflow: 'visible',
     },
     card: {
       boxShadow: 'none',
