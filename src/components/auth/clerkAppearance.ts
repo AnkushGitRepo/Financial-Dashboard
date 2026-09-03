@@ -33,12 +33,18 @@ export const clerkAppearance = {
     formButtonPrimary: {
       textTransform: 'none',
       fontWeight: 700,
+      // Clerk's shared borderRadius variable was applying unevenly across
+      // corners on pill buttons (left corners full-round, right corners
+      // squared off) — force all four corners explicitly instead.
+      borderRadius: 'var(--radius-pill)',
     },
     socialButtonsBlockButton: {
       borderColor: 'var(--border-hairline-strong)',
+      borderRadius: 'var(--radius-pill)',
     },
     formFieldInput: {
       borderColor: 'var(--border-hairline-strong)',
+      borderRadius: 'var(--radius-sm)',
     },
   },
 } as const;
