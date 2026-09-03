@@ -1,13 +1,13 @@
-import { MongoClient, type Db } from "mongodb";
+import { MongoClient, type Db } from 'mongodb';
 
 const uri = process.env.MONGODB_URI;
 const dbName = process.env.MONGODB_DB;
 
 if (!uri) {
-  throw new Error("MONGODB_URI is not set");
+  throw new Error('MONGODB_URI is not set');
 }
 if (!dbName) {
-  throw new Error("MONGODB_DB is not set");
+  throw new Error('MONGODB_DB is not set');
 }
 
 // Cache the client across hot reloads (dev) and function invocations (serverless)
@@ -19,7 +19,7 @@ declare global {
 const client = new MongoClient(uri);
 const clientPromise: Promise<MongoClient> = global._mongoClientPromise ?? client.connect();
 
-if (process.env.NODE_ENV !== "production") {
+if (process.env.NODE_ENV !== 'production') {
   global._mongoClientPromise = clientPromise;
 }
 

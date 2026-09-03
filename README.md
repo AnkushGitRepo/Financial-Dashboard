@@ -5,6 +5,7 @@ This project is a comprehensive full-stack web application built with the MERN (
 ## Features ✨
 
 ### User Authentication 🔐
+
 - **User Registration**: Allows new users to sign up with name, email, phone, and password.
 - **User Login**: Secure login for registered users.
 - **OTP Verification**: Supports both email and phone (via Twilio) for one-time password verification during registration.
@@ -13,29 +14,34 @@ This project is a comprehensive full-stack web application built with the MERN (
 - **Session Management**: Uses cookies for maintaining user sessions.
 
 ### Indian Stock Market Dashboard 📊
+
 - **Market Indices Overview**: Displays key Indian stock market indices (NIFTY 50, SENSEX, NIFTY BANK, NIFTY IT) with their current levels, changes, and small trend line charts. Cards are dynamically styled based on performance.
 - **Detailed Index View**: Clicking on an index card redirects to a dedicated page providing comprehensive details, an interactive chart with various time ranges (1D, 5D, 1M, 3M, 6M, 1Y, 5Y), customizable moving averages, and a detailed table of market data.
 - **Popular Stocks**: Displays real-time data for popular Indian stocks.
 - **Real-time Ticker Bar**: Displays live updates of key stock prices and their changes.
 
 ### IPO Calendar 🗓️
+
 - **Comprehensive Listings**: View upcoming and past Initial Public Offerings (IPOs).
 - **Filtering**: Filter IPOs by Mainboard and SME categories.
 - **Search Functionality**: Easily search for IPOs by company name.
 - **Recommendation System**: Provides recommendations based on premium and other factors.
 
 ### User Settings ⚙️
+
 - **Account Details Management**: Update personal information such as name and email.
 - **Profile Image Upload**: Upload and manage user profile pictures.
 - **Notification Preferences**: Customize notification settings.
 - **Password Management**: Securely change your account password.
 
 ### General Features 📱
+
 - **Responsive Design**: The application is designed to be responsive across different screen sizes.
 
 ## Technologies Used 💻
 
 ### Frontend (Client)
+
 - **React**: A JavaScript library for building user interfaces.
 - **React Router DOM**: For declarative routing in React applications.
 - **React Hook Form**: For efficient and flexible form validation.
@@ -45,6 +51,7 @@ This project is a comprehensive full-stack web application built with the MERN (
 - **CSS**: For styling and layout.
 
 ### Backend (Server)
+
 - **Node.js**: JavaScript runtime environment.
 - **Express.js**: A fast, unopinionated, minimalist web framework for Node.js.
 - **MongoDB**: A NoSQL database for storing application data.
@@ -120,15 +127,15 @@ For specific instructions and conventions related to developing with the Gemini 
 3.  **Verify OTP**: After registration, you will be redirected to an OTP verification page. Enter the OTP received via email or phone.
 4.  **Login**: Once verified, you can log in using your registered email and password.
 5.  **Explore Features**: After logging in, you can explore various features:
-    -   **Stock Dashboard**: Navigate to `/stock-dashboard` to view NIFTY 50, SENSEX, Top Gainers, and Top Losers.
-    -   **IPO Calendar**: Visit `/ipo-calendar` to see upcoming and past IPOs, with filtering and search options.
-    -   **Settings**: Go to `/settings` to manage your account details, upload a profile image, update notification preferences, and change your password.
+    - **Stock Dashboard**: Navigate to `/stock-dashboard` to view NIFTY 50, SENSEX, Top Gainers, and Top Losers.
+    - **IPO Calendar**: Visit `/ipo-calendar` to see upcoming and past IPOs, with filtering and search options.
+    - **Settings**: Go to `/settings` to manage your account details, upload a profile image, update notification preferences, and change your password.
 
 ## Scrapers 🕷️
 
 This project includes a Python-based web scraper located in the `scraper` directory:
 
--   **IPO Data Scraper (`ipo_data_scraper.py`)**: This scraper fetches IPO data and stores it in the MongoDB database. It is intended to be run periodically to keep the IPO data up-to-date.
+- **IPO Data Scraper (`ipo_data_scraper.py`)**: This scraper fetches IPO data and stores it in the MongoDB database. It is intended to be run periodically to keep the IPO data up-to-date.
 
 ### Running the Scrapers 🏃
 
@@ -176,14 +183,15 @@ The financial data and news sentiment analysis APIs are now served by a dedicate
 The project is configured for deployment on **Render** (Backend) and **Vercel** (Frontend).
 
 ### Render (Backend)
+
 - A `render.yaml` file is provided to deploy both the Node.js server and the Django API as a Blueprint.
 - The Django service includes a Chrome buildpack to support Selenium scraping.
 - **Environment Variables**: You will need to configure `MONGO_URI`, `JWT_SECRET`, and `CLIENT_URL` (for CORS) in the Render dashboard.
 
 ### Vercel (Frontend)
+
 - A `vercel.json` file handles routing and redirects API calls to your Render backends.
 - **Setup**:
-    1.  Deploy the backends on Render first.
-    2.  Update `client/vercel.json` with your actual Render URLs.
-    3.  Deploy the `client` directory to Vercel.
-
+  1.  Deploy the backends on Render first.
+  2.  Update `client/vercel.json` with your actual Render URLs.
+  3.  Deploy the `client` directory to Vercel.

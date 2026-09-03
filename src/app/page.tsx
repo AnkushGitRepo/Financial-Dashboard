@@ -1,21 +1,28 @@
-import Link from "next/link";
-import { Show } from "@clerk/nextjs";
-import styles from "./page.module.css";
+import { Navbar } from '@/components/landing/Navbar';
+import { Hero } from '@/components/landing/Hero';
+import { DashboardPreview } from '@/components/landing/DashboardPreview';
+import { FeaturesGrid } from '@/components/landing/FeaturesGrid';
+import { HowItWorks } from '@/components/landing/HowItWorks';
+import { OpenSourceSection } from '@/components/landing/OpenSourceSection';
+import { PricingCards } from '@/components/landing/PricingCards';
+import { FAQAccordion } from '@/components/landing/FAQAccordion';
+import { Footer } from '@/components/landing/Footer';
+import styles from './page.module.css';
 
 export default function Home() {
   return (
-    <main className={styles.wrapper}>
-      <h1>MarketMitra</h1>
-      <p>v2 scaffold — full landing page content lands in Phase 3.</p>
-      <nav className={styles.nav}>
-        <Show when="signed-out">
-          <Link href="/sign-in">Sign in</Link>
-          <Link href="/sign-up">Sign up</Link>
-        </Show>
-        <Show when="signed-in">
-          <Link href="/dashboard">Go to dashboard</Link>
-        </Show>
-      </nav>
-    </main>
+    <div className={styles.page}>
+      <div className={styles.heroBand}>
+        <Navbar />
+        <Hero />
+        <DashboardPreview />
+      </div>
+      <FeaturesGrid />
+      <HowItWorks />
+      <OpenSourceSection />
+      <PricingCards />
+      <FAQAccordion />
+      <Footer />
+    </div>
   );
 }

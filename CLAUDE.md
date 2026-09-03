@@ -3,12 +3,15 @@
 Read this first, every session. Keep this file SHORT — detail lives in `/docs/`, not here.
 
 ## Project summary
+
 MarketMitra is a financial dashboard (Indian markets: indices, stocks, IPOs, news sentiment). v2 is a full teardown-and-rebuild of the v1 repo (Financial-Dashboard: React+Vite / Express / Django / Python scraper) into a single Next.js + MongoDB Atlas stack, built to serve both a human dashboard UI and a documented API surface an AI agent can call. See [ADR 0001](./docs/decisions/0001-teardown-and-rebuild.md).
 
 ## Current phase
-**Phase 0 (context architecture) complete.** Phase 1 (teardown) next. Nothing built yet — no scaffold, no pages, no features.
+
+**Phases 0-2 complete** (context architecture, v1 teardown, Next.js/Clerk/MongoDB/Vercel scaffold — live at https://marketmitra-v2.vercel.app). **Phase 3 in progress**: landing page built, awaiting approval; dashboard shell still placeholder.
 
 ## Stack (non-negotiable constraints)
+
 - Next.js, App Router, TypeScript ([0002](./docs/decisions/0002-nextjs-app-router.md))
 - CSS Modules + `styles/tokens.css` — **no Tailwind, no Bootstrap, no hand-rolled utility framework** ([0003](./docs/decisions/0003-css-modules-no-framework.md))
 - Backend = Next.js API route handlers only, **no separate Express server** ([0004](./docs/decisions/0004-nextjs-api-routes-as-backend.md))
@@ -18,6 +21,7 @@ MarketMitra is a financial dashboard (Indian markets: indices, stocks, IPOs, new
 - Never invent metrics/user counts/"battle-tested" language in README or copy. This is a fresh v2 — say so plainly.
 
 ## Docs map
+
 - `/docs/architecture.md` — current system architecture (routes, components, data flow)
 - `/docs/decisions/` — ADRs, one per decision, numbered, **never pruned**
 - `/docs/data-sources.md` — every external API/scraper: endpoint, auth, rate limits, cost, ToS
@@ -28,10 +32,13 @@ MarketMitra is a financial dashboard (Indian markets: indices, stocks, IPOs, new
 **Read `/docs/session-log.md` last 3 entries before starting work.**
 
 ## Active focus
-Phase 1: teardown v1 application code (delete `/client`, `/server`, `/api`, `/scraper`, root `package.json`/`package-lock.json`, `render.yaml`, `GEMINI.md`, `SETUP.md`, `.idea/`; keep `README.md` and `.git` history), then Phase 2 scaffold.
+
+Phase 3: landing page (`/`) is fully built from an approved design export — see `/docs/architecture.md` "Landing page component structure" — and **awaiting explicit user approval**. Do not run the context maintenance protocol (archive step) until that approval lands. Dashboard route (`/dashboard`) is still the Phase 2 empty-state placeholder; no design provided for it yet.
 
 ## Context maintenance protocol
+
 When a feature/milestone is approved as done ("approved, moving on"), before starting new work:
+
 1. Collapse the finished feature's detail in `/docs/architecture.md` to a 3-5 line summary + link to its archive file.
 2. Move full build detail (why, gotchas, abandoned approaches) to `/docs/archive/<feature-name>.md`.
 3. If `/docs/session-log.md` exceeds ~15-20 entries, roll the oldest into `/docs/archive/session-log-archive.md` (compressed) and trim the live file.
