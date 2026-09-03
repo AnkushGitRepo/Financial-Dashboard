@@ -2,9 +2,9 @@
 
 Current system architecture for MarketMitra v2. Kept in sync with reality — when a feature ships, its detailed build notes move to `/docs/archive/<feature-name>.md` and only a short summary stays here (see the context maintenance protocol in `/CLAUDE.md`).
 
-## Status: Phase 3 in progress — landing page built, awaiting approval
+## Status: Phase 3 complete — landing + dashboard shell built, awaiting approval
 
-v2 is a teardown-and-rebuild of the v1 Financial-Dashboard repo (see [ADR 0001](./decisions/0001-teardown-and-rebuild.md)). Phase 2 scaffold is live in production. The real landing page (`/`) is now built against an approved design export and deployed to `src/app/page.tsx`; the dashboard route (`/dashboard`) is still the Phase 2 empty-state placeholder. Distribution/pricing model is set ([ADR 0008](./decisions/0008-hosted-vs-self-hosted-distribution.md)).
+v2 is a teardown-and-rebuild of the v1 Financial-Dashboard repo (see [ADR 0001](./decisions/0001-teardown-and-rebuild.md)). Phase 2 scaffold is live in production. The real landing page (`/`) is built against an approved design export. The dashboard shell (`/dashboard`) now has a real sidebar-nav layout and an honest empty state — no data features yet, just the shell future features slot into. Distribution/pricing model is set ([ADR 0008](./decisions/0008-hosted-vs-self-hosted-distribution.md)).
 
 ## Stack
 
@@ -27,6 +27,17 @@ v2 is a teardown-and-rebuild of the v1 Financial-Dashboard repo (see [ADR 0001](
 | `/dashboard`              | Post-auth shell (empty state — real dashboard UI still Phase 4+) | protected, enforced in `src/proxy.ts` |
 
 `src/proxy.ts` runs `clerkMiddleware`, protects `/dashboard(.*)`, and redirects unauthenticated visitors to `/sign-in?redirect_url=...`. Verified end-to-end in production.
+
+## Dashboard shell (`/dashboard`) — component structure
+
+`src/app/dashboard/layout.tsx` wraps every `/dashboard/*` route in the shell so future feature pages inherit it automatically. Components live in `src/components/dashboard/`:
+
+| Component            | Notes                                                                                                                                                                                                                                                                                                                                                                                   |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Sidebar`            | Persistent left nav (top bar on mobile, <900px). Logo, 4 nav items (Dashboard/Portfolio/Markets/Insights — matching the landing page's `DashboardPreview` tab naming for consistency), Clerk `UserButton` + name at the bottom. Only "Dashboard" is a real link; the other 3 render as disabled with a "Soon" badge rather than linking to routes that don't exist yet — no dead links. |
+| `dashboard/page.tsx` | Honest empty state: "No holdings yet" + a sentence explaining this is the shell, not a finished feature. No fabricated data, no placeholder numbers.                                                                                                                                                                                                                                    |
+
+Verified via a temporary unprotected preview route (created, screenshotted, deleted in the same session) since `/dashboard` itself requires a signed-in session to view.
 
 ## Landing page (`/`) — component structure
 

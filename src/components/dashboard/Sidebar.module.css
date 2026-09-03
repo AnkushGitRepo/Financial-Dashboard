@@ -1,0 +1,145 @@
+.sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border-right: 1px solid var(--border-hairline);
+  padding: var(--space-6) var(--space-4);
+}
+
+.logoRow {
+  padding: 0 var(--space-2);
+  margin-bottom: var(--space-8);
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  min-height: 44px;
+}
+
+.navItem.active {
+  background: var(--color-surface-dark);
+  color: var(--color-text-on-dark);
+}
+
+.navItem:not(.active):not(.disabled):hover {
+  background: var(--color-bg-alt);
+  color: var(--color-text);
+}
+
+.navItem.disabled {
+  color: var(--color-text-subtle);
+  cursor: default;
+}
+
+.navIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.comingSoon {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+  background: var(--color-bg-alt);
+  border-radius: var(--radius-pill);
+  padding: 2px var(--space-2);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-top: 1px solid var(--border-hairline);
+  margin-top: var(--space-4);
+}
+
+.userMeta {
+  min-width: 0;
+}
+
+.userName {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userLink {
+  font-size: var(--text-xs);
+  color: var(--color-text-subtle);
+}
+
+.userLink:hover {
+  color: var(--color-text);
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    width: 100%;
+    min-height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border-hairline);
+    flex-direction: row;
+    align-items: center;
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .logoRow {
+    margin-bottom: 0;
+    padding: 0;
+  }
+
+  .nav {
+    flex-direction: row;
+    margin-left: var(--space-6);
+    overflow-x: auto;
+  }
+
+  .navItem {
+    white-space: nowrap;
+  }
+
+  .comingSoon {
+    display: none;
+  }
+
+  .footer {
+    border-top: none;
+    margin-top: 0;
+    padding: 0;
+  }
+
+  .userMeta {
+    display: none;
+  }
+}
