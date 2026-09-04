@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { UserButton, useUser } from '@clerk/nextjs';
+import { isHosted } from '@/lib/deployment-mode';
 import { Logo } from '@/components/landing/Logo';
+import { HostedUserFooter } from './HostedUserFooter';
 import styles from './Sidebar.module.css';
 
 interface NavItem {
@@ -74,25 +75,72 @@ const NAV_ITEMS: NavItem[] = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { user } = useUser();
+
+  const userFooter = isHosted() ? (
+    <HostedUserFooter />
+  ) : (
+    <div className={styles.userMeta}>
+      <div className={styles.userName}>Local user</div>
+    </div>
+  );
 
   return (
-    <aside className={styles.sidebar}>
-      <div className={styles.logoRow}>
-        <Link href="/">
-          <Logo size={28} />
-        </Link>
-      </div>
+    <>
+      <aside className={styles.sidebar}>
+        <div className={styles.logoRow}>
+          <Link href="/">
+            <Logo size={28} />
+          </Link>
+        </div>
 
-      <nav className={styles.nav}>
+        <nav className={styles.nav}>
+          {NAV_ITEMS.map((item) => {
+            const active = pathname === item.href;
+            if (item.comingSoon) {
+              return (
+                <div key={item.href} className={`${styles.navItem} ${styles.disabled}`}>
+                  <span className={styles.navIcon}>{item.icon}</span>
+                  {item.label}
+                  <span className={styles.comingSoon}>Soon</span>
+                </div>
+              );
+            }
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`${styles.navItem} ${active ? styles.active : ''}`}
+              >
+                <span className={styles.navIcon}>{item.icon}</span>
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className={styles.spacer} />
+
+        <div className={styles.footer}>{userFooter}</div>
+      </aside>
+
+      {/* Phone screens: compact top header (logo + account) instead of the
+          full sidebar, plus a fixed bottom icon tab bar instead of inline nav
+          options — see mobileTabBar below. */}
+      <header className={styles.mobileHeader}>
+        <Link href="/">
+          <Logo size={26} />
+        </Link>
+        <div className={styles.mobileHeaderFooter}>{userFooter}</div>
+      </header>
+
+      <nav className={styles.mobileTabBar} aria-label="Dashboard navigation">
         {NAV_ITEMS.map((item) => {
           const active = pathname === item.href;
           if (item.comingSoon) {
             return (
-              <div key={item.href} className={`${styles.navItem} ${styles.disabled}`}>
-                <span className={styles.navIcon}>{item.icon}</span>
-                {item.label}
-                <span className={styles.comingSoon}>Soon</span>
+              <div key={item.href} className={`${styles.tabItem} ${styles.disabled}`}>
+                <span className={styles.tabIcon}>{item.icon}</span>
+                <span className={styles.tabLabel}>{item.label}</span>
               </div>
             );
           }
@@ -100,25 +148,14 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`${styles.navItem} ${active ? styles.active : ''}`}
+              className={`${styles.tabItem} ${active ? styles.active : ''}`}
             >
-              <span className={styles.navIcon}>{item.icon}</span>
-              {item.label}
+              <span className={styles.tabIcon}>{item.icon}</span>
+              <span className={styles.tabLabel}>{item.label}</span>
             </Link>
           );
         })}
       </nav>
-
-      <div className={styles.spacer} />
-
-      <div className={styles.footer}>
-        <UserButton />
-        <div className={styles.userMeta}>
-          <div className={styles.userName}>
-            {user?.fullName ?? user?.primaryEmailAddress?.emailAddress ?? 'Account'}
-          </div>
-        </div>
-      </div>
-    </aside>
+    </>
   );
 }

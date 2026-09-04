@@ -103,43 +103,90 @@
   color: var(--color-text);
 }
 
+/* Phone screens: the full sidebar (with inline nav options) is replaced by a
+   compact top header and a fixed bottom icon tab bar, both hidden on desktop
+   by default below. */
+.mobileHeader {
+  display: none;
+}
+
+.mobileTabBar {
+  display: none;
+}
+
 @media (max-width: 900px) {
   .sidebar {
-    width: 100%;
-    min-height: auto;
-    border-right: none;
-    border-bottom: 1px solid var(--border-hairline);
-    flex-direction: row;
+    display: none;
+  }
+
+  .mobileHeader {
+    display: flex;
     align-items: center;
+    justify-content: space-between;
     padding: var(--space-3) var(--space-4);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--border-hairline);
   }
 
-  .logoRow {
-    margin-bottom: 0;
-    padding: 0;
+  .mobileHeaderFooter {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    max-width: 140px;
   }
 
-  .nav {
-    flex-direction: row;
-    margin-left: var(--space-6);
-    overflow-x: auto;
+  /* Selfhost mode's "Local user" text is the only content here, so it must
+     stay visible — only cap its width so a long hosted-mode name truncates
+     instead of overflowing the compact header. */
+  .mobileHeaderFooter .userMeta {
+    min-width: 0;
   }
 
-  .navItem {
-    white-space: nowrap;
+  .mobileTabBar {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-around;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    background: var(--color-surface);
+    border-top: 1px solid var(--border-hairline);
+    padding-bottom: env(safe-area-inset-bottom, 0);
   }
 
-  .comingSoon {
-    display: none;
+  .tabItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    flex: 1;
+    padding: var(--space-2) var(--space-1);
+    min-height: 56px;
+    color: var(--color-text-subtle);
   }
 
-  .footer {
-    border-top: none;
-    margin-top: 0;
-    padding: 0;
+  .tabItem.active {
+    color: var(--color-text);
   }
 
-  .userMeta {
-    display: none;
+  .tabItem.disabled {
+    color: var(--color-text-faint);
+    opacity: 0.6;
+  }
+
+  .tabIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+  }
+
+  .tabLabel {
+    font-size: var(--text-2xs);
+    font-weight: 700;
   }
 }

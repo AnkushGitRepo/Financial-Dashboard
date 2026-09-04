@@ -3,15 +3,33 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Show } from '@clerk/nextjs';
+import { isHosted } from '@/lib/deployment-mode';
 import { Logo } from './Logo';
 import styles from './Navbar.module.css';
 
-const NAV_LINKS = [
+const ALL_NAV_LINKS = [
   { href: '#dashboard', label: 'Dashboard' },
   { href: '#features', label: 'Features' },
   { href: '#how', label: 'How it works' },
   { href: '#faq', label: 'FAQ' },
 ];
+
+function HostedNavCta() {
+  return (
+    <>
+      <Show when="signed-out">
+        <Link href="/sign-up" className={styles.cta}>
+          Get Started
+        </Link>
+      </Show>
+      <Show when="signed-in">
+        <Link href="/dashboard" className={styles.cta}>
+          Dashboard
+        </Link>
+      </Show>
+    </>
+  );
+}
 
 function GitHubIcon() {
   return (
@@ -24,6 +42,8 @@ function GitHubIcon() {
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const hosted = isHosted();
+  const navLinks = hosted ? ALL_NAV_LINKS : ALL_NAV_LINKS.filter((link) => link.href !== '#faq');
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -37,7 +57,7 @@ export function Navbar() {
       <nav className={`${styles.inner} ${scrolled ? styles.scrolled : ''}`}>
         <Logo size={28} animated />
         <div className={styles.links}>
-          {NAV_LINKS.map((link) => (
+          {navLinks.map((link) => (
             <a key={link.href} href={link.href}>
               {link.label}
             </a>
@@ -48,16 +68,13 @@ export function Navbar() {
             <GitHubIcon />
             <span className={styles.ghostLabel}>GitHub</span>
           </a>
-          <Show when="signed-out">
-            <Link href="/sign-up" className={styles.cta}>
-              Get Started
-            </Link>
-          </Show>
-          <Show when="signed-in">
+          {hosted ? (
+            <HostedNavCta />
+          ) : (
             <Link href="/dashboard" className={styles.cta}>
               Dashboard
             </Link>
-          </Show>
+          )}
           <button
             type="button"
             className={styles.menuButton}
@@ -70,7 +87,7 @@ export function Navbar() {
         </div>
       </nav>
       <div className={`${styles.mobilePanel} ${menuOpen ? styles.open : ''}`}>
-        {NAV_LINKS.map((link) => (
+        {navLinks.map((link) => (
           <a key={link.href} href={link.href} onClick={() => setMenuOpen(false)}>
             {link.label}
           </a>

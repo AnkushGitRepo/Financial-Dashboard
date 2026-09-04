@@ -13,4 +13,10 @@
   .shell {
     flex-direction: column;
   }
+
+  /* Clears the fixed bottom tab bar (Sidebar.module.css .mobileTabBar) so
+     page content isn't hidden behind it. */
+  .main {
+    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+  }
 }

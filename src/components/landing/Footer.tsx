@@ -1,3 +1,4 @@
+import { isHosted } from '@/lib/deployment-mode';
 import { Logo } from './Logo';
 import styles from './Footer.module.css';
 
@@ -55,6 +56,15 @@ const COLUMNS = [
 
 export function Footer() {
   const year = new Date().getFullYear();
+  const hosted = isHosted();
+  // #pricing and #faq only exist on the page in hosted mode — drop links to
+  // them here rather than shipping dead anchors in selfhost mode.
+  const columns = hosted
+    ? COLUMNS
+    : COLUMNS.map((col) => ({
+        ...col,
+        links: col.links.filter((link) => link.href !== '#pricing' && link.href !== '#faq'),
+      }));
 
   return (
     <footer className={styles.footer}>
@@ -68,7 +78,7 @@ export function Footer() {
               github.com/marketmitra
             </a>
           </div>
-          {COLUMNS.map((col) => (
+          {columns.map((col) => (
             <div key={col.label}>
               <div className={styles.colLabel}>{col.label}</div>
               <div className={styles.linkList}>

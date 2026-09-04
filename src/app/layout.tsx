@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Manrope, JetBrains_Mono } from 'next/font/google';
 import { ClerkProvider } from '@clerk/nextjs';
+import { isHosted } from '@/lib/deployment-mode';
 import './globals.css';
 
 const manrope = Manrope({
@@ -23,9 +24,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${manrope.variable} ${jetbrainsMono.variable}`}>
-      <body>
-        <ClerkProvider>{children}</ClerkProvider>
-      </body>
+      <body>{isHosted() ? <ClerkProvider>{children}</ClerkProvider> : children}</body>
     </html>
   );
 }

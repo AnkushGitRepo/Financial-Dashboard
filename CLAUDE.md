@@ -34,7 +34,9 @@ MarketMitra is a financial dashboard (Indian markets: indices, stocks, IPOs, new
 
 ## Active focus
 
-Phase 4, first feature: **market indices/prices** — research public market-data APIs for Indian indices/stocks first (rate limits, cost, ToS — see `/docs/data-sources.md`), per the "public APIs first" policy and the mandatory research-before-implementation step, before writing any code. Ship UI (dashboard) + documented API endpoint together, per the non-negotiable constraints above. Landing/dashboard/auth pages are done and archived — see `/docs/archive/` for their build detail if touching them again.
+Deployment mode gate just shipped (not yet approved/archived — see [ADR 0010](./docs/decisions/0010-deployment-mode-gate.md) and the latest `/docs/session-log.md` entry): `NEXT_PUBLIC_DEPLOYMENT_MODE` (`hosted` | `selfhost`, default `selfhost`) gates Clerk auth and all billing UI via `isHosted()` in `src/lib/deployment-mode.ts`. The production Vercel env var (`NEXT_PUBLIC_DEPLOYMENT_MODE=hosted`) is now confirmed set by the user (2026-09-04). Do not run the archiving/pruning protocol on this feature until the user explicitly approves it as done.
+
+Once approved: Phase 4, first feature: **market indices/prices** — research public market-data APIs for Indian indices/stocks first (rate limits, cost, ToS — see `/docs/data-sources.md`), per the "public APIs first" policy and the mandatory research-before-implementation step, before writing any code. Ship UI (dashboard) + documented API endpoint together, per the non-negotiable constraints above. Landing/dashboard/auth pages are done and archived — see `/docs/archive/` for their build detail if touching them again.
 
 ## Context maintenance protocol
 
