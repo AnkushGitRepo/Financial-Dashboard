@@ -1,5 +1,6 @@
-"""Tier 3 entry point: Screener.in via Scrapling. See README.md in this
-directory for why this is isolated and what's actually been verified.
+"""Tier 3 entry point: Screener.in, fetched via httpx and parsed with
+Scrapling's standalone `Selector`. See README.md in this directory for why
+this is isolated and what's actually been verified.
 
 Public entry points (the only things the rest of the ingestion pipeline
 should import from this module):
@@ -13,6 +14,17 @@ tests can run the real parsing logic against a saved-to-disk Screener.in
 page (`tests/fixtures/screener_newgen_consolidated.html`, a real page the
 project maintainer saved from a browser) without any network call — see
 `tests/test_tier3_scraper.py`.
+
+**Why httpx + scrapling.parser.Selector, not scrapling.fetchers.Fetcher:**
+`scrapling.fetchers` (even its plain curl_cffi-based `Fetcher`) imports
+`scrapling.engines.toolbelt.convertor`, which does a hard top-level
+`from playwright._impl._errors import Error` — so importing `Fetcher` at
+all drags in Playwright's ~130MB bundled Node driver, which doesn't fit a
+Vercel serverless function (see ADR 0013) even though nothing here ever
+launches a browser. `scrapling.parser.Selector` is the same CSS/text
+parsing engine `Fetcher`'s responses use under the hood, but it's a fully
+separate module with no fetchers/playwright import chain — so fetching is
+done directly with httpx (already a dependency) and handed to `Selector`.
 """
 
 from __future__ import annotations
@@ -23,7 +35,8 @@ import re
 from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation
 
-from scrapling.fetchers import Fetcher
+import httpx
+from scrapling.parser import Selector
 
 from app.schemas import PeriodType, StatementType
 
@@ -32,6 +45,14 @@ logger = logging.getLogger("fundamentals.tier3_screener")
 _BASE_URL = "https://www.screener.in/company/{symbol}/consolidated/"
 _MAX_RETRIES = 3
 _RETRY_BACKOFF_SECONDS = 2.0
+_BROWSER_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    ),
+    "Accept": "text/html,application/xhtml+xml",
+    "Accept-Language": "en-US,en;q=0.9",
+}
 
 _STATEMENT_SECTION_IDS = {
     StatementType.PROFIT_AND_LOSS: "profit-loss",
@@ -46,16 +67,17 @@ _MONTH_ABBR = {
 _PERIOD_LABEL_RE = re.compile(r"^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{4})$")
 
 
-async def _fetch_with_retry(symbol: str):
+async def _fetch_with_retry(symbol: str) -> Selector | None:
     url = _BASE_URL.format(symbol=symbol)
     last_error: Exception | None = None
 
     for attempt in range(1, _MAX_RETRIES + 1):
         try:
-            response = await asyncio.to_thread(Fetcher.get, url, timeout=15)
-            if response.status == 200:
-                return response
-            last_error = RuntimeError(f"HTTP {response.status}")
+            async with httpx.AsyncClient(headers=_BROWSER_HEADERS, timeout=15.0) as client:
+                response = await client.get(url)
+            if response.status_code == 200:
+                return Selector(response.text)
+            last_error = RuntimeError(f"HTTP {response.status_code}")
         except Exception as exc:  # noqa: BLE001
             last_error = exc
 

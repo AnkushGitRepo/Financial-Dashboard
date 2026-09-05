@@ -96,6 +96,7 @@ Full detail: [ADR 0011](./decisions/0011-three-tier-fundamentals-data-sourcing.m
 - **Real gap, tracked not hidden:** financial-statement serving currently runs through Tier 3 only in practice. Tier 1's XBRL/PDF extraction is implemented and unit-tested against fixtures, but needs a filing-URL discovery step (find a company's latest quarterly XBRL / annual report PDF) that hasn't been built — see ROADMAP.md's Phase 4 checklist.
 - **Testing:** all 25 tests run offline (no network, no DB) against saved fixtures — a real Screener.in page saved to disk by the project maintainer (two different companies' pages agree on the same selectors), a synthetic-but-taxonomy-accurate XBRL fixture, and a generated PDF with a ruled table.
 - Full setup/run/test instructions and a plain-language coverage table: [`services/fundamentals-api/README.md`](../services/fundamentals-api/README.md).
+- **Hosted in production** (2026-09-05): Vercel Python serverless function + Neon Postgres marketplace integration, both inside the existing Vercel account — see [ADR 0013](./decisions/0013-fundamentals-api-vercel-hosting.md). Live at `https://marketmitra-fundamentals-api.vercel.app`. The deployed function uses a separate, trimmed `requirements.txt` (not `pyproject.toml`'s full dependency set) and fetches Tier 3 via `httpx` + `scrapling.parser.Selector` directly rather than `scrapling.fetchers.Fetcher`, whose import chain pulls in a ~130MB Playwright driver the function doesn't need or use.
 
 ## Shipped features (see `/docs/archive/` for detail)
 

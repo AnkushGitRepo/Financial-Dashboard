@@ -1,0 +1,38 @@
+# Production dependencies for the Vercel-deployed function only.
+#
+# This is a deliberately trimmed subset of pyproject.toml's dependencies —
+# see docs/decisions/0013-fundamentals-api-vercel-hosting.md. Excluded on
+# purpose because nothing on the live request path imports them (only
+# app/ingestion/pdf_financials.py does, which app/main.py never imports):
+#   - polars (declared, never actually imported anywhere)
+#   - camelot-py / opencv-python-headless / pdfplumber (PDF table
+#     extraction — not wired into any live route yet, see ROADMAP.md
+#     Phase 4's open "Tier 1 filing-URL discovery" item)
+#   - alembic — migrations are run out-of-band against the production
+#     database, not from the deployed function itself.
+#
+# Tier 3 (app/ingestion/tier3_screener_scrapling/scraper.py) fetches via
+# httpx and parses with scrapling.parser.Selector directly — NOT
+# scrapling.fetchers.Fetcher, whose import chain pulls in Playwright's
+# ~130MB bundled Node driver even for the plain curl_cffi-based static
+# fetcher (scrapling.engines.toolbelt.convertor imports playwright
+# unconditionally at module load, just for an exception type). Selector is
+# the same parsing engine with no such import chain. So neither scrapling's
+# [fetchers] extra nor curl_cffi is needed here at all.
+#
+# Local dev / tests still use pyproject.toml's full dependency set via
+# `pip install -e ".[dev]"` — this file only affects what Vercel installs.
+
+fastapi>=0.115
+uvicorn[standard]>=0.32
+pydantic>=2.9
+pydantic-settings>=2.6
+httpx>=0.27
+orjson>=3.10
+sqlalchemy[asyncio]>=2.0
+asyncpg>=0.30
+nsepython>=2.93
+bsedata>=0.6
+yfinance>=0.2.44
+scrapling>=0.4.15
+lxml>=5.3

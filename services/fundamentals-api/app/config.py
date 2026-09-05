@@ -1,12 +1,33 @@
 from functools import lru_cache
+from urllib.parse import urlsplit, urlunsplit
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def _normalize_database_url(raw: str) -> str:
+    """Neon/Vercel hand out plain `postgresql://` URLs with libpq-only query
+    params (`channel_binding`, `sslmode`, `connect_timeout`) that asyncpg's
+    connect() rejects outright as unknown keyword arguments. Force the
+    asyncpg driver and drop the query string entirely — Neon enforces TLS
+    server-side regardless, and asyncpg negotiates it automatically without
+    needing any of those params spelled out."""
+    parts = urlsplit(raw)
+    scheme = parts.scheme
+    if scheme in ("postgres", "postgresql"):
+        scheme = "postgresql+asyncpg"
+    return urlunsplit((scheme, parts.netloc, parts.path, "", ""))
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     database_url: str = "postgresql+asyncpg://localhost/marketmitra_fundamentals"
+
+    @field_validator("database_url")
+    @classmethod
+    def _validate_database_url(cls, value: str) -> str:
+        return _normalize_database_url(value)
     nse_requests_per_second: float = 3.0
     tier3_enabled: bool = True
     log_level: str = "INFO"
