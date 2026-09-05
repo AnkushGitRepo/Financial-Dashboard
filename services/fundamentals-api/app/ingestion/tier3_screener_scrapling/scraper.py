@@ -288,14 +288,20 @@ def _parse_peers(page, target_symbol: str) -> list[dict]:
     return _parse_peer_rows(sections[0], target_symbol)
 
 
-def _parse_company_id(page) -> str | None:
-    """Screener's internal numeric company id (distinct from the NSE/BSE
-    symbol), needed to fetch the AJAX-loaded peers fragment for companies
-    where it isn't server-rendered inline."""
+def _parse_warehouse_id(page) -> str | None:
+    """Screener's internal numeric "warehouse id" — distinct from both the
+    NSE/BSE symbol and `data-company-id` (a separate id used for other
+    endpoints, e.g. `/company/{id}/schedules/`) — is what the peers AJAX
+    endpoint is actually keyed by. Confirmed by reading Screener's own
+    `company.customisation.js`: `loadPeersTable(warehouseId)` builds
+    `/api/company/{warehouseId}/peers/`. Guessing `data-company-id` first
+    seemed to work for one company (Reliance) purely by numeric-range
+    coincidence and 404'd for two others (TCS, Newgen) — this is the real
+    fix, not the coincidence."""
     info_div = page.css("#company-info")
     if not info_div:
         return None
-    return info_div[0].attrib.get("data-company-id")
+    return info_div[0].attrib.get("data-warehouse-id")
 
 
 _ANNUAL_REPORT_YEAR_RE = re.compile(r"(\d{4})\s*$")
@@ -365,45 +371,38 @@ async def fetch_about(symbol: str) -> str | None:
 
 
 async def fetch_peers(symbol: str) -> list[dict]:
-    """Fetches the peer-comparison table. For companies with a large peer
-    set (typically large caps), Screener replaces the inline table with a
-    `Loading peers table ...` placeholder and fetches it separately via
-    `/api/company/{id}/peers/` — confirmed live and working for RELIANCE.
-    This falls back to that same request when the inline parse comes up
-    empty.
-
-    **Known, accepted inconsistency:** the same endpoint 404s for at least
-    one other lazy-loading company (TCS), despite an identical placeholder
-    and an identical, correctly-extracted `data-company-id`. Screener's
-    AJAX peers endpoint isn't documented, so this is treated as an
-    unofficial-access edge case rather than a bug to chase further — those
-    companies fall through to the same "peer comparison unavailable" state
-    a genuinely missing table would produce, which is honest rather than
-    silently wrong."""
+    """Fetches the peer-comparison table. Screener lazy-loads this table via
+    AJAX (a `Loading peers table ...` placeholder, filled in client-side)
+    far more often than server-rendering it inline — true for large caps
+    (Reliance, TCS) and even a mid-cap (Newgen) whose page used to render it
+    inline when this module's test fixture was saved. This falls back to
+    that request whenever the inline parse comes up empty, keyed by
+    Screener's "warehouse id" (see _parse_warehouse_id) — confirmed working
+    for all three of the above once the correct id was used."""
     page = await _fetch_with_retry(symbol)
     if page is None:
         return []
 
     peers = _parse_peers(page, symbol)
     if not peers:
-        company_id = _parse_company_id(page)
-        if company_id:
-            peers = await _fetch_peers_via_ajax(company_id, symbol)
+        warehouse_id = _parse_warehouse_id(page)
+        if warehouse_id:
+            peers = await _fetch_peers_via_ajax(warehouse_id, symbol)
 
     if not peers:
         logger.warning("screener.in peer comparison for %s parsed to zero rows — markup may have changed", symbol)
     return peers
 
 
-async def _fetch_peers_via_ajax(company_id: str, target_symbol: str) -> list[dict]:
-    url = f"https://www.screener.in/api/company/{company_id}/peers/"
+async def _fetch_peers_via_ajax(warehouse_id: str, target_symbol: str) -> list[dict]:
+    url = f"https://www.screener.in/api/company/{warehouse_id}/peers/"
     try:
         async with httpx.AsyncClient(headers=_BROWSER_HEADERS, timeout=15.0) as client:
             response = await client.get(url)
         if response.status_code != 200:
             return []
     except Exception as exc:  # noqa: BLE001
-        logger.warning("screener.in AJAX peers fetch for company_id=%s failed: %s", company_id, exc)
+        logger.warning("screener.in AJAX peers fetch for warehouse_id=%s failed: %s", warehouse_id, exc)
         return []
     return _parse_peer_rows(Selector(response.text), target_symbol)
 

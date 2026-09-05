@@ -15,7 +15,7 @@ from scrapling import Selector
 from app.ingestion.tier3_screener_scrapling.scraper import (
     _parse_about,
     _parse_annual_reports,
-    _parse_company_id,
+    _parse_warehouse_id,
     _parse_financial_statement,
     _parse_peers,
     _parse_ratios,
@@ -116,8 +116,8 @@ def test_parse_peers_includes_the_target_company_and_real_peers(newgen_page):
     assert tcs["pe"] > 0
 
 
-def test_parse_company_id_extracts_screener_internal_id(newgen_page):
-    assert _parse_company_id(newgen_page) == "1274251"
+def test_parse_warehouse_id_extracts_screener_internal_id(newgen_page):
+    assert _parse_warehouse_id(newgen_page) == "19226378"
 
 
 def test_parse_annual_reports_finds_bse_hosted_pdf_links(newgen_page):
