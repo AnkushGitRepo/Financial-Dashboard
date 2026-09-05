@@ -1,6 +1,8 @@
 import {
   getCompany,
+  getDocuments,
   getFinancials,
+  getPeers,
   getPrices,
   getRatios,
   getShareholding,
@@ -18,10 +20,12 @@ export default async function StockPage({ params }: { params: Promise<{ ticker: 
   const { ticker } = await params;
   const symbol = ticker.toUpperCase();
 
-  const [company, ratios, shareholding, pl, bs, cf, ...priceSets] = await Promise.all([
+  const [company, ratios, shareholding, peers, documents, pl, bs, cf, ...priceSets] = await Promise.all([
     getCompany(symbol),
     getRatios(symbol),
     getShareholding(symbol),
+    getPeers(symbol),
+    getDocuments(symbol),
     getFinancials(symbol, 'profit_and_loss'),
     getFinancials(symbol, 'balance_sheet'),
     getFinancials(symbol, 'cash_flow'),
@@ -53,6 +57,8 @@ export default async function StockPage({ params }: { params: Promise<{ ticker: 
       symbol={symbol}
       company={company}
       ratios={ratios ?? []}
+      peers={peers ?? []}
+      documents={documents ?? []}
       shareholding={groupShareholding(shareholding ?? [])}
       financials={{
         profit_and_loss: pivotFinancials(pl ?? [], 'profit_and_loss'),

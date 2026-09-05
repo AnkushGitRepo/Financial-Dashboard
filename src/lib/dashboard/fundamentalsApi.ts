@@ -13,7 +13,33 @@ export interface CompanyOut {
   name: string;
   industry: string | null;
   sector: string | null;
+  about: string | null;
   source_tier: string | null;
+}
+
+export interface PeerOut {
+  symbol: string;
+  name: string;
+  is_target: boolean;
+  cmp: string | null;
+  pe: string | null;
+  market_cap: string | null;
+  div_yield: string | null;
+  net_profit_qtr: string | null;
+  qtr_profit_var_pct: string | null;
+  sales_qtr: string | null;
+  qtr_sales_var_pct: string | null;
+  roce_pct: string | null;
+  as_of: string;
+  source_tier: string;
+}
+
+export interface DocumentOut {
+  document_type: string;
+  title: string;
+  url: string;
+  period_end: string | null;
+  source_tier: string;
 }
 
 export interface RatioOut {
@@ -83,6 +109,14 @@ export function getRatios(symbol: string): Promise<RatioOut[] | null> {
 
 export function getShareholding(symbol: string): Promise<ShareholdingOut[] | null> {
   return getJson<ShareholdingOut[]>(`/companies/${symbol}/shareholding`, 3600);
+}
+
+export function getPeers(symbol: string): Promise<PeerOut[] | null> {
+  return getJson<PeerOut[]>(`/companies/${symbol}/peers`, 3600);
+}
+
+export function getDocuments(symbol: string): Promise<DocumentOut[] | null> {
+  return getJson<DocumentOut[]>(`/companies/${symbol}/documents`, 3600 * 24);
 }
 
 export function getFinancials(symbol: string, statementType: StatementType): Promise<LineItemOut[] | null> {

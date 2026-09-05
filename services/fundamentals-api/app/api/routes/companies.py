@@ -15,6 +15,7 @@ class CompanyOut(BaseModel):
     name: str
     industry: str | None
     sector: str | None
+    about: str | None
     source_tier: str | None
 
 
@@ -33,16 +34,60 @@ class ShareholdingOut(BaseModel):
     source_tier: str
 
 
+class PeerOut(BaseModel):
+    symbol: str
+    name: str
+    is_target: bool
+    cmp: str | None
+    pe: str | None
+    market_cap: str | None
+    div_yield: str | None
+    net_profit_qtr: str | None
+    qtr_profit_var_pct: str | None
+    sales_qtr: str | None
+    qtr_sales_var_pct: str | None
+    roce_pct: str | None
+    as_of: date
+    source_tier: str
+
+
 @router.get("/{symbol}", response_model=CompanyOut)
 async def get_company(symbol: str, session: AsyncSession = Depends(get_db)) -> CompanyOut:
     company = await resolve_company(symbol, session)
+    about = await svc.get_about(session, company)
     return CompanyOut(
         symbol=company.nse_symbol or company.bse_code or symbol,
         name=company.name,
         industry=company.industry,
         sector=company.sector,
+        about=about,
         source_tier=company.source_tier,
     )
+
+
+@router.get("/{symbol}/peers", response_model=list[PeerOut])
+async def get_company_peers(symbol: str, session: AsyncSession = Depends(get_db)) -> list[PeerOut]:
+    company = await resolve_company(symbol, session)
+    peers = await svc.get_peers(session, company)
+    return [
+        PeerOut(
+            symbol=p.peer_symbol,
+            name=p.peer_name,
+            is_target=p.is_target,
+            cmp=str(p.cmp) if p.cmp is not None else None,
+            pe=str(p.pe) if p.pe is not None else None,
+            market_cap=str(p.market_cap) if p.market_cap is not None else None,
+            div_yield=str(p.div_yield) if p.div_yield is not None else None,
+            net_profit_qtr=str(p.net_profit_qtr) if p.net_profit_qtr is not None else None,
+            qtr_profit_var_pct=str(p.qtr_profit_var_pct) if p.qtr_profit_var_pct is not None else None,
+            sales_qtr=str(p.sales_qtr) if p.sales_qtr is not None else None,
+            qtr_sales_var_pct=str(p.qtr_sales_var_pct) if p.qtr_sales_var_pct is not None else None,
+            roce_pct=str(p.roce_pct) if p.roce_pct is not None else None,
+            as_of=p.as_of,
+            source_tier=p.source_tier,
+        )
+        for p in peers
+    ]
 
 
 @router.get("/{symbol}/ratios", response_model=list[RatioOut])

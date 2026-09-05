@@ -59,6 +59,7 @@ class Company(BaseModel):
     name: str
     industry: str | None = None
     sector: str | None = None
+    about: str | None = Field(default=None, description="Business description, from Screener's About section")
     source_tier: SourceTier | None = None
     updated_at: datetime | None = None
 
@@ -90,6 +91,32 @@ class Ratio(BaseModel):
     name: str = Field(description="e.g. 'Stock P/E', 'ROCE', 'Debt to Equity'")
     value: Decimal | None = None
     unit: str | None = Field(default=None, description="e.g. '%', 'x', 'INR'")
+    as_of: date
+    source_tier: SourceTier
+    fetched_at: datetime | None = None
+
+
+class PeerComparison(BaseModel):
+    """One peer's row in a company's peer-comparison table (Screener's #peers
+    section) — includes the company itself as one of the rows, distinguished
+    by `is_target`."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int | None = None
+    company_id: int
+    peer_symbol: str
+    peer_name: str
+    is_target: bool = Field(default=False, description="True for the row that is the company itself")
+    cmp: Decimal | None = None
+    pe: Decimal | None = None
+    market_cap: Decimal | None = Field(default=None, description="INR crore")
+    div_yield: Decimal | None = Field(default=None, description="%")
+    net_profit_qtr: Decimal | None = Field(default=None, description="INR crore")
+    qtr_profit_var_pct: Decimal | None = None
+    sales_qtr: Decimal | None = Field(default=None, description="INR crore")
+    qtr_sales_var_pct: Decimal | None = None
+    roce_pct: Decimal | None = None
     as_of: date
     source_tier: SourceTier
     fetched_at: datetime | None = None

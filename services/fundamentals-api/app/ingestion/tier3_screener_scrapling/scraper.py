@@ -8,6 +8,9 @@ should import from this module):
 - fetch_ratios(symbol)
 - fetch_financial_statement(symbol, statement_type)
 - fetch_shareholding(symbol)
+- fetch_about(symbol)
+- fetch_peers(symbol)
+- fetch_annual_reports(symbol)
 
 Parsing is split from fetching (`_parse_*` vs `fetch_*`) specifically so
 tests can run the real parsing logic against a saved-to-disk Screener.in
@@ -218,6 +221,104 @@ def _parse_shareholding(page) -> list[dict]:
     return entries
 
 
+def _parse_about(page) -> str | None:
+    """Returns the company's business-description paragraph from Screener's
+    About section, or None if the markup isn't present."""
+    about_div = page.css(".company-profile .about")
+    if not about_div:
+        return None
+    text = about_div[0].get_all_text().strip()
+    return text or None
+
+
+_PEER_LINK_RE = re.compile(r"/company/([^/]+)/")
+
+
+def _parse_peer_rows(table_container, target_symbol: str) -> list[dict]:
+    """Shared row-parsing logic for a `#peers table` — used both for the
+    inline server-rendered case and the AJAX fragment fetched separately
+    for companies where Screener lazy-loads this table (see fetch_peers)."""
+    tables = table_container.css("table")
+    if not tables:
+        return []
+
+    rows = tables[0].css("tbody tr[data-row-company-id]")
+    peers: list[dict] = []
+    for row in rows:
+        cells = row.css("td")
+        if len(cells) < 11:
+            continue
+        links = cells[1].css("a")
+        if not links:
+            continue
+        href = links[0].attrib.get("href", "")
+        match = _PEER_LINK_RE.search(href)
+        if not match:
+            continue
+        symbol = match.group(1).upper()
+        name = links[0].get_all_text().strip()
+        values = [_parse_number(c.get_all_text().strip()) for c in cells[2:11]]
+        peers.append({
+            "symbol": symbol,
+            "name": name,
+            "is_target": symbol == target_symbol.upper(),
+            "cmp": values[0],
+            "pe": values[1],
+            "market_cap": values[2],
+            "div_yield": values[3],
+            "net_profit_qtr": values[4],
+            "qtr_profit_var_pct": values[5],
+            "sales_qtr": values[6],
+            "qtr_sales_var_pct": values[7],
+            "roce_pct": values[8],
+        })
+    return peers
+
+
+def _parse_peers(page, target_symbol: str) -> list[dict]:
+    """Returns [{"symbol", "name", "is_target", "cmp", "pe", "market_cap",
+    "div_yield", "net_profit_qtr", "qtr_profit_var_pct", "sales_qtr",
+    "qtr_sales_var_pct", "roce_pct"}, ...] from Screener's #peers table —
+    one row per peer, including the company itself (flagged `is_target`).
+    Empty if the table is lazy-loaded rather than server-rendered inline
+    (see fetch_peers, which handles that case with a follow-up request)."""
+    sections = page.css("#peers")
+    if not sections:
+        return []
+    return _parse_peer_rows(sections[0], target_symbol)
+
+
+def _parse_company_id(page) -> str | None:
+    """Screener's internal numeric company id (distinct from the NSE/BSE
+    symbol), needed to fetch the AJAX-loaded peers fragment for companies
+    where it isn't server-rendered inline."""
+    info_div = page.css("#company-info")
+    if not info_div:
+        return None
+    return info_div[0].attrib.get("data-company-id")
+
+
+_ANNUAL_REPORT_YEAR_RE = re.compile(r"(\d{4})\s*$")
+
+
+def _parse_annual_reports(page) -> list[dict]:
+    """Returns [{"title", "url", "period_end"}, ...] from Screener's
+    Documents → Annual reports list — these link directly to BSE-hosted
+    PDFs, so no separate Tier 1 filing-URL discovery step is needed for
+    this specific document type."""
+    links = page.css(".annual-reports ul.list-links li a")
+    reports: list[dict] = []
+    for link in links:
+        href = link.attrib.get("href")
+        if not href:
+            continue
+        title = link.get_all_text().strip().split("\n")[0].strip()
+        year_match = _ANNUAL_REPORT_YEAR_RE.search(title)
+        period_end = date(int(year_match.group(1)), 3, 31) if year_match else None
+        reports.append({"title": title, "url": href, "period_end": period_end})
+    return reports
+
+
 async def fetch_ratios(symbol: str) -> list[dict]:
     page = await _fetch_with_retry(symbol)
     if page is None:
@@ -251,3 +352,67 @@ async def fetch_shareholding(symbol: str) -> list[dict]:
             "screener.in shareholding for %s parsed to zero entries — markup may have changed", symbol
         )
     return entries
+
+
+async def fetch_about(symbol: str) -> str | None:
+    page = await _fetch_with_retry(symbol)
+    if page is None:
+        return None
+    about = _parse_about(page)
+    if about is None:
+        logger.warning("screener.in about section for %s not found — markup may have changed", symbol)
+    return about
+
+
+async def fetch_peers(symbol: str) -> list[dict]:
+    """Fetches the peer-comparison table. For companies with a large peer
+    set (typically large caps), Screener replaces the inline table with a
+    `Loading peers table ...` placeholder and fetches it separately via
+    `/api/company/{id}/peers/` — confirmed live and working for RELIANCE.
+    This falls back to that same request when the inline parse comes up
+    empty.
+
+    **Known, accepted inconsistency:** the same endpoint 404s for at least
+    one other lazy-loading company (TCS), despite an identical placeholder
+    and an identical, correctly-extracted `data-company-id`. Screener's
+    AJAX peers endpoint isn't documented, so this is treated as an
+    unofficial-access edge case rather than a bug to chase further — those
+    companies fall through to the same "peer comparison unavailable" state
+    a genuinely missing table would produce, which is honest rather than
+    silently wrong."""
+    page = await _fetch_with_retry(symbol)
+    if page is None:
+        return []
+
+    peers = _parse_peers(page, symbol)
+    if not peers:
+        company_id = _parse_company_id(page)
+        if company_id:
+            peers = await _fetch_peers_via_ajax(company_id, symbol)
+
+    if not peers:
+        logger.warning("screener.in peer comparison for %s parsed to zero rows — markup may have changed", symbol)
+    return peers
+
+
+async def _fetch_peers_via_ajax(company_id: str, target_symbol: str) -> list[dict]:
+    url = f"https://www.screener.in/api/company/{company_id}/peers/"
+    try:
+        async with httpx.AsyncClient(headers=_BROWSER_HEADERS, timeout=15.0) as client:
+            response = await client.get(url)
+        if response.status_code != 200:
+            return []
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("screener.in AJAX peers fetch for company_id=%s failed: %s", company_id, exc)
+        return []
+    return _parse_peer_rows(Selector(response.text), target_symbol)
+
+
+async def fetch_annual_reports(symbol: str) -> list[dict]:
+    page = await _fetch_with_retry(symbol)
+    if page is None:
+        return []
+    reports = _parse_annual_reports(page)
+    if not reports:
+        logger.warning("screener.in annual reports for %s parsed to zero entries — markup may have changed", symbol)
+    return reports

@@ -40,12 +40,18 @@ def test_health_check(client):
 def test_get_company(client, monkeypatch):
     monkeypatch.setattr("app.api.routes.companies.resolve_company", _fake_resolve_company)
 
+    async def fake_get_about(session, company):
+        return "Reliance Industries is a diversified conglomerate."
+
+    monkeypatch.setattr("app.api.routes.companies.svc.get_about", fake_get_about)
+
     response = client.get("/companies/RELIANCE")
     assert response.status_code == 200
     body = response.json()
     assert body["symbol"] == "RELIANCE"
     assert body["name"] == "Reliance Industries Limited"
     assert body["source_tier"] == "tier2_yfinance"
+    assert body["about"] == "Reliance Industries is a diversified conglomerate."
 
 
 def test_get_company_ratios_includes_source_tier(client, monkeypatch):
@@ -71,6 +77,42 @@ def test_get_company_ratios_includes_source_tier(client, monkeypatch):
     assert len(body) == 1
     assert body[0]["name"] == "Stock P/E"
     assert body[0]["source_tier"] == "tier3_screener"
+
+
+def test_get_company_peers_includes_target_flag(client, monkeypatch):
+    monkeypatch.setattr("app.api.routes.companies.resolve_company", _fake_resolve_company)
+
+    async def fake_get_peers(session, company):
+        from app.db.models import PeerComparisonORM
+
+        return [
+            PeerComparisonORM(
+                company_id=1,
+                peer_symbol="RELIANCE",
+                peer_name="Reliance Industries Limited",
+                is_target=True,
+                cmp=Decimal("1322.0"),
+                pe=Decimal("21.8"),
+                market_cap=Decimal("900000"),
+                div_yield=None,
+                net_profit_qtr=None,
+                qtr_profit_var_pct=None,
+                sales_qtr=None,
+                qtr_sales_var_pct=None,
+                roce_pct=None,
+                as_of=date.today(),
+                source_tier="tier3_screener",
+            )
+        ]
+
+    monkeypatch.setattr("app.api.routes.companies.svc.get_peers", fake_get_peers)
+
+    response = client.get("/companies/RELIANCE/peers")
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body) == 1
+    assert body[0]["symbol"] == "RELIANCE"
+    assert body[0]["is_target"] is True
 
 
 def test_invalid_statement_type_returns_422(client, monkeypatch):

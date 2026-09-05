@@ -7,7 +7,7 @@ import { PillTabs } from '@/components/dashboard-charts/PillTabs';
 import { CompanyLogo } from '@/components/dashboard-charts/CompanyLogo';
 import { useMask } from '@/lib/dashboard/MaskContext';
 import { formatInr } from '@/lib/dashboard/format';
-import type { CompanyOut, PricePeriod, RatioOut } from '@/lib/dashboard/fundamentalsApi';
+import type { CompanyOut, DocumentOut, PeerOut, PricePeriod, RatioOut } from '@/lib/dashboard/fundamentalsApi';
 import type { RangeSeries } from '@/lib/dashboard/chartMath';
 import { formatRatioValue, type FinTable, type ShareholdingSeries } from '@/lib/dashboard/transforms';
 import styles from './page.module.css';
@@ -27,11 +27,23 @@ interface StockPageClientProps {
   symbol: string;
   company: CompanyOut;
   ratios: RatioOut[];
+  peers: PeerOut[];
+  documents: DocumentOut[];
   shareholding: ShareholdingSeries[];
   financials: Record<StatementKey, FinTable>;
   priceSeries: Record<PricePeriod, RangeSeries>;
   latestClose: string | null;
   previousClose: string | null;
+}
+
+function formatPeerValue(value: string | null, kind: 'inr' | 'inr_cr' | 'pct' | 'x'): string {
+  if (value === null) return '—';
+  const num = Number(value);
+  if (Number.isNaN(num)) return '—';
+  if (kind === 'inr') return `₹${num.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+  if (kind === 'inr_cr') return `₹${num.toLocaleString('en-IN', { maximumFractionDigits: 0 })} Cr`;
+  if (kind === 'x') return `${num.toFixed(1)}x`;
+  return `${num.toFixed(2)}%`;
 }
 
 const SH_TOP = 14;
@@ -42,6 +54,8 @@ export function StockPageClient({
   symbol,
   company,
   ratios,
+  peers,
+  documents,
   shareholding,
   financials,
   priceSeries,
@@ -99,6 +113,15 @@ export function StockPageClient({
           )}
         </div>
       </div>
+
+      {company.about && (
+        <div className={`${styles.cardPad} ${styles.aboutCard}`}>
+          <p className={styles.cardLabel} style={{ marginBottom: 10 }}>
+            About
+          </p>
+          <p className={styles.aboutText}>{company.about}</p>
+        </div>
+      )}
 
       <div className={styles.splitGrid}>
         <div className={styles.card}>
@@ -168,6 +191,53 @@ export function StockPageClient({
             No {FIN_LABELS[fin].toLowerCase()} data available for this company yet — the fundamentals
             service&rsquo;s filing-based ingestion for this statement is still a tracked gap (see ROADMAP.md).
           </p>
+        )}
+      </div>
+
+      <div className={`${styles.cardPad} ${styles.finCard}`}>
+        <p className={styles.cardLabel} style={{ marginBottom: 14 }}>
+          Peer comparison
+        </p>
+        {peers.length > 0 ? (
+          <div className={styles.tableScroll}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th className={`${styles.th} ${styles.thLeft}`}>Company</th>
+                  <th className={`${styles.th} ${styles.thRight}`}>CMP</th>
+                  <th className={`${styles.th} ${styles.thRight}`}>P/E</th>
+                  <th className={`${styles.th} ${styles.thRight}`}>Mar Cap</th>
+                  <th className={`${styles.th} ${styles.thRight}`}>Div Yld</th>
+                  <th className={`${styles.th} ${styles.thRight}`}>NP Qtr</th>
+                  <th className={`${styles.th} ${styles.thRight}`}>Qtr Profit Var</th>
+                  <th className={`${styles.th} ${styles.thRight}`}>ROCE</th>
+                </tr>
+              </thead>
+              <tbody>
+                {peers.map((p) => (
+                  <tr
+                    key={p.symbol}
+                    className={styles.row}
+                    style={p.is_target ? { fontWeight: 600 } : undefined}
+                  >
+                    <td className={styles.rowLabel} style={{ textAlign: 'left' }}>
+                      {p.name}
+                      {p.is_target && <span className={styles.docMeta}> · this stock</span>}
+                    </td>
+                    <td className={styles.rowCell}>{formatPeerValue(p.cmp, 'inr')}</td>
+                    <td className={styles.rowCell}>{formatPeerValue(p.pe, 'x')}</td>
+                    <td className={styles.rowCell}>{formatPeerValue(p.market_cap, 'inr_cr')}</td>
+                    <td className={styles.rowCell}>{formatPeerValue(p.div_yield, 'pct')}</td>
+                    <td className={styles.rowCell}>{formatPeerValue(p.net_profit_qtr, 'inr_cr')}</td>
+                    <td className={styles.rowCell}>{formatPeerValue(p.qtr_profit_var_pct, 'pct')}</td>
+                    <td className={styles.rowCell}>{formatPeerValue(p.roce_pct, 'pct')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className={styles.meta}>Peer comparison isn&rsquo;t available for this company right now.</p>
         )}
       </div>
 
@@ -270,10 +340,31 @@ export function StockPageClient({
           <p className={styles.cardLabel} style={{ marginBottom: 16 }}>
             Documents
           </p>
-          <p className={styles.meta}>
-            Filing documents aren&rsquo;t wired up yet — the fundamentals service needs a filing-URL discovery
-            step (see ROADMAP.md, Phase 4).
-          </p>
+          {documents.length > 0 ? (
+            <div className={styles.docList}>
+              {documents.map((doc) => (
+                <a
+                  key={doc.url}
+                  href={doc.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.docRow}
+                >
+                  <span className={styles.docIcon} />
+                  <div className={styles.docInfo}>
+                    <p className={styles.docName}>{doc.title}</p>
+                    <p className={styles.docMeta}>PDF, hosted on BSE</p>
+                  </div>
+                  <span className={styles.docOpen}>Open →</span>
+                </a>
+              ))}
+            </div>
+          ) : (
+            <p className={styles.meta}>
+              No annual reports found for this company yet — other document types (XBRL filings, credit
+              ratings) aren&rsquo;t wired up (see ROADMAP.md, Phase 4).
+            </p>
+          )}
         </div>
       </div>
     </div>

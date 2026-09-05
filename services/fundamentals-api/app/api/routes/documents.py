@@ -1,21 +1,21 @@
-"""Document references (annual reports, XBRL filings, etc.).
+"""Document references — currently annual reports only, sourced from
+Screener's Documents section (which links directly to BSE-hosted PDFs, see
+app/ingestion/tier3_screener_scrapling/scraper.py's fetch_annual_reports).
 
-**Known gap:** nothing populates `document_references` yet — that needs the
-Tier 1 filing-discovery step described in fundamentals_service.py's module
-docstring (find the latest filing URLs for a company), which hasn't been
-built. This endpoint is real and ready to serve once that ingestion exists;
-today it will always return an empty list.
+**Known, narrower gap than before:** other document types (XBRL filings,
+credit ratings, etc.) still need the Tier 1 filing-discovery step described
+in fundamentals_service.py's module docstring — annual reports specifically
+didn't need it, since Screener already surfaces the BSE PDF links directly.
 """
 
 from datetime import date
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_db, resolve_company
-from app.db.models import DocumentReferenceORM
+from app.services import fundamentals_service as svc
 
 router = APIRouter(prefix="/companies", tags=["documents"])
 
@@ -33,8 +33,7 @@ async def get_company_documents(
     symbol: str, session: AsyncSession = Depends(get_db)
 ) -> list[DocumentOut]:
     company = await resolve_company(symbol, session)
-    stmt = select(DocumentReferenceORM).where(DocumentReferenceORM.company_id == company.id)
-    documents = list((await session.execute(stmt)).scalars())
+    documents = await svc.get_documents(session, company)
     return [
         DocumentOut(
             document_type=d.document_type,

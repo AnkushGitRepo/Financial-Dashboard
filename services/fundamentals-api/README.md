@@ -42,10 +42,11 @@ source .venv/bin/activate
 uvicorn app.main:app --reload --port 8420
 ```
 
-`GET /health`, then e.g. `GET /companies/RELIANCE`,
+`GET /health`, then e.g. `GET /companies/RELIANCE` (includes `about`),
 `/companies/RELIANCE/ratios`, `/companies/RELIANCE/financials/profit_and_loss`,
-`/companies/RELIANCE/shareholding`, `/companies/RELIANCE/prices`,
-`/companies/RELIANCE/documents`, `GET /indices` (real NIFTY 50/SENSEX/
+`/companies/RELIANCE/shareholding`, `/companies/RELIANCE/peers`,
+`/companies/RELIANCE/prices`, `/companies/RELIANCE/documents` (annual
+reports, BSE-hosted PDFs), `GET /indices` (real NIFTY 50/SENSEX/
 NIFTY BANK/INDIA VIX quotes, live via yfinance — not company-keyed, not
 cached), and `GET /search?q=` (search across all ~2,570 NSE-listed
 equities plus the tracked indices — see "Company search" below). Every
@@ -69,7 +70,7 @@ per-company fallback chain since it's a lookup table, not company data.
 pytest
 ```
 
-All 25 tests run offline — no network, no database. They use saved
+All 30 tests run offline — no network, no database. They use saved
 fixtures (a real Screener.in page a maintainer saved to disk, a synthetic
 but taxonomy-accurate XBRL instance document, a generated PDF with a ruled
 table) rather than live calls, so they're deterministic and don't depend on
@@ -84,7 +85,9 @@ Screener.in/NSE/BSE/Yahoo staying reachable or unchanged.
 | Ratios | Tier 3 (Screener.in) | — | Tiers 1/2 don't expose comparable named/computed ratios as raw data. |
 | Shareholding pattern | Tier 1 (direct NSE endpoint) | Tier 3 (Screener.in) | Tier 1's response shape is unverified (NSE blocked during development); Tier 3 is verified against two real companies and captures full quarterly history (typically 12 quarters), not just the latest. |
 | Financial statements (P&L/BS/CF) | Tier 3 (Screener.in) | — | Tier 1's XBRL parser and PDF table extractor are both implemented and unit-tested against fixtures, but wiring them into the live service needs a filing-URL discovery step (find the latest quarterly XBRL / annual report PDF for a company) that hasn't been built yet. |
-| Documents | — | — | Endpoint exists, always returns `[]` until the filing-discovery step above exists. |
+| About (business description) | Tier 3 (Screener.in) | — | Backfilled once per company and cached indefinitely (not TTL-refreshed) — the text rarely changes. |
+| Peer comparison | Tier 3 (Screener.in) | — | Screener lazy-loads this table via AJAX for some large caps instead of server-rendering it; confirmed working for that case too (RELIANCE), but the same AJAX endpoint 404s for at least one other large cap (TCS) for reasons not fully understood — an accepted, honest gap (shows "unavailable," not wrong data) rather than a chased-down bug, since it's an undocumented private endpoint. |
+| Documents (annual reports) | Tier 3 (Screener.in) | — | Screener's Documents section links directly to BSE-hosted PDFs, so this didn't need the Tier 1 filing-discovery step below — only annual reports are populated; other document types (XBRL filings, credit ratings, etc.) still need it. |
 
 See `app/services/fundamentals_service.py`'s module docstring for the same
 detail in code, and ROADMAP.md's Phase 4 checklist for what's tracked as

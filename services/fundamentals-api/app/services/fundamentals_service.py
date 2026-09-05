@@ -18,6 +18,12 @@ and persist whatever the fallback chain returns with its source_tier intact.
   discovery step (find the latest quarterly XBRL / annual report PDF for a
   given company) that hasn't been built yet — a real, tracked gap, not an
   oversight. See ROADMAP.md Phase 4.
+- About (business description) and peer comparison: Tier 3 (Screener.in)
+  only — neither has a Tier 1/2 equivalent.
+- Documents: Tier 3 only, and only annual reports specifically — Screener's
+  Documents section links directly to BSE-hosted PDFs, so this doesn't need
+  the Tier 1 filing-URL discovery step above (that's still open for other
+  document types / for driving financial-statement extraction directly).
 """
 
 from __future__ import annotations
@@ -32,7 +38,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import get_settings
 from app.db.models import (
     CompanyORM,
+    DocumentReferenceORM,
     FinancialLineItemORM,
+    PeerComparisonORM,
     PriceHistoryPointORM,
     RatioORM,
     ShareholdingEntryORM,
@@ -40,7 +48,7 @@ from app.db.models import (
 from app.ingestion import tier1_nse_bse, tier2_yfinance
 from app.ingestion.orchestrator import TieredResolver, resolve_with_fallback
 from app.ingestion.tier3_screener_scrapling import scraper as tier3
-from app.schemas import SourceTier, StatementType
+from app.schemas import DocumentType, SourceTier, StatementType
 
 logger = logging.getLogger("fundamentals.service")
 _settings = get_settings()
@@ -311,5 +319,123 @@ async def get_price_history(
         select(PriceHistoryPointORM)
         .where(PriceHistoryPointORM.company_id == company.id)
         .order_by(PriceHistoryPointORM.trade_date.desc())
+    )
+    return list((await session.execute(stmt)).scalars())
+
+
+async def get_about(session: AsyncSession, company: CompanyORM) -> str | None:
+    """Business description text. Backfilled once and cached indefinitely
+    (not TTL-refreshed like ratios/prices) — a company's About paragraph
+    doesn't change often enough to justify re-scraping it on a schedule."""
+    if company.about is not None:
+        return company.about
+
+    if not company.nse_symbol:
+        return None
+
+    about = await tier3.fetch_about(company.nse_symbol)
+    if about is not None:
+        company.about = about
+        session.add(company)
+        await session.commit()
+    return about
+
+
+async def get_peers(session: AsyncSession, company: CompanyORM) -> list[PeerComparisonORM]:
+    stmt = (
+        select(PeerComparisonORM)
+        .where(PeerComparisonORM.company_id == company.id)
+        .order_by(PeerComparisonORM.market_cap.desc().nullslast())
+    )
+    existing = list((await session.execute(stmt)).scalars())
+    most_recent_fetch = existing[0].fetched_at if existing else None
+    if existing and not _is_stale(most_recent_fetch, _settings.ratios_cache_ttl_hours):
+        return existing
+
+    if not company.nse_symbol:
+        return existing
+
+    scraped = await tier3.fetch_peers(company.nse_symbol)
+    today = datetime.now(UTC).date()
+    for peer in scraped:
+        stmt = (
+            insert(PeerComparisonORM)
+            .values(
+                company_id=company.id,
+                peer_symbol=peer["symbol"],
+                peer_name=peer["name"],
+                is_target=peer["is_target"],
+                cmp=peer["cmp"],
+                pe=peer["pe"],
+                market_cap=peer["market_cap"],
+                div_yield=peer["div_yield"],
+                net_profit_qtr=peer["net_profit_qtr"],
+                qtr_profit_var_pct=peer["qtr_profit_var_pct"],
+                sales_qtr=peer["sales_qtr"],
+                qtr_sales_var_pct=peer["qtr_sales_var_pct"],
+                roce_pct=peer["roce_pct"],
+                as_of=today,
+                source_tier=SourceTier.TIER3_SCREENER.value,
+            )
+            .on_conflict_do_update(
+                index_elements=["company_id", "peer_symbol", "as_of"],
+                set_={
+                    "cmp": peer["cmp"],
+                    "pe": peer["pe"],
+                    "market_cap": peer["market_cap"],
+                    "div_yield": peer["div_yield"],
+                    "net_profit_qtr": peer["net_profit_qtr"],
+                    "qtr_profit_var_pct": peer["qtr_profit_var_pct"],
+                    "sales_qtr": peer["sales_qtr"],
+                    "qtr_sales_var_pct": peer["qtr_sales_var_pct"],
+                    "roce_pct": peer["roce_pct"],
+                    "fetched_at": func.now(),
+                },
+            )
+        )
+        await session.execute(stmt)
+    await session.commit()
+
+    stmt = (
+        select(PeerComparisonORM)
+        .where(PeerComparisonORM.company_id == company.id)
+        .order_by(PeerComparisonORM.market_cap.desc().nullslast())
+    )
+    return list((await session.execute(stmt)).scalars())
+
+
+async def get_documents(session: AsyncSession, company: CompanyORM) -> list[DocumentReferenceORM]:
+    """Currently populates annual reports only (see module docstring) — the
+    other DocumentType values have no ingestion path yet."""
+    stmt = (
+        select(DocumentReferenceORM)
+        .where(DocumentReferenceORM.company_id == company.id)
+        .order_by(DocumentReferenceORM.period_end.desc().nullslast())
+    )
+    existing = list((await session.execute(stmt)).scalars())
+    if existing or not company.nse_symbol:
+        return existing
+
+    scraped = await tier3.fetch_annual_reports(company.nse_symbol)
+    for report in scraped:
+        stmt = (
+            insert(DocumentReferenceORM)
+            .values(
+                company_id=company.id,
+                document_type=DocumentType.ANNUAL_REPORT.value,
+                title=report["title"],
+                url=report["url"],
+                period_end=report["period_end"],
+                source_tier=SourceTier.TIER3_SCREENER.value,
+            )
+            .on_conflict_do_nothing(index_elements=["company_id", "url"])
+        )
+        await session.execute(stmt)
+    await session.commit()
+
+    stmt = (
+        select(DocumentReferenceORM)
+        .where(DocumentReferenceORM.company_id == company.id)
+        .order_by(DocumentReferenceORM.period_end.desc().nullslast())
     )
     return list((await session.execute(stmt)).scalars())

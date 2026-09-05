@@ -47,6 +47,7 @@ class CompanyORM(Base):
     name: Mapped[str] = mapped_column(String(256))
     industry: Mapped[str | None] = mapped_column(String(128))
     sector: Mapped[str | None] = mapped_column(String(128))
+    about: Mapped[str | None] = mapped_column(String(2000))
     source_tier: Mapped[str | None] = mapped_column(String(32))
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
@@ -59,6 +60,9 @@ class CompanyORM(Base):
         back_populates="company", cascade="all, delete-orphan"
     )
     shareholding_entries: Mapped[list[ShareholdingEntryORM]] = relationship(
+        back_populates="company", cascade="all, delete-orphan"
+    )
+    peer_comparisons: Mapped[list[PeerComparisonORM]] = relationship(
         back_populates="company", cascade="all, delete-orphan"
     )
     price_history: Mapped[list[PriceHistoryPointORM]] = relationship(
@@ -112,6 +116,40 @@ class RatioORM(Base):
     )
 
     company: Mapped[CompanyORM] = relationship(back_populates="ratios")
+
+
+class PeerComparisonORM(Base):
+    """One peer's row in a company's peer-comparison table (Screener's
+    #peers section), including the company itself as one row."""
+
+    __tablename__ = "peer_comparisons"
+    __table_args__ = (
+        UniqueConstraint(
+            "company_id", "peer_symbol", "as_of", name="uq_peer_comparison"
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    company_id: Mapped[int] = mapped_column(ForeignKey("companies.id", ondelete="CASCADE"))
+    peer_symbol: Mapped[str] = mapped_column(String(32))
+    peer_name: Mapped[str] = mapped_column(String(256))
+    is_target: Mapped[bool] = mapped_column(default=False)
+    cmp: Mapped[float | None] = mapped_column(Numeric(16, 4))
+    pe: Mapped[float | None] = mapped_column(Numeric(12, 4))
+    market_cap: Mapped[float | None] = mapped_column(Numeric(20, 4))
+    div_yield: Mapped[float | None] = mapped_column(Numeric(8, 4))
+    net_profit_qtr: Mapped[float | None] = mapped_column(Numeric(16, 4))
+    qtr_profit_var_pct: Mapped[float | None] = mapped_column(Numeric(10, 4))
+    sales_qtr: Mapped[float | None] = mapped_column(Numeric(16, 4))
+    qtr_sales_var_pct: Mapped[float | None] = mapped_column(Numeric(10, 4))
+    roce_pct: Mapped[float | None] = mapped_column(Numeric(8, 4))
+    as_of: Mapped[date] = mapped_column(Date)
+    source_tier: Mapped[str] = mapped_column(String(32))
+    fetched_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    company: Mapped[CompanyORM] = relationship(back_populates="peer_comparisons")
 
 
 class ShareholdingEntryORM(Base):

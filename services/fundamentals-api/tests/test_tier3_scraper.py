@@ -13,7 +13,11 @@ import pytest
 from scrapling import Selector
 
 from app.ingestion.tier3_screener_scrapling.scraper import (
+    _parse_about,
+    _parse_annual_reports,
+    _parse_company_id,
     _parse_financial_statement,
+    _parse_peers,
     _parse_ratios,
     _parse_shareholding,
 )
@@ -85,3 +89,43 @@ def test_parse_shareholding_returns_full_quarterly_history(newgen_page):
 def test_parse_shareholding_quarter_end_is_a_real_date(newgen_page):
     entries = _parse_shareholding(newgen_page)
     assert isinstance(entries[0]["quarter_end"], date)
+
+
+def test_parse_about_extracts_business_description(newgen_page):
+    about = _parse_about(newgen_page)
+    assert about is not None
+    assert "software" in about.lower()
+    assert "<" not in about  # no leftover markup
+
+
+def test_parse_peers_includes_the_target_company_and_real_peers(newgen_page):
+    peers = _parse_peers(newgen_page, "NEWGEN")
+    symbols = {p["symbol"] for p in peers}
+
+    assert "TCS" in symbols
+    assert "INFY" in symbols
+    assert "NEWGEN" in symbols
+
+    target = next(p for p in peers if p["symbol"] == "NEWGEN")
+    assert target["is_target"] is True
+    others = [p for p in peers if p["symbol"] != "NEWGEN"]
+    assert all(p["is_target"] is False for p in others)
+
+    tcs = next(p for p in peers if p["symbol"] == "TCS")
+    assert tcs["market_cap"] > 0
+    assert tcs["pe"] > 0
+
+
+def test_parse_company_id_extracts_screener_internal_id(newgen_page):
+    assert _parse_company_id(newgen_page) == "1274251"
+
+
+def test_parse_annual_reports_finds_bse_hosted_pdf_links(newgen_page):
+    reports = _parse_annual_reports(newgen_page)
+    assert len(reports) >= 5
+
+    latest = max(reports, key=lambda r: r["period_end"] or date.min)
+    assert latest["url"].startswith("https://www.bseindia.com/")
+    assert latest["url"].endswith(".pdf")
+    assert "Annual Report" in latest["title"]
+    assert latest["period_end"].month == 3  # Indian fiscal year-end convention
