@@ -1,0 +1,46 @@
+.tabBar {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .tabBar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 70;
+    background: rgba(251, 248, 241, 0.94);
+    backdrop-filter: blur(16px);
+    border-top: 1px solid var(--app-border);
+    padding: 8px 8px 12px;
+    display: flex;
+    justify-content: space-around;
+    align-items: stretch;
+  }
+}
+
+.tabItem {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  min-width: 60px;
+  min-height: 48px;
+  justify-content: center;
+  color: var(--app-text-faint);
+  transition: color var(--duration-fast) ease;
+}
+
+.tabItemActive {
+  color: var(--app-teal-strong);
+}
+
+.tabLabel {
+  font-size: 10.5px;
+  letter-spacing: 0.01em;
+}

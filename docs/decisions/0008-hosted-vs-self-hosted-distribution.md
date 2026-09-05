@@ -1,7 +1,7 @@
 # 0008: Hosted vs. self-hosted distribution model
 
 Date: 2026-09-03
-Status: accepted
+Status: **superseded by [ADR 0011](./0011-three-tier-fundamentals-data-sourcing.md) (2026-09-05)** — MarketMitra has no paid tier at all now; see ADR 0011's context. Kept below, unedited, as a historical record per this project's "ADRs are never pruned" rule.
 
 ## Context
 

@@ -40,12 +40,26 @@ v1 code removed, history preserved, teardown committed as its own commit.
 - **Archiving protocol already run for this phase** — full build detail lives in [`/docs/archive/landing-page.md`](./docs/archive/landing-page.md), [`/docs/archive/dashboard-shell.md`](./docs/archive/dashboard-shell.md), [`/docs/archive/auth-pages.md`](./docs/archive/auth-pages.md); `/docs/architecture.md` holds the current summaries.
 
 ## Phase 4 — Fundamentals Data API (screener.in-equivalent) 🔄
-Full spec already written — see `marketmitra-fundamentals-api-prompt.md`. Start this as its own multi-day sub-build once Phase 2–3 are approved. Checklist lives inside that document (storage decision → schema → Tier 1 ingestion → Tier 2 gap-fill → serving layer → docs); mirror its step completion back into this file as:
-- [ ] Storage decision confirmed
-- [ ] Schema defined
-- [ ] Tier 1 (NSE/BSE) ingestion built
-- [ ] Tier 2 (EODHD) gap-fill built
-- [ ] Serving layer + endpoint docs
+Superseded plan: no paid vendor (EODHD dropped), no hosted/self-host split for data access — see [ADR 0011](./docs/decisions/0011-three-tier-fundamentals-data-sourcing.md). Built as a standalone Python/FastAPI service under `services/fundamentals-api/` (scoped exception to ADR 0004), Postgres-backed (not MongoDB, scoped to this service). Full detail: [`services/fundamentals-api/README.md`](./services/fundamentals-api/README.md).
+- [x] Storage decision confirmed — PostgreSQL, not MongoDB (this service's data is naturally tabular/relational)
+- [x] Schema defined — `app/schemas.py` (pydantic v2) + `app/db/models.py` (SQLAlchemy), migrated via Alembic, applied against a real local Postgres instance
+- [x] Tier 1 (NSE/BSE) ingestion built — `nsepython`/`bsedata` quotes, direct-call NSE shareholding endpoint, XBRL parser, PDF table extractor. NSE itself is frequently blocked (Akamai edge, confirmed during dev) — expected, not a bug; `bsedata` verified working live.
+- [x] Tier 2 fallback built — `yfinance` (price history + quote gap-fill), replacing the dropped paid-vendor (EODHD) plan entirely
+- [x] Tier 3 fallback built — Scrapling against Screener.in, isolated module, verified against two real companies (Reliance live fetch, Newgen Software saved-page fixture)
+- [x] Serving layer built — FastAPI endpoints for company/ratios/shareholding/financials/prices/documents, `source_tier` visible on every response; 25 tests pass offline (no network/DB)
+- [ ] **Not yet done:** Tier 1 filing-URL discovery step (find a company's latest quarterly XBRL / annual report PDF) — financial-statement serving currently runs through Tier 3 only in practice
+- [x] Dashboard/Portfolio/Markets/Stock UI built — `/dashboard`, `/dashboard/portfolio`, `/dashboard/markets`, `/dashboard/stock/[ticker]`, from an approved Claude Design import, fonts swapped to project standard (Manrope/JetBrains Mono).
+- [x] UI wired to real data, mock data removed entirely (`src/lib/dashboard/mockData.ts` deleted) — see [ADR 0012](./docs/decisions/0012-portfolio-holdings-and-real-data-wiring.md):
+  - Stock detail page: fully real (ratios, financials, shareholding, price history) via fundamentals-api, for any real NSE symbol.
+  - Markets/Dashboard: real Indian indices (NIFTY 50, SENSEX, NIFTY BANK, INDIA VIX) via a new fundamentals-api `/indices` endpoint (yfinance); gainers/losers scoped to a real 10-stock watchlist (`src/lib/dashboard/watchlist.ts`), not a market-wide screener (no such data source exists).
+  - Portfolio: real, working feature — new `holdings` MongoDB collection + `/api/holdings` CRUD routes + add/edit/delete UI. Diversification score, target progress, benchmark comparison, and drift-from-target were dropped (no real data/config source existed for them even in the mock) in favor of real concentration facts, sector allocation, and per-holding unrealized P&L.
+  - Fixed a real bug found in the process: the shareholding scraper only captured the latest quarter, not the full history Screener shows — now captures all available quarters (typically 12).
+- [x] Company logos everywhere an avatar shows (movers, holdings, stock header, search) — real per-symbol logos with initials as a genuine fallback (confirmed the source 404s for real on unlisted tickers).
+- [x] Search upgraded from the 10-stock watchlist to the full NSE universe — ~2,570 real listed equities + the 4 tracked indices, via a new fundamentals-api `/search` endpoint sourced from NSE's own published equity list.
+- [x] MongoDB Atlas connectivity resolved (user opened the IP allowlist to `0.0.0.0/0`) — portfolio holdings add/edit/delete verified live end-to-end, not just built. Also fixed a real resilience bug found along the way: no connection timeout meant an unreachable cluster hung every page load for ~20-30s.
+- [ ] Confirm this phase as done with the user before running the archiving protocol
+
+**New follow-up surfaced while confirming Phase 4's scope, not yet started:** ADR 0011 confirmed MarketMitra has no paid tier at all, superseding [ADR 0008](./docs/decisions/0008-hosted-vs-self-hosted-distribution.md) entirely — needs a dedicated pass to reconcile the landing page's pricing/FAQ billing UI and [ADR 0010](./docs/decisions/0010-deployment-mode-gate.md)'s `isHosted()` gate (billing purpose specifically) with this. Not folded into the Phase 4 build itself.
 
 ## Phase 5 — Alerts (stop loss, target, general price alerts) ❓
 Needs a dedicated discussion: delivery channels beyond email, exact trigger logic, how alerts relate to the Phase 4 data API vs. live price feeds. Do not build from this one-line description.

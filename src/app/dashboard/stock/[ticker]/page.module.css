@@ -1,0 +1,407 @@
+.pageRoot {
+  padding-bottom: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pageRoot {
+    animation: pageRise 0.34s ease both;
+  }
+}
+
+@keyframes pageRise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.backButton {
+  border: none;
+  background: none;
+  padding: 0;
+  margin-bottom: 16px;
+  font-size: 12.5px;
+  color: var(--app-text-muted);
+  cursor: pointer;
+  font-family: var(--font-sans);
+}
+
+.headRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.identity {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.logo {
+  width: 54px;
+  height: 54px;
+  border-radius: 18px;
+  background: linear-gradient(145deg, var(--app-teal-bg), var(--app-teal-bg-strong));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--app-teal-strong);
+}
+
+.h1 {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  color: var(--app-ink);
+}
+
+@media (max-width: 760px) {
+  .h1 {
+    font-size: 25px;
+  }
+}
+
+.meta {
+  margin: 5px 0 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--app-text-faint);
+}
+
+.priceCol {
+  text-align: right;
+}
+
+.price {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--app-ink);
+}
+
+.priceChg {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--app-teal-strong);
+}
+
+.splitGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.72fr) minmax(0, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.splitGridAlt {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .splitGrid,
+  .splitGridAlt {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--app-border-soft);
+  border-radius: var(--radius-xl);
+  padding: 22px 24px 14px;
+  box-shadow: 0 6px 20px rgba(22, 25, 28, 0.04);
+}
+
+.cardPad {
+  background: var(--color-surface);
+  border: 1px solid var(--app-border-soft);
+  border-radius: var(--radius-xl);
+  padding: 22px 24px;
+  box-shadow: 0 6px 20px rgba(22, 25, 28, 0.04);
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.cardLabel {
+  margin: 0;
+  font-size: 14px;
+  color: var(--app-text-muted);
+}
+
+.ratiosGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 18px;
+}
+
+.ratio {
+  border-bottom: 1px solid var(--app-border-softer);
+  padding-bottom: 8px;
+}
+
+.ratioLabel {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--app-text-subtle);
+}
+
+.ratioValue {
+  margin: 3px 0 0;
+  font-size: 14px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--app-ink);
+}
+
+.finCard {
+  margin-bottom: 16px;
+}
+
+.finHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.tableScroll {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  min-width: 720px;
+  font-size: 13px;
+  border-collapse: collapse;
+}
+
+.th {
+  padding: 8px 10px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--app-text-subtle);
+  font-weight: 500;
+  border-bottom: 1px solid var(--app-border-soft);
+}
+
+.thLeft {
+  text-align: left;
+}
+
+.thRight {
+  text-align: right;
+}
+
+.row {
+  transition: background var(--duration-fast) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .row:hover {
+    background: #faf8f2;
+  }
+}
+
+.rowLabel {
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--app-border-softer);
+  font-weight: 500;
+}
+
+.rowCell {
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--app-border-softer);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.shCardRow {
+  display: flex;
+  gap: 10px;
+}
+
+.shAxis {
+  position: relative;
+  width: 38px;
+  flex: none;
+  height: 200px;
+}
+
+.shAxisLabel {
+  position: absolute;
+  right: 0;
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #a9b2b8;
+}
+
+.shChartCol {
+  flex: 1;
+  min-width: 0;
+}
+
+.shChartWrap {
+  position: relative;
+  height: 200px;
+}
+
+.shSvg {
+  width: 100%;
+  height: 200px;
+  display: block;
+}
+
+.shLinePath {
+  stroke-dasharray: 2600;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .shLinePath {
+    animation: shDraw 1.2s cubic-bezier(0.3, 0.8, 0.4, 1) both;
+  }
+}
+
+@keyframes shDraw {
+  from {
+    stroke-dashoffset: 2600;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.shTicks {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.shTick {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--app-text-subtle);
+}
+
+.shLegend {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.legendCard {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 12px;
+  border: 1px solid var(--app-border-softer);
+  border-radius: 14px;
+}
+
+.legendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex: none;
+}
+
+.legendName {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--app-ink);
+}
+
+.legendMeta {
+  margin: 2px 0 0;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--app-text-muted);
+}
+
+.shNote {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  color: var(--app-text-muted);
+}
+
+.docList {
+  display: flex;
+  flex-direction: column;
+}
+
+.docRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 10px;
+  border-bottom: 1px solid var(--app-border-softer);
+  cursor: pointer;
+  border-radius: 12px;
+  transition: background var(--duration-fast) ease, transform var(--duration-fast) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .docRow:hover {
+    background: #faf8f2;
+    transform: translateX(3px);
+  }
+}
+
+.docIcon {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: var(--app-teal-tint);
+  flex: none;
+}
+
+.docInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.docName {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--app-ink);
+}
+
+.docMeta {
+  margin: 2px 0 0;
+  font-size: 11.5px;
+  color: var(--app-text-subtle);
+}
+
+.docOpen {
+  font-size: 12px;
+  color: var(--app-teal-strong);
+}

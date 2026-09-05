@@ -1,0 +1,180 @@
+"""SQLAlchemy ORM models — the Postgres-backed storage mirror of app.schemas.
+
+One table per pydantic model in app/schemas.py, plus a `source_tier` column
+on every table whose data can come from more than one tier, so a stored
+record always shows which tier produced it.
+"""
+
+from __future__ import annotations
+
+from datetime import date, datetime
+
+from sqlalchemy import (
+    Date,
+    DateTime,
+    ForeignKey,
+    Numeric,
+    String,
+    UniqueConstraint,
+    func,
+)
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.db.base import Base
+
+
+class CompanyMasterORM(Base):
+    """The full NSE-listed-equity symbol/name list, for search (see
+    app/ingestion/company_master.py) — distinct from CompanyORM, which
+    only gets a row once something actually queries that company's data."""
+
+    __tablename__ = "company_master"
+
+    symbol: Mapped[str] = mapped_column(String(32), primary_key=True)
+    name: Mapped[str] = mapped_column(String(256))
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
+class CompanyORM(Base):
+    __tablename__ = "companies"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    nse_symbol: Mapped[str | None] = mapped_column(String(32), unique=True, index=True)
+    bse_code: Mapped[str | None] = mapped_column(String(16), unique=True, index=True)
+    isin: Mapped[str | None] = mapped_column(String(16), unique=True, index=True)
+    name: Mapped[str] = mapped_column(String(256))
+    industry: Mapped[str | None] = mapped_column(String(128))
+    sector: Mapped[str | None] = mapped_column(String(128))
+    source_tier: Mapped[str | None] = mapped_column(String(32))
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    financial_line_items: Mapped[list[FinancialLineItemORM]] = relationship(
+        back_populates="company", cascade="all, delete-orphan"
+    )
+    ratios: Mapped[list[RatioORM]] = relationship(
+        back_populates="company", cascade="all, delete-orphan"
+    )
+    shareholding_entries: Mapped[list[ShareholdingEntryORM]] = relationship(
+        back_populates="company", cascade="all, delete-orphan"
+    )
+    price_history: Mapped[list[PriceHistoryPointORM]] = relationship(
+        back_populates="company", cascade="all, delete-orphan"
+    )
+    documents: Mapped[list[DocumentReferenceORM]] = relationship(
+        back_populates="company", cascade="all, delete-orphan"
+    )
+
+
+class FinancialLineItemORM(Base):
+    __tablename__ = "financial_line_items"
+    __table_args__ = (
+        UniqueConstraint(
+            "company_id", "statement_type", "period_type", "period_end", "label",
+            name="uq_financial_line_item",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    company_id: Mapped[int] = mapped_column(ForeignKey("companies.id", ondelete="CASCADE"))
+    statement_type: Mapped[str] = mapped_column(String(32))
+    period_type: Mapped[str] = mapped_column(String(16))
+    period_end: Mapped[date] = mapped_column(Date)
+    label: Mapped[str] = mapped_column(String(128))
+    value: Mapped[float | None] = mapped_column(Numeric(20, 4))
+    unit: Mapped[str] = mapped_column(String(16), default="INR_CR")
+    source_tier: Mapped[str] = mapped_column(String(32))
+    fetched_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    company: Mapped[CompanyORM] = relationship(back_populates="financial_line_items")
+
+
+class RatioORM(Base):
+    __tablename__ = "ratios"
+    __table_args__ = (
+        UniqueConstraint("company_id", "name", "as_of", name="uq_ratio"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    company_id: Mapped[int] = mapped_column(ForeignKey("companies.id", ondelete="CASCADE"))
+    name: Mapped[str] = mapped_column(String(64))
+    value: Mapped[float | None] = mapped_column(Numeric(20, 4))
+    unit: Mapped[str | None] = mapped_column(String(16))
+    as_of: Mapped[date] = mapped_column(Date)
+    source_tier: Mapped[str] = mapped_column(String(32))
+    fetched_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    company: Mapped[CompanyORM] = relationship(back_populates="ratios")
+
+
+class ShareholdingEntryORM(Base):
+    __tablename__ = "shareholding_entries"
+    __table_args__ = (
+        UniqueConstraint(
+            "company_id", "category", "quarter_end", name="uq_shareholding_entry"
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    company_id: Mapped[int] = mapped_column(ForeignKey("companies.id", ondelete="CASCADE"))
+    category: Mapped[str] = mapped_column(String(64))
+    percentage: Mapped[float] = mapped_column(Numeric(6, 3))
+    quarter_end: Mapped[date] = mapped_column(Date)
+    source_tier: Mapped[str] = mapped_column(String(32))
+    fetched_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    company: Mapped[CompanyORM] = relationship(back_populates="shareholding_entries")
+
+
+class PriceHistoryPointORM(Base):
+    __tablename__ = "price_history"
+    __table_args__ = (
+        UniqueConstraint(
+            "company_id", "exchange", "trade_date", name="uq_price_history_point"
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    company_id: Mapped[int] = mapped_column(ForeignKey("companies.id", ondelete="CASCADE"))
+    exchange: Mapped[str] = mapped_column(String(8))
+    trade_date: Mapped[date] = mapped_column(Date)
+    open: Mapped[float | None] = mapped_column(Numeric(16, 4))
+    high: Mapped[float | None] = mapped_column(Numeric(16, 4))
+    low: Mapped[float | None] = mapped_column(Numeric(16, 4))
+    close: Mapped[float | None] = mapped_column(Numeric(16, 4))
+    volume: Mapped[int | None]
+    source_tier: Mapped[str] = mapped_column(String(32))
+    fetched_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    company: Mapped[CompanyORM] = relationship(back_populates="price_history")
+
+
+class DocumentReferenceORM(Base):
+    __tablename__ = "document_references"
+    __table_args__ = (
+        UniqueConstraint("company_id", "url", name="uq_document_reference_url"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    company_id: Mapped[int] = mapped_column(ForeignKey("companies.id", ondelete="CASCADE"))
+    document_type: Mapped[str] = mapped_column(String(32))
+    title: Mapped[str] = mapped_column(String(512))
+    url: Mapped[str] = mapped_column(String(1024))
+    period_end: Mapped[date | None] = mapped_column(Date)
+    source_tier: Mapped[str] = mapped_column(String(32))
+    fetched_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    company: Mapped[CompanyORM] = relationship(back_populates="documents")

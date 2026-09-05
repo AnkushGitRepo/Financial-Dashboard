@@ -14,6 +14,10 @@ const eslintConfig = defineConfig([
     'out/**',
     'build/**',
     'next-env.d.ts',
+    // services/fundamentals-api is a standalone Python service (ADR 0011) —
+    // its .venv ships huge minified JS (Playwright/Patchright bundles) that
+    // crashes ESLint's formatter if linted as part of this project.
+    'services/**',
   ]),
 ]);
 

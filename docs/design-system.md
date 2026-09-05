@@ -109,6 +109,10 @@ Headings: `font-weight: 800`, negative letter-spacing (`-0.02em` to `-0.045em`, 
 
 Large bespoke multi-stop gradients (page/section backgrounds) and one-off pixel values inside a single, non-reused SVG icon are the only accepted exceptions to "always use a token." Everything else — color, spacing, font-size, radius, shadow, duration — goes through a token. If you find yourself reaching for a raw hex or px value outside those two cases, either an existing token fits (check this doc first) or a new token belongs in `tokens.css`, not inline in a component.
 
+## Second palette: the dashboard app shell
+
+`/dashboard*` (Dashboard, Portfolio, Markets, Stock detail) uses a second, denser color palette — `--app-*` tokens in `tokens.css` (teal accents, warmer neutrals) — distinct from the marketing landing page's `--color-mint*` tokens above, since it's a separately-designed, separately-approved product surface (imported from a Claude Design project, 2026-09-05). **Fonts are shared, not forked**: Manrope/JetBrains Mono (`--font-sans`/`--font-mono`) are used across both surfaces — only the source design's own fonts (Bricolage Grotesque/Instrument Sans/IBM Plex Mono) were swapped out, per explicit instruction, everything else in that design was kept as approved. See `/docs/architecture.md` → "Dashboard app shell" for the component breakdown.
+
 ## Provenance
 
-Built from the Phase 3 landing page (`src/app/page.tsx` + `src/components/landing/*`, see `/docs/architecture.md` → "Landing page component structure"). Any future page (auth screens, dashboard) should be built against this doc so the whole product reads as one system — update this file when a new page introduces a genuinely new pattern (don't let patterns drift silently across pages).
+Built from the Phase 3 landing page (`src/app/page.tsx` + `src/components/landing/*`, see `/docs/architecture.md` → "Landing page component structure"). The dashboard app shell (above) is a second, later provenance — build any *new* landing/marketing page against the main palette above, and any new `/dashboard*` page against the `--app-*` palette, so each surface stays internally consistent. Update this file when a new page introduces a genuinely new pattern (don't let patterns drift silently across pages).

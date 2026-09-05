@@ -14,7 +14,8 @@ MarketMitra is a financial dashboard (Indian markets: indices, stocks, IPOs, new
 
 - Next.js, App Router, TypeScript ([0002](./docs/decisions/0002-nextjs-app-router.md))
 - CSS Modules + `styles/tokens.css` — **no Tailwind, no Bootstrap, no hand-rolled utility framework** ([0003](./docs/decisions/0003-css-modules-no-framework.md))
-- Backend = Next.js API route handlers only, **no separate Express server** ([0004](./docs/decisions/0004-nextjs-api-routes-as-backend.md))
+- Backend = Next.js API route handlers only, **no separate Express server** ([0004](./docs/decisions/0004-nextjs-api-routes-as-backend.md)) — **scoped exception:** `services/fundamentals-api/` is a standalone Python/FastAPI service for data ingestion/serving, justified by Python-only tooling with no TS equivalent ([0011](./docs/decisions/0011-three-tier-fundamentals-data-sourcing.md)). The main app's own backend is unaffected.
+- MarketMitra has **no paid tier, no billing, no trial limits** — free and open-source, full stop. Data sourcing uses free libraries/sources only, identically in hosted and self-hosted mode ([0011](./docs/decisions/0011-three-tier-fundamentals-data-sourcing.md)).
 - Auth = Clerk ([0005](./docs/decisions/0005-clerk-auth.md))
 - DB = MongoDB Atlas, Hosting = Vercel, deployed early not late ([0006](./docs/decisions/0006-vercel-mongodb-atlas-deployment.md))
 - Every feature ships UI + documented API endpoint together — never one without the other.
@@ -34,9 +35,13 @@ MarketMitra is a financial dashboard (Indian markets: indices, stocks, IPOs, new
 
 ## Active focus
 
-Deployment mode gate just shipped (not yet approved/archived — see [ADR 0010](./docs/decisions/0010-deployment-mode-gate.md) and the latest `/docs/session-log.md` entry): `NEXT_PUBLIC_DEPLOYMENT_MODE` (`hosted` | `selfhost`, default `selfhost`) gates Clerk auth and all billing UI via `isHosted()` in `src/lib/deployment-mode.ts`. The production Vercel env var (`NEXT_PUBLIC_DEPLOYMENT_MODE=hosted`) is now confirmed set by the user (2026-09-04). Do not run the archiving/pruning protocol on this feature until the user explicitly approves it as done.
+**Phase 4, fundamentals data service — in progress, not yet approved/archived.** `services/fundamentals-api/` (Python/FastAPI, Postgres) serves screener.in-style ratios/financials/shareholding/prices via a three-tier free-data fallback chain — see [ADR 0011](./docs/decisions/0011-three-tier-fundamentals-data-sourcing.md) and the latest `/docs/session-log.md` entry. Ingestion, storage, and serving layers are built and tested (25 passing tests, no network/DB required to run them).
 
-Once approved: Phase 4, first feature: **market indices/prices** — research public market-data APIs for Indian indices/stocks first (rate limits, cost, ToS — see `/docs/data-sources.md`), per the "public APIs first" policy and the mandatory research-before-implementation step, before writing any code. Ship UI (dashboard) + documented API endpoint together, per the non-negotiable constraints above. Landing/dashboard/auth pages are done and archived — see `/docs/archive/` for their build detail if touching them again.
+The dashboard UI side is also built and now fully wired to real data (no mock data anywhere — `mockData.ts` deleted): `/dashboard`, `/dashboard/portfolio`, `/dashboard/markets`, `/dashboard/stock/[ticker]` (`src/components/appshell/`, `src/components/dashboard-charts/`, `src/lib/dashboard/`), from an approved Claude Design import with fonts swapped to Manrope/JetBrains Mono. Replaces the old sidebar-based empty-state shell entirely (deleted, not archived-and-kept). See [ADR 0012](./docs/decisions/0012-portfolio-holdings-and-real-data-wiring.md) (including its same-day amendment): real Indian indices, real company logos with a genuine initials fallback, full-NSE-universe search (~2,570 symbols via a new fundamentals-api `/search` endpoint), a genuinely new Portfolio holdings feature (MongoDB + `/api/holdings` CRUD), and Stock detail fully live via fundamentals-api. MongoDB Atlas connectivity is confirmed working (user opened the IP allowlist) — the holdings add/edit/delete flow is verified live end-to-end, not just built. **Not yet done:** a Tier 1 filing-URL discovery step for financial statements (tracked in ROADMAP.md).
+
+**New tracked follow-up, not started:** ADR 0011 confirmed MarketMitra has no paid tier at all, superseding [ADR 0008](./docs/decisions/0008-hosted-vs-self-hosted-distribution.md) entirely. The landing page's pricing/FAQ billing UI and the product-facing purpose of [ADR 0010](./docs/decisions/0010-deployment-mode-gate.md)'s `isHosted()` gate need a dedicated pass to reconcile with this — not done as a side effect of the data-service build. Needs explicit discussion before touching that UI/auth code.
+
+Deployment mode gate (ADR 0010) itself shipped and is live in production (`NEXT_PUBLIC_DEPLOYMENT_MODE=hosted` confirmed set 2026-09-04) — still awaiting explicit approval before the archiving/pruning protocol runs on it.
 
 ## Context maintenance protocol
 

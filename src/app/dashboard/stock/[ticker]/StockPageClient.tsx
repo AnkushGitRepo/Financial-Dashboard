@@ -1,0 +1,281 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { LineChart } from '@/components/dashboard-charts/LineChart';
+import { PillTabs } from '@/components/dashboard-charts/PillTabs';
+import { CompanyLogo } from '@/components/dashboard-charts/CompanyLogo';
+import { useMask } from '@/lib/dashboard/MaskContext';
+import { formatInr } from '@/lib/dashboard/format';
+import type { CompanyOut, PricePeriod, RatioOut } from '@/lib/dashboard/fundamentalsApi';
+import type { RangeSeries } from '@/lib/dashboard/chartMath';
+import { formatRatioValue, type FinTable, type ShareholdingSeries } from '@/lib/dashboard/transforms';
+import styles from './page.module.css';
+
+type StatementKey = 'profit_and_loss' | 'balance_sheet' | 'cash_flow';
+
+const RANGE_OPTIONS: PricePeriod[] = ['1mo', '6mo', '1y', '5y'];
+const RANGE_LABELS: Record<PricePeriod, string> = { '1mo': '1M', '6mo': '6M', '1y': '1Y', '5y': '5Y' };
+const FIN_TABS: StatementKey[] = ['profit_and_loss', 'balance_sheet', 'cash_flow'];
+const FIN_LABELS: Record<StatementKey, string> = {
+  profit_and_loss: 'P&L',
+  balance_sheet: 'Balance sheet',
+  cash_flow: 'Cash flow',
+};
+
+interface StockPageClientProps {
+  symbol: string;
+  company: CompanyOut;
+  ratios: RatioOut[];
+  shareholding: ShareholdingSeries[];
+  financials: Record<StatementKey, FinTable>;
+  priceSeries: Record<PricePeriod, RangeSeries>;
+  latestClose: string | null;
+  previousClose: string | null;
+}
+
+const SH_TOP = 14;
+const SH_BOTTOM = 186;
+const SH_WIDTH = 600;
+
+export function StockPageClient({
+  symbol,
+  company,
+  ratios,
+  shareholding,
+  financials,
+  priceSeries,
+  latestClose,
+  previousClose,
+}: StockPageClientProps) {
+  const router = useRouter();
+  const { masked } = useMask();
+  const [range, setRange] = useState<PricePeriod>('1y');
+  const [fin, setFin] = useState<StatementKey>('profit_and_loss');
+
+  const price = latestClose !== null ? Number(latestClose) : null;
+  const prev = previousClose !== null ? Number(previousClose) : null;
+  const change = price !== null && prev !== null ? price - prev : null;
+  const changePct = change !== null && prev ? (change / prev) * 100 : null;
+  const up = (change ?? 0) >= 0;
+
+  const finTable = financials[fin];
+
+  const quarters = [...new Set(shareholding.flatMap((s) => s.points.map((p) => p.quarterEnd)))].sort();
+  const shMin = 0;
+  const shMax = shareholding.length
+    ? Math.ceil(Math.max(...shareholding.flatMap((s) => s.points.map((p) => p.percentage))) / 10) * 10
+    : 50;
+  const shX = (i: number) => (quarters.length <= 1 ? SH_WIDTH / 2 : 6 + (i * (SH_WIDTH - 12)) / (quarters.length - 1));
+  const shY = (v: number) => SH_TOP + (1 - (v - shMin) / (shMax - shMin || 1)) * (SH_BOTTOM - SH_TOP);
+  const gridValues = [0, 0.25, 0.5, 0.75, 1].map((f) => Math.round((shMin + f * (shMax - shMin)) / 5) * 5);
+
+  return (
+    <div className={styles.pageRoot}>
+      <button type="button" className={styles.backButton} onClick={() => router.back()}>
+        ← Back
+      </button>
+
+      <div className={styles.headRow}>
+        <div className={styles.identity}>
+          <div className={styles.logo}>
+            <CompanyLogo symbol={symbol} size={40} />
+          </div>
+          <div>
+            <h1 className={styles.h1}>{company.name}</h1>
+            <p className={styles.meta}>
+              {symbol} · NSE{company.industry ? ` · ${company.industry}` : ''}
+            </p>
+          </div>
+        </div>
+        <div className={styles.priceCol}>
+          <p className={styles.price}>{price !== null ? formatInr(price, 2, masked) : '—'}</p>
+          {change !== null && changePct !== null && (
+            <p className={styles.priceChg} style={{ color: up ? 'var(--app-gain)' : 'var(--app-loss)' }}>
+              {up ? '+' : ''}
+              {change.toFixed(2)} ({up ? '+' : ''}
+              {changePct.toFixed(2)}%)
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className={styles.splitGrid}>
+        <div className={styles.card}>
+          <div className={styles.cardHead}>
+            <p className={styles.cardLabel}>Price history</p>
+            <PillTabs options={RANGE_OPTIONS} value={range} onChange={setRange} labels={RANGE_LABELS} />
+          </div>
+          {priceSeries[range].v.length > 0 ? (
+            <LineChart series={priceSeries[range]} height={210} formatValue={(v) => formatInr(v, 2, masked)} />
+          ) : (
+            <p className={styles.meta}>No price history available for this range.</p>
+          )}
+        </div>
+
+        <div className={styles.cardPad}>
+          <p className={styles.cardLabel} style={{ marginBottom: 14 }}>
+            Key ratios
+          </p>
+          {ratios.length > 0 ? (
+            <div className={styles.ratiosGrid}>
+              {ratios.map((r) => (
+                <div key={r.name} className={styles.ratio}>
+                  <p className={styles.ratioLabel}>{r.name}</p>
+                  <p className={styles.ratioValue}>{formatRatioValue(r.value, r.unit)}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className={styles.meta}>Ratios aren&rsquo;t available for this company right now.</p>
+          )}
+        </div>
+      </div>
+
+      <div className={`${styles.cardPad} ${styles.finCard}`}>
+        <div className={styles.finHead}>
+          <p className={styles.cardLabel}>Historical financials · ₹ crore</p>
+          <PillTabs options={FIN_TABS} value={fin} onChange={setFin} labels={FIN_LABELS} />
+        </div>
+        {finTable.rows.length > 0 ? (
+          <div className={styles.tableScroll}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  {finTable.cols.map((label, i) => (
+                    <th key={i} className={`${styles.th} ${i === 0 ? styles.thLeft : styles.thRight}`}>
+                      {label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {finTable.rows.map((row) => (
+                  <tr key={row.label} className={styles.row}>
+                    <td className={styles.rowLabel}>{row.label}</td>
+                    {row.cells.map((cell, i) => (
+                      <td key={i} className={styles.rowCell}>
+                        {cell}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className={styles.meta}>
+            No {FIN_LABELS[fin].toLowerCase()} data available for this company yet — the fundamentals
+            service&rsquo;s filing-based ingestion for this statement is still a tracked gap (see ROADMAP.md).
+          </p>
+        )}
+      </div>
+
+      <div className={styles.splitGridAlt}>
+        <div className={styles.cardPad}>
+          <p className={styles.cardLabel} style={{ marginBottom: 4 }}>
+            Shareholding pattern
+          </p>
+          <p className={styles.docMeta} style={{ marginBottom: 12 }}>
+            {quarters.length > 0 ? `Share of equity held, ${quarters.length} quarters` : 'No shareholding data available'}
+          </p>
+          {quarters.length > 0 ? (
+            <>
+              <div className={styles.shCardRow}>
+                <div className={styles.shAxis}>
+                  {gridValues.map((v) => (
+                    <span key={v} className={styles.shAxisLabel} style={{ top: `${(shY(v) / 200) * 100}%` }}>
+                      {v}%
+                    </span>
+                  ))}
+                </div>
+                <div className={styles.shChartCol}>
+                  <div className={styles.shChartWrap}>
+                    <svg viewBox="0 0 600 200" preserveAspectRatio="none" className={styles.shSvg}>
+                      {gridValues.map((v) => (
+                        <line key={v} x1="0" x2="600" y1={shY(v)} y2={shY(v)} stroke="#F1EDE3" strokeWidth={1} />
+                      ))}
+                      {shareholding.map((series) => {
+                        const path = series.points
+                          .map((p, i) => `${i ? 'L' : 'M'}${shX(i).toFixed(1)} ${shY(p.percentage).toFixed(1)}`)
+                          .join(' ');
+                        return (
+                          <g key={series.category}>
+                            <path
+                              d={path}
+                              fill="none"
+                              stroke={series.color}
+                              strokeWidth={2.4}
+                              strokeLinejoin="round"
+                              strokeLinecap="round"
+                              vectorEffect="non-scaling-stroke"
+                              className={styles.shLinePath}
+                            />
+                            {series.points.map((p, i) => (
+                              <circle
+                                key={i}
+                                cx={shX(i)}
+                                cy={shY(p.percentage)}
+                                r={3.6}
+                                fill="var(--color-surface)"
+                                stroke={series.color}
+                                strokeWidth={2.2}
+                                vectorEffect="non-scaling-stroke"
+                              />
+                            ))}
+                          </g>
+                        );
+                      })}
+                    </svg>
+                  </div>
+                  <div className={styles.shTicks}>
+                    {quarters.map((q) => (
+                      <span key={q} className={styles.shTick}>
+                        {new Date(q).toLocaleDateString('en-IN', { month: 'short', year: '2-digit' })}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className={styles.shLegend}>
+                {shareholding.map((series) => {
+                  const last = series.points[series.points.length - 1];
+                  const first = series.points[0];
+                  const delta = last.percentage - first.percentage;
+                  const deltaColor = delta > 0 ? 'var(--app-gain)' : delta < 0 ? 'var(--app-loss)' : 'var(--app-text-subtle)';
+                  return (
+                    <div key={series.category} className={styles.legendCard}>
+                      <span className={styles.legendDot} style={{ background: series.color }} />
+                      <div style={{ minWidth: 0 }}>
+                        <p className={styles.legendName}>{series.category}</p>
+                        <p className={styles.legendMeta}>
+                          {last.percentage.toFixed(1)}%{' '}
+                          <span style={{ color: deltaColor }}>
+                            {delta > 0 ? '+' : delta < 0 ? '' : '±'}
+                            {delta.toFixed(1)}
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            <p className={styles.meta}>No shareholding data available for this company right now.</p>
+          )}
+        </div>
+
+        <div className={styles.cardPad}>
+          <p className={styles.cardLabel} style={{ marginBottom: 16 }}>
+            Documents
+          </p>
+          <p className={styles.meta}>
+            Filing documents aren&rsquo;t wired up yet — the fundamentals service needs a filing-URL discovery
+            step (see ROADMAP.md, Phase 4).
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}

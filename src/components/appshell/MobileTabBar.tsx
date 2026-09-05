@@ -1,0 +1,90 @@
+'use client';
+
+import { usePathname, useRouter } from 'next/navigation';
+import styles from './MobileTabBar.module.css';
+
+const ICON_PROPS = { width: 21, height: 21, viewBox: '0 0 22 22', fill: 'none' } as const;
+
+function DashboardIcon() {
+  return (
+    <svg {...ICON_PROPS}>
+      <rect x="2.5" y="2.5" width="7" height="7" rx="2.2" stroke="currentColor" strokeWidth="1.7" />
+      <rect x="12.5" y="2.5" width="7" height="7" rx="2.2" stroke="currentColor" strokeWidth="1.7" />
+      <rect x="2.5" y="12.5" width="7" height="7" rx="2.2" stroke="currentColor" strokeWidth="1.7" />
+      <rect x="12.5" y="12.5" width="7" height="7" rx="2.2" stroke="currentColor" strokeWidth="1.7" />
+    </svg>
+  );
+}
+
+function PortfolioIcon() {
+  return (
+    <svg {...ICON_PROPS}>
+      <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="1.7" />
+      <path d="M11 3 A8 8 0 0 1 19 11 L11 11 Z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function MarketsIcon() {
+  return (
+    <svg {...ICON_PROPS}>
+      <rect x="3" y="12" width="4" height="7" rx="1.4" stroke="currentColor" strokeWidth="1.7" />
+      <rect x="9" y="8" width="4" height="11" rx="1.4" stroke="currentColor" strokeWidth="1.7" />
+      <rect x="15" y="4" width="4" height="15" rx="1.4" stroke="currentColor" strokeWidth="1.7" />
+    </svg>
+  );
+}
+
+function SearchIcon() {
+  return (
+    <svg {...ICON_PROPS}>
+      <circle cx="9.6" cy="9.6" r="6.4" stroke="currentColor" strokeWidth="1.7" />
+      <line x1="14.4" y1="14.4" x2="19" y2="19" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ProfileIcon() {
+  return (
+    <svg {...ICON_PROPS}>
+      <circle cx="11" cy="7.6" r="3.6" stroke="currentColor" strokeWidth="1.7" />
+      <path d="M4.2 18.6c.9-3.4 3.6-5.2 6.8-5.2s5.9 1.8 6.8 5.2" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function MobileTabBar() {
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const isDash = pathname === '/dashboard';
+  const isPort = pathname.startsWith('/dashboard/portfolio');
+  const isMarkets = pathname.startsWith('/dashboard/markets') || pathname.startsWith('/dashboard/stock');
+
+  const tabClass = (active: boolean) => `${styles.tabItem} ${active ? styles.tabItemActive : ''}`;
+
+  return (
+    <nav className={styles.tabBar} aria-label="Dashboard navigation">
+      <button className={tabClass(isDash)} onClick={() => router.push('/dashboard')} type="button">
+        <DashboardIcon />
+        <span className={styles.tabLabel}>Dashboard</span>
+      </button>
+      <button className={tabClass(isPort)} onClick={() => router.push('/dashboard/portfolio')} type="button">
+        <PortfolioIcon />
+        <span className={styles.tabLabel}>Portfolio</span>
+      </button>
+      <button className={tabClass(isMarkets)} onClick={() => router.push('/dashboard/markets')} type="button">
+        <MarketsIcon />
+        <span className={styles.tabLabel}>Markets</span>
+      </button>
+      <button className={tabClass(false)} onClick={() => router.push('/dashboard/markets')} type="button">
+        <SearchIcon />
+        <span className={styles.tabLabel}>Search</span>
+      </button>
+      <button className={tabClass(false)} type="button" aria-disabled="true">
+        <ProfileIcon />
+        <span className={styles.tabLabel}>Profile</span>
+      </button>
+    </nav>
+  );
+}
