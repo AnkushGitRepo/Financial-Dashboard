@@ -12,10 +12,16 @@ export interface GenerateError {
   error: string;
 }
 
+// Gemini 2.5 / 3.x are "thinking" models — a small output budget can be
+// spent entirely on hidden reasoning tokens, leaving zero visible text.
+// Keep this comfortably above the reasoning overhead.
+const MAX_OUTPUT_TOKENS = 2048;
+
 /**
  * One non-streaming text generation. Never throws — provider/auth errors
  * (bad key, quota, model not found) come back as `{ ok: false, error }`
- * so route handlers can return a clean 4xx/5xx.
+ * so route handlers can return a clean 4xx/5xx. The error string carries
+ * the provider's own message when it's short enough to be useful.
  */
 export async function generateInsightText(
   config: AiConfig,
@@ -24,17 +30,23 @@ export async function generateInsightText(
 ): Promise<GenerateResult | GenerateError> {
   try {
     const model = resolveModel(config);
-    const { text } = await generateText({
+    const { text, finishReason } = await generateText({
       model,
       system,
       prompt,
       temperature: 0.4,
-      maxOutputTokens: 700,
+      maxOutputTokens: MAX_OUTPUT_TOKENS,
     });
     const clean = text.trim();
-    if (!clean) return { ok: false, error: 'The model returned an empty response.' };
+    if (!clean) {
+      return {
+        ok: false,
+        error: `The model returned no text (finish reason: ${finishReason}). Try a different model.`,
+      };
+    }
     return { ok: true, text: clean, model: config.model?.trim() || `${config.provider} (default)` };
   } catch (err) {
+    console.error('[ai] generation failed:', err);
     return { ok: false, error: normalizeAiError(err) };
   }
 }
@@ -57,30 +69,55 @@ export function streamChat(
     system,
     messages,
     temperature: 0.4,
-    maxOutputTokens: 600,
+    maxOutputTokens: MAX_OUTPUT_TOKENS,
   });
 }
 
-/** A cheap round-trip to check a key works, for "Test & save". */
+/**
+ * A cheap round-trip for "Test & save". Only cares whether the call
+ * *authenticates and returns* — an empty completion (a thinking model
+ * hitting the token cap on "Say OK") still proves the key works, so it
+ * does not go through `generateInsightText`'s empty-text check.
+ */
 export async function validateAiKey(config: AiConfig): Promise<GenerateError | { ok: true }> {
-  const res = await generateInsightText(
-    config,
-    'Reply with the single word OK.',
-    'Say OK.'
-  );
-  return res.ok ? { ok: true } : res;
+  try {
+    const model = resolveModel(config);
+    await generateText({ model, prompt: 'Say OK.', maxOutputTokens: 16 });
+    return { ok: true };
+  } catch (err) {
+    console.error('[ai] key validation failed:', err);
+    return { ok: false, error: normalizeAiError(err) };
+  }
+}
+
+/** Pull the most informative text out of an AI SDK / fetch error shape. */
+function extractMessage(err: unknown): string {
+  if (typeof err === 'string') return err;
+  if (!err || typeof err !== 'object') return String(err ?? '');
+  const e = err as Record<string, unknown>;
+  const parts: string[] = [];
+  const push = (v: unknown) => {
+    if (typeof v === 'string' && v.trim()) parts.push(v.trim());
+  };
+  push(e.message);
+  push(e.responseBody); // APICallError
+  push(e.data);
+  if (typeof e.statusCode === 'number') parts.push(`HTTP ${e.statusCode}`);
+  if (e.cause && typeof e.cause === 'object') push((e.cause as Record<string, unknown>).message);
+  return parts.join(' | ').slice(0, 500);
 }
 
 export function normalizeAiError(err: unknown): string {
-  const msg = err instanceof Error ? err.message : String(err);
-  if (/api[_ ]?key|unauthor|401|permission|invalid.*credential/i.test(msg)) {
-    return 'That API key was rejected by the provider. Check the key and the selected provider.';
+  const msg = extractMessage(err);
+  let base: string;
+  if (/api[_ ]?key|unauthor|401|permission|invalid.*credential|api key not valid/i.test(msg)) {
+    base = 'That API key was rejected by the provider. Check the key and that it matches the selected provider.';
+  } else if (/quota|rate.?limit|429|resource.?exhausted/i.test(msg)) {
+    base = 'The provider returned a rate-limit / quota error. Try again shortly.';
+  } else if (/\bmodel\b|not found|404/i.test(msg)) {
+    base = 'The provider could not find that model. Leave the model field blank to use the default, or pick another.';
+  } else {
+    base = 'The AI request failed.';
   }
-  if (/quota|rate.?limit|429|resource.?exhausted/i.test(msg)) {
-    return 'The provider returned a rate-limit / quota error. Try again shortly.';
-  }
-  if (/model|not found|404/i.test(msg)) {
-    return 'The provider could not find that model. Leave the model blank to use the default.';
-  }
-  return 'The AI request failed. Please try again.';
+  return msg ? `${base} (provider said: ${msg})` : base;
 }
