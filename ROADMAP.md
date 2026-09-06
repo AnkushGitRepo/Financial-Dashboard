@@ -186,7 +186,7 @@ Scoped 2026-09-06 — see [ADR 0018](./docs/decisions/0018-ai-insights-scope.md)
 
 **Cross-cutting:**
 - [x] Works in both modes — per-user surfaces (stock / portfolio / chat) use `getUserAiConfig` = user's own key, plus the `AI_*` env key **only** when `!isHosted()` (single local user); IPO briefs keep `allowEnv:true`. `tsc`/`lint`/`next build`/`npm test` (114) green.
-- [ ] `/docs/architecture.md` + `/docs/api-surface.md`; deploy (Mongo collections need no migration; `SETTINGS_ENC_KEY` on `marketmitra-v2`); confirm the phase.
+- [x] `/docs/architecture.md` + `/docs/api-surface.md` updated. Deployed to prod 2026-09-06 — `SETTINGS_ENC_KEY` set on `marketmitra-v2` (Secret), `vercel deploy --prod`; landing 200, /api/ai/chat + /api/insights/* register (401 unauth). Phase sign-off still pending.
 
 ## Phase 9 — API Surface Formalization + Agent-Context Docs ❓
 Needs a dedicated discussion: documentation format (JSON/Markdown response modes as originally requested), testing playground scope, what "agent-context prompts" concretely means as a deliverable. Note: document endpoints incrementally as each phase ships them, not only in this dedicated pass.
