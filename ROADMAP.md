@@ -101,8 +101,30 @@ Scoped 2026-09-06 — see [ADR 0014](./docs/decisions/0014-alerts-engine-scope.m
 
 **Explicitly out of v1 scope** (ADR 0014): email (deferred, above), browser/Web Push, NSE trading-holiday calendar, SMS, per-user quiet hours, digest/batched notifications, alert history/analytics beyond the notification list.
 
-## Phase 6 — News Feed (stock/company news) ❓
-Needs a dedicated discussion: source(s) for news, how it's matched to specific companies/portfolio holdings, refresh cadence.
+## Phase 6 — News Feed (stock/company news) 🔄
+Scoped 2026-09-06 — see [ADR 0015](./docs/decisions/0015-news-feed-scope.md). v1 = hybrid free sourcing (broad Indian-markets RSS for the global stream + Google News RSS per-symbol for stock/portfolio views), ingestion in `fundamentals-api` with lazy TTL refresh (no new cron), a VADER headline-tone sentiment tag per item, and three UI surfaces. No news notifications in v1 (Phase 5's `deliverNotification` is ready for that as a follow-up).
+
+**Backend — fundamentals-api:**
+- [ ] Deps: add `feedparser` + `vaderSentiment` to `pyproject.toml` and the trimmed `requirements.txt`. `news_cache_ttl_minutes` (broad ~30 / per-symbol ~60) in `config.py`.
+- [ ] Migration: `news_items` (`id, url UNIQUE, title, summary, source, published_at, sentiment enum, sentiment_score, fetched_at`) + `news_item_symbols` (`news_item_id, symbol`, indexed `(symbol, published_at desc)`). Alembic, applied local + prod Neon.
+- [ ] `app/ingestion/news.py` — broad-feed fetch (fixed feed list, `feedparser`), Google-News-RSS-per-symbol fetch (query by `company_master` name, symbol union = held ∪ curated tracked set, polite rate-limiting via `rate_limit.py`), canonical-URL dedup, best-effort name→symbol tagging for broad items (full/known-short names only, word boundaries), VADER sentiment on title(+summary) → 3-way label + score, 30-day retention prune on each ingest.
+- [ ] `app/services/news_service.py` — lazy TTL refresh-on-read (mirror the ratios/prices pattern).
+- [ ] Endpoints: `GET /news?limit=&cursor=` (global, newest first, cursor pagination) and `GET /news?symbols=A,B,C&limit=&cursor=` (symbol-filtered). Response item `{ url, title, summary, source, published_at, sentiment, sentiment_score, symbols[] }`. Offline tests against saved RSS fixtures (broad + Google News), a name-matching test, a VADER-labelling test.
+- [ ] Document in the service README (endpoint list + coverage table row) and `/docs/data-sources.md` (one entry per RSS source + Google News RSS, each with a ToS line — title/summary/link only, no scraped article bodies).
+
+**Frontend — Next.js:**
+- [ ] `src/lib/dashboard/newsApi.ts` — client for the two endpoints (mirrors `fundamentalsApi.ts`; `[]`/null on failure).
+- [ ] `/dashboard/news` route in the app shell — global feed, newest first, cursor "load more", a "My holdings" toggle (`?filter=holdings` → symbol-filtered query using `getEnrichedHoldings`/holding symbols). "News" added to `AppHeader` nav + `isNavActive`; on mobile it replaces the disabled "Profile" tab in `MobileTabBar`.
+- [ ] "News" card on `/dashboard/stock/[ticker]` (Server Component → `GET /news?symbols=<ticker>`).
+- [ ] Built against `/docs/design-system.md` + `--app-*` tokens; sentiment as a small colour-coded dot/pill (`--app-gain` / muted neutral / `--app-loss`), labelled "headline tone" not a signal. Each item links out to the publisher.
+- [ ] Thin `/api/news` proxy **only if** the global feed goes client-side infinite scroll (otherwise Server-Component reads suffice — note in `/docs/api-surface.md` either way).
+
+**Cross-cutting:**
+- [ ] Works in both deployment modes (news is public market data; the holdings filter just uses whatever `getCurrentUserId()` resolves). No `isHosted()` gating.
+- [ ] `tsc` / `lint` / `next build` / `npm test` green; fundamentals-api `pytest` green. Verify live: global feed loads real items, a stock page shows real per-symbol news, sentiment tags render.
+- [ ] Update `/docs/architecture.md` with the shipped-feature summary; confirm the phase with the user before archiving.
+
+**Explicitly out of v1 scope** (ADR 0015): notifications on news, LLM sentiment/summarisation, near-duplicate-story dedup across outlets, full article text / reader view, non-English news, user-configurable sources or per-source muting, per-user saved/read state.
 
 ## Phase 7 — IPO Tracker + GMP Alerts (nodemailer) ❓
 Needs a dedicated discussion: GMP data source (same tiered-sourcing principle as Phase 4 likely applies — check before assuming scraping), exact alert trigger logic (threshold AND/OR last-apply-date), reuse of Phase 5's alert delivery pipeline.
