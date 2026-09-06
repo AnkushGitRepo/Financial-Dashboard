@@ -13,16 +13,24 @@ import type { AiConfig } from './providers';
  * from "no key", so every insight surface SSR'd "Add your AI provider key"
  * despite a working key (ADR 0018 follow-up, 2026-09-06).
  *
- * Retry once — the connection pool is warm by the second attempt — and if it
- * still throws, let the error bubble rather than silently misreport the
- * user's config.
+ * Retry a couple of times with a short backoff — the driver has probed the
+ * topology by the second/third attempt, so a cold miss almost always clears
+ * fast. Only if it *still* throws do we let the error bubble (the insight
+ * SSR pages then hit their error boundary — a "reload to try again" state),
+ * rather than silently misreport the user's config.
  */
 async function loadStoredSettings(userId: string): Promise<AiSettings | null> {
-  try {
-    return await getAiSettings(userId);
-  } catch {
-    return await getAiSettings(userId);
+  const delaysMs = [0, 150, 400];
+  let lastErr: unknown;
+  for (const delay of delaysMs) {
+    if (delay) await new Promise((r) => setTimeout(r, delay));
+    try {
+      return await getAiSettings(userId);
+    } catch (err) {
+      lastErr = err;
+    }
   }
+  throw lastErr;
 }
 
 /**

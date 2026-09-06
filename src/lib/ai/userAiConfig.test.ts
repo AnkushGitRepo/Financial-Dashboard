@@ -42,16 +42,19 @@ describe('getAiConfig', () => {
     expect(await getAiConfig('u1', { allowEnv: false })).toBeNull();
   });
 
-  it('retries once when getAiSettings throws (cold-start DB blip) and does NOT swallow it as "no key"', async () => {
-    getAiSettings.mockRejectedValueOnce(new Error('server selection timed out')).mockResolvedValueOnce(stored);
+  it('retries when getAiSettings throws (cold-start DB blip) and does NOT swallow it as "no key"', async () => {
+    getAiSettings
+      .mockRejectedValueOnce(new Error('server selection timed out'))
+      .mockRejectedValueOnce(new Error('server selection timed out'))
+      .mockResolvedValueOnce(stored);
     expect(await getAiConfig('u1')).toEqual({ provider: 'gemini', apiKey: 'user-key', model: null });
-    expect(getAiSettings).toHaveBeenCalledTimes(2);
+    expect(getAiSettings).toHaveBeenCalledTimes(3);
   });
 
-  it('lets the error bubble when both attempts throw', async () => {
+  it('lets the last error bubble when every attempt throws', async () => {
     getAiSettings.mockRejectedValue(new Error('db down'));
     await expect(getAiConfig('u1')).rejects.toThrow('db down');
-    expect(getAiSettings).toHaveBeenCalledTimes(2);
+    expect(getAiSettings).toHaveBeenCalledTimes(3);
   });
 
   it('falls back to the deployment env key when allowEnv and no stored key', async () => {
