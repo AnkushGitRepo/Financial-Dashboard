@@ -12,6 +12,15 @@ For each source, record: what it is, the endpoint(s) used, auth/key requirements
 
 ## Active sources
 
+### Hugging Face model hub — `all-MiniLM-L6-v2` (retrieval embeddings)
+- **Type:** bundled model dependency (NOT a runtime data source)
+- **Used for:** Phase 10a retrieval (ADR 0020) — local sentence embeddings for the `chunks` corpus and query-time vector search, via `@huggingface/transformers` v4. No API key; no per-request network call once the model is cached.
+- **Endpoint(s):** `huggingface.co` / `cdn-lfs.huggingface.co` — the ONNX weights (`Xenova/all-MiniLM-L6-v2`, ~23 MB q8) are fetched **once** on first use and cached to `/tmp` (or served from `RAG_LOCAL_MODEL_PATH` with zero network). Overridable via `RAG_EMBED_MODEL`.
+- **Auth:** none
+- **Rate limits:** n/a — a one-time weights download, not a queried API
+- **Cost:** free (Apache-2.0 model, MIT/Apache library)
+- **ToS notes:** not a scrape; a published open-weights model downloaded through its official distribution. No content is retrieved from HF at request time.
+
 ### NSE (National Stock Exchange) public endpoints
 - **Type:** public API (unofficial — no formal developer program or SLA)
 - **Used for:** quotes, corporate actions, IPO data (`nsepython`), shareholding pattern (direct call to `/api/corporates-holdings`), XBRL quarterly result filings

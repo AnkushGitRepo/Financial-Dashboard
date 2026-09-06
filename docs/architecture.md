@@ -271,6 +271,42 @@ in [`/docs/api-surface.md`](./api-surface.md). All live in production.
   handlers). Pick an endpoint, fill params, send against the deployment with your session,
   copy-as-curl.
 
+## Retrieval (RAG) — chat + insights (Phase 10a) — built on `phase-10-rag`, NOT in prod
+
+Scoping: [ADR 0020](./decisions/0020-phase-10-rag-chat.md). Built and green on the
+`phase-10-rag` branch; **not merged to `main`, not deployed** — awaiting sign-off. Every
+piece **degrades to the pre-Phase-10 behaviour** when vector search is unavailable (a
+non-Atlas self-host, or before the first index build), so nothing here is load-bearing.
+
+- **Store** — one `chunks` collection (`src/lib/rag/chunks.ts`) + an Atlas Vector Search
+  index (`vectorSearch`, `dotProduct`, 384-dim, filter fields `userId`/`docType`/`symbol`),
+  created idempotently by `ensureChunksIndexes()`. Two partitions by `userId`: `null` =
+  shared public corpus (news, filings), a Clerk id = that user's private layer (notes,
+  holdings snapshot, recent questions). `replaceSourceChunks()` upserts by
+  `(source, chunkIndex)` and no-ops on an unchanged content hash.
+- **Embeddings** — local, `@huggingface/transformers` v4 (`all-MiniLM-L6-v2`, 384-dim, q8),
+  `src/lib/rag/embed.ts`. No API key, identical hosted + self-host; BYO-key stays for
+  *generation* only. Model caches to `/tmp` (or `RAG_LOCAL_MODEL_PATH`).
+- **Indexer** — `POST /api/cron/index-corpus` (`CRON_SECRET` bearer, `.github/workflows/
+  index-corpus.yml`, every 2 h). News (chunk → embed → upsert, 45-day retention) + annual
+  report filings (`RAG_FILING_SYMBOLS` set → `getDocuments` → `POST /documents/extract-text`
+  on the fundamentals-api → chunk/embed; skips already-indexed periods). `?indexesOnly=1`
+  for self-host setup.
+- **Retrieval** — `src/lib/rag/retrieve.ts` `retrieve()`: local query embed → `$vectorSearch`
+  over `{ userId ∈ [null, caller] }` (+ `docType`/`symbol` filters) → score + `minScore`.
+  Returns `null` (never throws) when unavailable.
+- **Agentic chat** — `POST /api/ai/chat` is a tool-calling loop (`stopWhen: stepCountIs(5)`):
+  all 7 MCP data tools + `search_context` over `retrieve()`. `CHAT_SYSTEM_AGENTIC` keeps the
+  guardrail. Completed turns persist (`chatMessages`, 100/user rolling cap); the user's
+  recent questions are re-embedded as `chat:<userId>`. `DELETE /api/ai/chat` clears both.
+- **Grounded insights** — `retrieveInsightGrounding()` folded into the stock / portfolio /
+  IPO insight routes; retrieved passages go into the hashed cache input so a re-index
+  invalidates stale insights. The IPO brief uses grounding as the DRHP stand-in (full-DRHP
+  text still needs a URL source for the indexer).
+- **Per-user sync** — `src/lib/rag/userSync.ts`: notes (`/api/notes` CRUD + `/dashboard/notes`
+  panel), holdings snapshot (`void resyncUserHoldings` on every holdings mutation), recent
+  chat — all fire-and-forget, a sync failure never fails the originating write.
+
 ## Shipped features (see `/docs/archive/` for detail)
 
 - **Landing page (`/`)** — [archive/landing-page.md](./archive/landing-page.md)

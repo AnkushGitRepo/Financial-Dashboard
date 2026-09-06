@@ -1,10 +1,13 @@
 # 0020: Phase 10 — AI chat + insights with retrieval (RAG)
 
 Date: 2026-09-06
-Status: accepted (scoping decision — no code written yet). Both open
-questions resolved by the user 2026-09-06: A → shared public corpus +
-per-user private layer; B → split into Phase 10a / 10b. The v1 build
-checklist lives in `ROADMAP.md` under Phase 10a.
+Status: accepted; **Phase 10a built on branch `phase-10-rag`** (2026-09-06,
+13/14 checklist items — all but the prod deploy), full suite green, **not
+merged to `main`, not deployed** — awaiting sign-off. Both open questions
+resolved by the user 2026-09-06: A → shared public corpus + per-user
+private layer; B → split into Phase 10a / 10b. Build checklist + per-item
+detail: `ROADMAP.md` under Phase 10a. Architecture summary:
+`docs/architecture.md` → "Retrieval (RAG)".
 
 ## Context
 

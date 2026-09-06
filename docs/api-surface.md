@@ -40,6 +40,30 @@ Every endpoint here is a Next.js App Router route handler under `app/api/**/rout
 - **Response:** `data: null` on success.
 - **Errors:** `401` unauthenticated, `404` if not found/not owned.
 
+### `GET /api/notes`  _(Phase 10a — on `phase-10-rag`, not yet in prod)_
+- **Purpose:** List the current user's research notes (ADR 0020). Notes also feed the user's private retrieval corpus (`docType: 'note'`).
+- **Auth:** required (Clerk session / `local` user).
+- **Request:** none.
+- **Response:** `data`: `{ id, userId, title, body, symbol: string|null, createdAt, updatedAt }[]`, newest-updated first.
+- **Errors:** `401` unauthenticated.
+
+### `POST /api/notes`  _(Phase 10a)_
+- **Purpose:** Create a note; fires a best-effort corpus sync.
+- **Request:** `{ title: string(1–140), body: string(1–4000), symbol?: string(≤30)|null }`.
+- **Response:** `data`: the created note, `201`.
+- **Errors:** `401`, `409` when the per-user cap (200) is reached, `422` on a bad body.
+
+### `PATCH /api/notes/[id]`  _(Phase 10a)_
+- **Purpose:** Update a note (owner-scoped); re-syncs it into the corpus.
+- **Request:** `{ title, body, symbol? }` (same shape as `POST`).
+- **Response:** `data`: the updated note.
+- **Errors:** `401`, `404` not found / not owned, `422` bad body.
+
+### `DELETE /api/notes/[id]`  _(Phase 10a)_
+- **Purpose:** Delete a note; removes its corpus chunks.
+- **Response:** `data`: `{ id }`.
+- **Errors:** `401`, `404` not found / not owned.
+
 ### `GET /api/search`
 - **Purpose:** Live search across every NSE-listed equity plus the tracked indices, for the Markets/header search-as-you-type UI.
 - **Auth:** public — no session required.
@@ -127,11 +151,25 @@ Every endpoint here is a Next.js App Router route handler under `app/api/**/rout
 - **Errors:** `400` `no_ai_key` / no holdings / bad symbol-data; `404` unknown IPO slug; `502` on a generation failure (the error text is the provider's, normalised).
 
 ### `POST /api/ai/chat`
-- **Purpose:** The "Mitra" widget's streamed chat (ADR 0018 pt.5). Answers **only** from a server-built context block: portfolio summary + per-holding P&L + recent news (holding symbols + broad). Declines advice-seeking questions; same guardrail ending.
+- **Purpose:** The "Mitra" widget's streamed chat (ADR 0018 pt.5). **As of Phase 10a (on `phase-10-rag`, not yet in prod)** it is an agentic tool-calling loop (`stopWhen: stepCountIs(5)`): the model has `search_context` (vector search over the retrieval corpus — indexed news, filings, the caller's own notes/holdings/questions) plus the 7 read-only market-data tools from the MCP layer. A small portfolio summary is still seeded into the system prompt. Guardrail (`CHAT_SYSTEM_AGENTIC`) unchanged — no buy/sell/hold, same "not investment advice" ending. Completed turns are persisted (`chatMessages`, 100/user rolling cap); the caller's recent questions are re-embedded as `chat:<userId>`. Everything degrades to the pre-Phase-10 prompt-stuffing path when vector search is unavailable.
 - **Auth:** required. Per-user key rules identical to `/api/insights/stock` (`getUserAiConfig`). `400 {error:'no_ai_key'}` when none.
 - **Request:** `{ messages: [{ role: 'user'|'assistant', content: string(1–2000) }] }`, 1–12 turns.
-- **Response:** a `text/plain` **token stream** (`streamText().toTextStreamResponse()`), not the `{success,data,error}` envelope. Consumed incrementally by `AiWidget.tsx`.
+- **Response:** a `text/plain` **token stream** (`streamText().toTextStreamResponse()`), not the `{success,data,error}` envelope. Tool steps stay server-side — the client sees only assistant text. Consumed incrementally by `AiWidget.tsx`.
 - **Errors:** `422` bad body, `400` `no_ai_key`, `502` if the stream can't start.
+
+### `DELETE /api/ai/chat`  _(Phase 10a)_
+- **Purpose:** Clear the caller's stored chat history and drop their `chat:<userId>` entry from the retrieval corpus.
+- **Auth:** required.
+- **Response:** `data`: `{ removed: <count> }`.
+- **Errors:** `401` unauthenticated.
+
+### `GET|POST /api/cron/index-corpus`  _(Phase 10a — on `phase-10-rag`, not yet in prod)_
+- **Purpose:** Rebuild the shared retrieval corpus (ADR 0020): pull recent news + configured annual-report filings, chunk + locally embed, upsert into the `chunks` collection under `userId: null`, prune news past a retention window. Runs from `.github/workflows/index-corpus.yml` (every 2 h) and self-hosters' own schedulers.
+- **Auth:** `CRON_SECRET` bearer, same contract as `/api/cron/evaluate-alerts` (dev-open, prod-`503` when unset).
+- **Request:** `?indexesOnly=1` ensures the collection + Atlas Vector Search index and returns (self-host one-time setup); `?newsLimit=<n>` overrides how many recent news items are reconsidered.
+- **Response:** `data`: `{ vectorIndex: 'created'|'exists'|'unavailable', news: { seen, changed, pruned }, filings: { seen, indexed, skipped }, errors: string[], ms }`.
+- **Errors:** `401` bad token, `503` `CRON_SECRET` unconfigured in production, `500` if the run throws.
+- **Note:** `vectorIndex: 'unavailable'` (non-Atlas MongoDB) is reported as a non-fatal error — writes still succeed; retrieval simply falls back until an Atlas cluster is used.
 
 **Note:** the dashboard's stock/ratios/financials/shareholding/price/indices/quote/news data comes from `services/fundamentals-api` (a separate service, documented in its own `README.md` — see ADR 0011), consumed directly by Next.js Server Components rather than proxied through a `/api/*` route, since it's an already-documented service being consumed, not a new one MarketMitra is shipping. `/api/search` above is the one deliberate exception.
 
