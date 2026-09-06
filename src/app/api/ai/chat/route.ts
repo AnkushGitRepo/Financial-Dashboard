@@ -5,13 +5,17 @@ import type { ModelMessage } from 'ai';
 import { getCurrentUserId } from '@/lib/currentUserId';
 import { getUserAiConfig } from '@/lib/ai/userAiConfig';
 import { streamChat } from '@/lib/ai/generate';
-import { CHAT_SYSTEM } from '@/lib/ai/prompts';
+import { CHAT_SYSTEM_AGENTIC } from '@/lib/ai/prompts';
+import { buildChatTools } from '@/lib/ai/chatTools';
 import { formatChatContext, mergeNews } from '@/lib/ai/chatContext';
 import { getEnrichedHoldings } from '@/lib/dashboard/enrichedHoldings';
 import { getNews } from '@/lib/dashboard/newsApi';
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 60;
+// A tool-calling turn can take several round-trips (retrieval embed +
+// fundamentals-api calls); give it more room than a plain completion.
+export const maxDuration = 120;
+const MAX_TOOL_STEPS = 5;
 
 const MAX_TURNS = 12;
 const bodySchema = z.object({
@@ -26,12 +30,17 @@ const bodySchema = z.object({
     .max(MAX_TURNS),
 });
 
+// A small always-present seed: the portfolio summary + a few headlines.
+// The model reaches for `search_context` / the data tools for anything
+// beyond this.
 async function buildContext(userId: string): Promise<string> {
   const holdings = await getEnrichedHoldings(userId).catch(() => []);
   const symbols = holdings.map((h) => h.symbol);
   const [specific, broad] = await Promise.all([
-    symbols.length ? getNews({ symbols, limit: 8 }) : Promise.resolve({ items: [], next_cursor: null }),
-    getNews({ limit: 6 }),
+    symbols.length
+      ? getNews({ symbols, limit: 6 })
+      : Promise.resolve({ items: [], next_cursor: null }),
+    getNews({ limit: 4 }),
   ]);
   return formatChatContext(holdings, mergeNews(specific.items, broad.items));
 }
@@ -54,10 +63,14 @@ async function handlePOST(request: Request) {
   }
 
   const context = await buildContext(userId);
-  const system = `${CHAT_SYSTEM}\n\n--- CONTEXT (the only data you may use) ---\n${context}`;
+  const system = `${CHAT_SYSTEM_AGENTIC}\n\n--- PORTFOLIO CONTEXT ---\n${context}`;
+  const tools = buildChatTools(userId);
 
   try {
-    const result = streamChat(aiConfig, system, parsed.data.messages as ModelMessage[]);
+    const result = streamChat(aiConfig, system, parsed.data.messages as ModelMessage[], {
+      tools,
+      maxSteps: MAX_TOOL_STEPS,
+    });
     return result.toTextStreamResponse();
   } catch {
     return NextResponse.json({ error: 'The AI request failed. Please try again.' }, { status: 502 });

@@ -1,4 +1,4 @@
-import { generateText, streamText, type ModelMessage } from 'ai';
+import { generateText, stepCountIs, streamText, type ModelMessage, type ToolSet } from 'ai';
 import { resolveModel, type AiConfig } from './providers';
 
 export interface GenerateResult {
@@ -51,25 +51,40 @@ export async function generateInsightText(
   }
 }
 
+export interface StreamChatOptions {
+  /** When set, the model runs a tool-calling loop with these tools
+   *  (Phase 10 / ADR 0020). `maxSteps` bounds the loop. */
+  tools?: ToolSet;
+  maxSteps?: number;
+}
+
 /**
  * Streaming multi-turn generation for the Mitra chat widget. Returns the
  * AI SDK stream result; the route handler turns it into a `text/plain`
  * streamed response with `.toTextStreamResponse()`. `resolveModel` can
  * throw for a malformed config — the caller wraps this in try/catch and
  * returns a clean 502 before the stream starts.
+ *
+ * With `opts.tools`, the model may call tools between text output; the
+ * stream still emits only the assistant's text (tool steps are internal).
  */
 export function streamChat(
   config: AiConfig,
   system: string,
-  messages: ModelMessage[]
+  messages: ModelMessage[],
+  opts: StreamChatOptions = {}
 ): ReturnType<typeof streamText> {
   const model = resolveModel(config);
+  const hasTools = opts.tools && Object.keys(opts.tools).length > 0;
   return streamText({
     model,
     system,
     messages,
     temperature: 0.4,
     maxOutputTokens: MAX_OUTPUT_TOKENS,
+    ...(hasTools
+      ? { tools: opts.tools, stopWhen: stepCountIs(opts.maxSteps ?? 5) }
+      : {}),
   });
 }
 
