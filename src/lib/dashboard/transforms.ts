@@ -104,7 +104,10 @@ export function downsample<T>(items: T[], maxPoints: number = MAX_CHART_POINTS):
 }
 
 export function toRangeSeries(points: PricePointOut[], period: PricePeriod): RangeSeries {
-  const withClose = points.filter((p) => p.close !== null);
+  // fundamentals-api's /prices returns newest-first; a time-series chart
+  // reads old → new left to right, so reverse to chronological order.
+  // downsample() keeps the last item, which is now the most recent point.
+  const withClose = points.filter((p) => p.close !== null).slice().reverse();
   if (withClose.length === 0) return { v: [], l: [] };
 
   const sampled = downsample(withClose);
