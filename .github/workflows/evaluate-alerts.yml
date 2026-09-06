@@ -1,0 +1,57 @@
+# Real ~10-minute cadence for MarketMitra alert evaluation.
+#
+# Why this exists: the Vercel Hobby plan only allows one cron run per day
+# (see ADR 0014's amendment), so `vercel.json`'s built-in cron is just a
+# daily floor. This workflow does the real work by hitting the same
+# CRON_SECRET-guarded endpoint every 10 minutes during NSE market hours.
+# The route itself no-ops outside the trading session, so a few extra
+# invocations at the window edges are harmless.
+#
+# ACTIVATION (two one-time steps):
+#   1. GitHub only runs `schedule:` triggers from the repository's DEFAULT
+#      branch. This repo's app currently lives on `v2` — until that's the
+#      default branch (or merged to `main`), the schedule will not fire.
+#      `workflow_dispatch` (the "Run workflow" button) works from any branch.
+#   2. Add the repo secret:  gh secret set CRON_SECRET
+#      (same value as the CRON_SECRET env var on the Vercel project).
+#   Optionally override the target with a repo variable CRON_TARGET_URL.
+
+name: evaluate-alerts
+
+on:
+  schedule:
+    # Every 10 min, 03:00-10:59 UTC, Mon-Fri  (~08:30-16:29 IST — covers the
+    # 09:15-15:30 NSE session with margin). GitHub cron is best-effort and
+    # can be delayed under load; that's acceptable here.
+    - cron: "*/10 3-10 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Bypass the market-hours gate (?force=1)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: evaluate-alerts
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger alert evaluation
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          TARGET_URL: ${{ vars.CRON_TARGET_URL || 'https://marketmitra-v2.vercel.app/api/cron/evaluate-alerts' }}
+          FORCE: ${{ inputs.force && '?force=1' || '' }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::error::CRON_SECRET repo secret is not set — see this workflow's ACTIVATION notes."
+            exit 1
+          fi
+          echo "POST ${TARGET_URL}${FORCE}"
+          curl --fail-with-body --silent --show-error --max-time 90 \
+            -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${TARGET_URL}${FORCE}"

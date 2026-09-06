@@ -1,0 +1,300 @@
+.wrap {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+@media (max-width: 760px) {
+  .wrap {
+    bottom: 92px;
+    right: 16px;
+  }
+}
+
+.panel {
+  position: relative;
+  width: 330px;
+  max-width: calc(100vw - 40px);
+  border-radius: 26px;
+  overflow: hidden;
+  box-shadow: 0 26px 60px rgba(22, 25, 28, 0.16);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .panel {
+    animation: aiRise 0.28s ease both;
+  }
+}
+
+@keyframes aiRise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.panelBg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, #eaf8f2, #dcf1e8);
+}
+
+.bentoGrid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 78px;
+  gap: 8px;
+  padding: 8px;
+  opacity: 0.65;
+}
+
+.bentoTile {
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+}
+
+.panelContent {
+  position: relative;
+  padding: 16px;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.mitraBrand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.mitraDot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #4fe0b8, var(--app-teal-strong));
+  box-shadow: 0 0 0 5px rgba(23, 195, 154, 0.14);
+}
+
+.mitraName {
+  font-size: 13.5px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  color: var(--app-ink);
+}
+
+.closeButton {
+  border: none;
+  background: rgba(255, 255, 255, 0.7);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--app-text-muted);
+  font-size: 14px;
+  line-height: 1;
+  font-family: var(--font-sans);
+}
+
+.insightCard {
+  background: var(--color-surface);
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: 0 8px 24px rgba(12, 138, 108, 0.1);
+}
+
+.insightEyebrow {
+  margin: 0 0 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--app-teal);
+}
+
+.insightTitle {
+  margin: 0 0 6px;
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--app-ink);
+}
+
+.insightBody {
+  margin: 0 0 12px;
+  font-size: 12.8px;
+  line-height: 1.5;
+  color: var(--app-text-muted);
+}
+
+.insightFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.insightLink {
+  font-size: 12.5px;
+  color: var(--app-teal-strong);
+  cursor: pointer;
+}
+
+.nextButton {
+  border: 1px solid var(--app-border);
+  background: var(--color-surface);
+  border-radius: var(--radius-pill);
+  padding: 5px 12px;
+  font-size: 11.5px;
+  color: var(--app-text-muted);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: transform var(--duration-fast) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .nextButton:hover {
+    transform: translateY(-1px);
+  }
+}
+
+.messages {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 178px;
+  overflow-y: auto;
+}
+
+.msgUser,
+.msgAi {
+  font-size: 12.8px;
+  padding: 9px 13px;
+  max-width: 85%;
+}
+
+.msgUser {
+  align-self: flex-end;
+  background: var(--app-ink);
+  color: var(--app-cream);
+  border-radius: 16px 16px 4px 16px;
+}
+
+.msgAi {
+  align-self: flex-start;
+  background: var(--color-surface);
+  color: var(--app-ink);
+  border-radius: 16px 16px 16px 4px;
+  line-height: 1.5;
+}
+
+.composer {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: var(--radius-pill);
+  padding: 6px 6px 6px 16px;
+}
+
+.composerInput {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 13px;
+  color: var(--app-ink);
+  font-family: var(--font-sans);
+}
+
+.sendButton {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: var(--app-ink);
+  color: var(--app-cream);
+  cursor: pointer;
+  font-size: 13px;
+  flex: none;
+  font-family: var(--font-sans);
+}
+
+.sendButton:disabled,
+.composerInput:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.keyHint {
+  margin-top: 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--app-text-muted);
+}
+
+.keyHint a {
+  color: var(--app-ink);
+  text-decoration: underline;
+}
+
+.msgTyping::after {
+  content: '▌';
+  margin-left: 1px;
+  opacity: 0.45;
+}
+
+.launcher {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  background: radial-gradient(circle at 34% 28%, #5ce7c0, var(--app-teal-strong));
+  box-shadow: 0 14px 32px rgba(12, 138, 108, 0.34);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .launcher {
+    animation: aiPulse 4s ease-in-out infinite;
+  }
+}
+
+@keyframes aiPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+.launcherBar {
+  width: 7px;
+  height: 13px;
+  border-radius: 4px;
+  background: #fbfdfc;
+}

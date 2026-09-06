@@ -8,13 +8,16 @@ MarketMitra is a financial dashboard (Indian markets: indices, stocks, IPOs, new
 
 ## Current phase
 
-**Phases 0-2 complete** (context architecture, v1 teardown, Next.js/Clerk/MongoDB/Vercel scaffold — live at https://marketmitra-v2.vercel.app). **Phase 3 in progress**: landing page built, awaiting approval; dashboard shell still placeholder.
+**Phases 0–8 complete and signed off (2026-09-06).** Everything through the AI insights layer is built, deployed to production, and archived: scaffold + deployment-mode gate, landing page, auth pages, dashboard shell, the fundamentals data service (`services/fundamentals-api/`) + real-data dashboard, alerts engine, news feed, IPO tracker + GMP, and AI insights + Mitra chat. Code is on the `v2` branch (not merged to `main`). Per-feature build detail lives in `/docs/archive/*.md`; `/docs/architecture.md` has the current-state summaries.
+
+**Next: Phase 9 needs a scoping session** — API surface formalization + agent-context docs + the hosted-instance fair-use rate limiting the landing page already claims. Phases 9–11 are all ❓ in ROADMAP.md — do not build from assumptions. A handful of small non-blocking follow-ups from Phases 4–8 (Tier 1 filing discovery, activating the two GitHub Actions schedulers, Resend email, DRHP grounding, replacing scripted chat tiles) are listed under "Post-sign-off follow-ups" in ROADMAP.md.
 
 ## Stack (non-negotiable constraints)
 
 - Next.js, App Router, TypeScript ([0002](./docs/decisions/0002-nextjs-app-router.md))
 - CSS Modules + `styles/tokens.css` — **no Tailwind, no Bootstrap, no hand-rolled utility framework** ([0003](./docs/decisions/0003-css-modules-no-framework.md))
-- Backend = Next.js API route handlers only, **no separate Express server** ([0004](./docs/decisions/0004-nextjs-api-routes-as-backend.md))
+- Backend = Next.js API route handlers only, **no separate Express server** ([0004](./docs/decisions/0004-nextjs-api-routes-as-backend.md)) — **scoped exception:** `services/fundamentals-api/` is a standalone Python/FastAPI service for data ingestion/serving, justified by Python-only tooling with no TS equivalent ([0011](./docs/decisions/0011-three-tier-fundamentals-data-sourcing.md)). The main app's own backend is unaffected.
+- MarketMitra has **no paid tier, no billing, no trial limits** — free and open-source, full stop. Data sourcing uses free libraries/sources only, identically in hosted and self-hosted mode ([0011](./docs/decisions/0011-three-tier-fundamentals-data-sourcing.md)).
 - Auth = Clerk ([0005](./docs/decisions/0005-clerk-auth.md))
 - DB = MongoDB Atlas, Hosting = Vercel, deployed early not late ([0006](./docs/decisions/0006-vercel-mongodb-atlas-deployment.md))
 - Every feature ships UI + documented API endpoint together — never one without the other.
@@ -34,7 +37,34 @@ MarketMitra is a financial dashboard (Indian markets: indices, stocks, IPOs, new
 
 ## Active focus
 
-Phase 3: landing page (`/`) is fully built from an approved design export — see `/docs/architecture.md` "Landing page component structure" — and **awaiting explicit user approval**. Do not run the context maintenance protocol (archive step) until that approval lands. Dashboard route (`/dashboard`) is still the Phase 2 empty-state placeholder; no design provided for it yet.
+**No feature build in flight.** Phases 0–8 are done, signed off, and archived (2026-09-06 —
+see the last `/docs/session-log.md` entry). The next move is a **scoping session for Phase 9**
+(API surface formalization + agent-context docs + hosted fair-use rate limiting) — it's ❓ in
+ROADMAP.md and must not be built from assumptions. Phases 10 (RAG) and 11 (multi-agent
+analysis) are also ❓ and gated on a discussion.
+
+**Standing facts that outlived the phase detail:**
+
+- **Deploy mechanism:** both Vercel projects deploy via the Vercel CLI
+  (`vercel deploy --prod --yes`; `.vercel/project.json` linked to `marketmitra-v2`). The CLI
+  session is authenticated as the user and persists locally. `services/fundamentals-api/`
+  → `https://marketmitra-fundamentals-api.vercel.app` (Vercel Python fn + Neon Postgres,
+  [ADR 0013](./docs/decisions/0013-fundamentals-api-vercel-hosting.md)); `marketmitra-v2`
+  → `https://marketmitra-v2.vercel.app`.
+- **Deployment-mode gate** ([ADR 0010](./docs/decisions/0010-deployment-mode-gate.md)) is
+  live in prod (`NEXT_PUBLIC_DEPLOYMENT_MODE=hosted`). Every new feature must respect
+  `isHosted()`; feature backends gate on their own config env vars, never `isHosted()`.
+- **Prod runs on a Clerk *dev* instance** (`touched-perch-1357.clerk.accounts.dev`) —
+  pre-existing; bare `curl` of `/` or any `/dashboard/*` sees a handshake/rewrite only a
+  real browser completes. Not a regression.
+- **No paid tier, ever.** The landing page's "Two ways to run it" framing is settled
+  ([ADR 0016](./docs/decisions/0016-landing-page-no-paid-tier-reconciliation.md)); the
+  hosted instance's fair-use rate limiting is *claimed on the page but not built* — Phase 9.
+- **Post-sign-off follow-ups** (small, non-blocking) are listed in ROADMAP.md after Phase 8:
+  Tier 1 filing-URL discovery, activating the alert-eval + IPO-refresh GitHub Actions
+  schedulers, Resend email delivery, one real alert fire + one real IPO-alert fire in
+  market hours, DRHP grounding for IPO briefs, replacing the scripted "Proactive insight"
+  chat tiles.
 
 ## Context maintenance protocol
 

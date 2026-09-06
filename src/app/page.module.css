@@ -32,3 +32,17 @@
     radial-gradient(760px 520px at 52% 22%, #dcf6e7 0%, rgba(220, 246, 231, 0) 66%),
     linear-gradient(180deg, #fdfbf7 0%, #fbfaf8 74%);
 }
+
+/* Every section above only carries top padding and relies on the next
+   section for spacing (our standard section-gap rhythm). In selfhost mode
+   OpenSourceSection is the last section before Footer, so it needs to supply
+   that same gap itself instead of relying on PricingCards/FAQAccordion. */
+.openSourceLast {
+  padding-bottom: var(--space-28);
+}
+
+@media (max-width: 640px) {
+  .openSourceLast {
+    padding-bottom: var(--space-16);
+  }
+}

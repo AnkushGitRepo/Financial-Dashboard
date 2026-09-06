@@ -1,0 +1,85 @@
+.dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 16px 40px rgba(22, 25, 28, 0.14);
+  overflow: hidden;
+  z-index: 50;
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.empty {
+  padding: 14px 18px;
+  font-size: 13px;
+  color: var(--app-text-faint);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  text-align: left;
+  border-bottom: 1px solid var(--app-border-softer);
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .row:hover {
+    background: var(--app-teal-tint);
+  }
+}
+
+.iconWrap {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--app-teal-tint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--app-teal-strong);
+  overflow: hidden;
+}
+
+.indexBadge {
+  font-size: 8.5px;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+
+.name {
+  font-size: 13px;
+  color: var(--app-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.symbol {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--app-text-subtle);
+}

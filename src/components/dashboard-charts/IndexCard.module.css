@@ -1,0 +1,69 @@
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--app-border-soft);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  box-shadow: 0 6px 20px rgba(22, 25, 28, 0.04);
+  transition: transform 0.22s cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 0.22s;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(22, 25, 28, 0.09);
+  }
+}
+
+.name {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--app-text-muted);
+}
+
+.value {
+  margin: 7px 0 0;
+  font-family: var(--font-sans);
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--app-ink);
+}
+
+.footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.chg {
+  margin: 0;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.spark {
+  width: 78px;
+  height: 26px;
+}
+
+.sparkPath {
+  stroke-dasharray: 2600;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sparkPath {
+    animation: sparkDraw 1.1s ease both;
+  }
+}
+
+@keyframes sparkDraw {
+  from {
+    stroke-dashoffset: 2600;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}

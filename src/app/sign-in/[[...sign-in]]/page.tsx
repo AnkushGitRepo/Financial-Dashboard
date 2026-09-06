@@ -1,9 +1,15 @@
+import { redirect } from 'next/navigation';
 import { SignIn } from '@clerk/nextjs';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { clerkAppearance } from '@/components/auth/clerkAppearance';
+import { isHosted } from '@/lib/deployment-mode';
 import styles from './page.module.css';
 
 export default function SignInPage() {
+  if (!isHosted()) {
+    redirect('/dashboard');
+  }
+
   return (
     <AuthLayout switchPrompt="Don't have an account?" switchLabel="Sign up" switchHref="/sign-up">
       <div className={styles.heading}>

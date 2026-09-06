@@ -28,7 +28,7 @@ Landing page and the post-auth dashboard shell (empty state — no data features
 | Framework | Next.js (App Router, TypeScript)                                | [ADR 0002](docs/decisions/0002-nextjs-app-router.md)               |
 | Styling   | CSS Modules + a shared design-token file, no Tailwind/Bootstrap | [ADR 0003](docs/decisions/0003-css-modules-no-framework.md)        |
 | Backend   | Next.js API route handlers (no separate server)                 | [ADR 0004](docs/decisions/0004-nextjs-api-routes-as-backend.md)    |
-| Auth      | Clerk                                                           | [ADR 0005](docs/decisions/0005-clerk-auth.md)                      |
+| Auth      | Clerk, active only in hosted mode                               | [ADR 0005](docs/decisions/0005-clerk-auth.md), [ADR 0010](docs/decisions/0010-deployment-mode-gate.md) |
 | Database  | MongoDB Atlas, native driver (no Mongoose)                      | [ADR 0007](docs/decisions/0007-mongodb-native-driver.md)           |
 | Hosting   | Vercel                                                          | [ADR 0006](docs/decisions/0006-vercel-mongodb-atlas-deployment.md) |
 
@@ -37,8 +37,9 @@ Landing page and the post-auth dashboard shell (empty state — no data features
 ### Prerequisites
 
 - Node.js 20+
-- A [Clerk](https://clerk.com) application (for auth)
 - A [MongoDB Atlas](https://www.mongodb.com/atlas) cluster (or any MongoDB instance)
+- **Self-hosting (the default):** that's it. No Clerk account, no billing keys.
+- **Running in hosted mode:** also requires a [Clerk](https://clerk.com) application — only relevant to MarketMitra's own paid deployment, not to self-hosting.
 
 ### Local setup
 
@@ -52,9 +53,9 @@ Fill in `.env.local` with your own values:
 ```
 MONGODB_URI=          # MongoDB Atlas connection string
 MONGODB_DB=marketmitra
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
-CLERK_SECRET_KEY=
 ```
+
+`NEXT_PUBLIC_DEPLOYMENT_MODE` defaults to `selfhost` when left unset — the app runs with no login screen and no billing UI, straight into the dashboard as a single local user. Self-hosted users don't need to configure Clerk or any billing keys at all; those variables in `.env.local.example` only matter when `NEXT_PUBLIC_DEPLOYMENT_MODE=hosted`. See [ADR 0010](docs/decisions/0010-deployment-mode-gate.md).
 
 (`.env.local` is gitignored — never commit real credentials. `.env.local.example` documents every required variable with no values.)
 
@@ -62,13 +63,14 @@ CLERK_SECRET_KEY=
 npm run dev
 ```
 
-The app runs at `http://localhost:3000`. `/` is the public landing page; `/dashboard` requires signing in.
+The app runs at `http://localhost:3000`. `/` is the public landing page. `/dashboard` is open directly in self-host mode (the default); in hosted mode it requires signing in.
 
 ### Other scripts
 
 ```bash
 npm run build    # production build
 npm run lint      # ESLint
+npm run test      # Vitest unit tests
 npm run format    # Prettier
 ```
 
@@ -76,9 +78,24 @@ npm run format    # Prettier
 
 The project deploys to Vercel with MongoDB Atlas as the database — no other infrastructure required. Set the same environment variables from `.env.local.example` in the Vercel project settings.
 
+### Alerts evaluation (cron)
+
+Price and portfolio alerts are checked by a scheduled call to `POST /api/cron/evaluate-alerts` (see [ADR 0014](docs/decisions/0014-alerts-engine-scope.md)). The route is guarded by a `CRON_SECRET` — set it in the environment; callers pass it as `Authorization: Bearer <CRON_SECRET>`.
+
+`vercel.json` declares a **once-daily** cron (`0 4 * * *`, ~09:30 IST) — that's all the Vercel Hobby plan allows. For a useful cadence, point an external scheduler at the same URL with the same header:
+
+```bash
+# e.g. a system crontab entry, every 10 minutes on weekday market hours (UTC ≈ IST-5:30)
+*/10 3-10 * * 1-5  curl -fsS -X POST -H "Authorization: Bearer $CRON_SECRET" https://your-host/api/cron/evaluate-alerts
+```
+
+A GitHub Actions workflow for this ships at `.github/workflows/evaluate-alerts.yml` (every 10 min during market hours) — activate it by adding the `CRON_SECRET` repo secret and making this the default branch (GitHub only runs `schedule:` from the default branch; the manual "Run workflow" button works from any branch). cron-job.org or a home server's crontab work too. The route only does work during NSE trading hours (it no-ops otherwise); add `?force=1` to run a cycle regardless. In-app notifications work with no extra setup. Set `ALERT_WEBHOOK_URL` (or a per-alert URL) to also forward alerts to a Telegram/Discord/Slack incoming webhook. Email delivery is a config-gated seam that isn't wired to a provider yet — see ROADMAP.md.
+
 ## Two ways to run it
 
-Per [ADR 0008](docs/decisions/0008-hosted-vs-self-hosted-distribution.md): a paid hosted option (7-day free trial) for people who want it running with no setup, or a free, self-hosted option (MIT licensed) where you bring your own MongoDB Atlas cluster, Clerk application, and AI provider key. Same codebase either way — self-hosting isn't a stripped-down version.
+Per [ADR 0008](docs/decisions/0008-hosted-vs-self-hosted-distribution.md): a paid hosted option (7-day free trial) for people who want it running with no setup, or a free, self-hosted option (MIT licensed) where you bring your own MongoDB Atlas cluster and AI provider key. Same codebase either way — self-hosting isn't a stripped-down version.
+
+A single `DEPLOYMENT_MODE` environment variable gates which one you get at runtime ([ADR 0010](docs/decisions/0010-deployment-mode-gate.md)): unset or `selfhost` skips auth and billing UI entirely (single local user, no login); `hosted` — MarketMitra's own deployment only — turns both on via Clerk. Self-host login is intentionally left as a future decision, not a finished feature.
 
 ## Project context, for humans and agents
 

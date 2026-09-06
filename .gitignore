@@ -44,3 +44,6 @@ next-env.d.ts
 # tooling artifacts (Claude Code / Playwright MCP scratch output)
 .claude/
 .playwright-mcp/
+
+# ad-hoc browser page-saves (the parseable copy lives in services/fundamentals-api/tests/fixtures/)
+Live IPO GMP Today *

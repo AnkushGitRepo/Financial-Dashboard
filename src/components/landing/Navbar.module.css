@@ -115,6 +115,10 @@
     padding: 9px;
   }
 
+  .cta {
+    display: none;
+  }
+
   .menuButton {
     display: flex;
   }

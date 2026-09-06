@@ -99,4 +99,32 @@
   --duration-fast: 180ms;
   --duration-base: 320ms;
   --duration-slow: 500ms;
+
+  /* --- App shell (dashboard/portfolio/markets/stock) ---
+     A distinct palette from the marketing landing page above: warmer,
+     denser, teal-accented — built for a data-heavy logged-in product
+     surface rather than a marketing site. Fonts stay shared (--font-sans /
+     --font-mono) per the design system's typography rule; only color
+     differs. Source: the approved MarketMitra App Claude Design import
+     (2026-09-05). */
+  --app-bg-top: #fbf8f1;
+  --app-bg-mid: #f7f4ec;
+  --app-bg-bottom: #f1f6f2;
+  --app-border: #ede9de;
+  --app-border-soft: #efebe1;
+  --app-border-softer: #f5f2ea;
+  --app-pill-bg: #f6f3ea;
+  --app-ink: #16191c;
+  --app-text-muted: #6b747c;
+  --app-text-faint: #8e9aa1;
+  --app-text-subtle: #9aa3ab;
+  --app-cream: #fbf8f1;
+  --app-teal: #17c39a;
+  --app-teal-strong: #0c8a6c;
+  --app-teal-bg: #e6f7f1;
+  --app-teal-bg-strong: #bfe9da;
+  --app-teal-tint: #f2f7f4;
+  --app-gain: #0c8a6c;
+  --app-loss: #c2563f;
+  --app-loss-soft: #d9917f;
 }

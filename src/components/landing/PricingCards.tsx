@@ -10,17 +10,20 @@ function GitHubIcon() {
   );
 }
 
-// Tiers per ADR 0008 (hosted-vs-self-hosted-distribution).
+// Two ways to run it, both free (ADR 0016, which reconciles the landing
+// page with ADR 0011's "no paid tier, full stop"). ADR 0008's paid-hosted
+// model is superseded.
 const HOSTED_FEATURES = [
   'Full dashboard, real-time prices and alerts',
-  'AI insights running on our API keys',
-  'No servers, keys or updates to manage',
-  'Import statements from multiple accounts',
+  'We run the servers and the market-data access',
+  'Nothing to install, no keys or updates to manage',
+  'Bring your own AI key for insights — Gemini, Anthropic or OpenRouter',
+  'Fair-use rate limits on the shared instance',
 ];
 
 const SELF_HOSTED_FEATURES = [
-  'Every feature, no usage caps',
-  'Bring your own market data provider key',
+  'Every feature, no rate limits',
+  'Bring your own market-data and AI provider keys',
   'Choose your AI provider: Gemini, Anthropic or OpenRouter',
   'Open API for your own automations and agents',
 ];
@@ -29,11 +32,11 @@ export function PricingCards() {
   return (
     <section id="pricing" className={styles.section}>
       <Reveal className={styles.heading}>
-        <div className={styles.eyebrow}>Pricing</div>
+        <div className={styles.eyebrow}>Hosted or self-hosted</div>
         <h2 className={styles.title}>Two ways to run it</h2>
         <p className={styles.intro}>
           Let us host it and keep everything ready to go, or run the same dashboard yourself with
-          your own keys. Same product either way.
+          your own keys. Both are free — there is no paid plan.
         </p>
       </Reveal>
 
@@ -44,15 +47,14 @@ export function PricingCards() {
             <span className={`${styles.tag} ${styles.tagHosted}`}>For investors</span>
           </div>
           <p className={styles.tierBody}>
-            We run the servers and pay for the live market data and AI insights, so there is nothing
-            to set up.
+            We run the servers and cover the market-data access, so there is nothing to set up.
           </p>
 
           <div className={styles.priceRow}>
-            <span className={`${styles.price} ${styles.priceMuted}`}>$[price]</span>
-            <span className={styles.pricePeriod}>/mo</span>
+            <span className={styles.price}>Free</span>
+            <span className={styles.pricePeriod}>we host it</span>
           </div>
-          <div className={`${styles.badgeRow} ${styles.badgeHosted}`}>7-day free trial</div>
+          <div className={`${styles.badgeRow} ${styles.badgeHosted}`}>No paid plan · no trial</div>
 
           <div className={styles.featureList}>
             {HOSTED_FEATURES.map((feature) => (
@@ -63,19 +65,11 @@ export function PricingCards() {
             ))}
           </div>
 
-          <div className={styles.trialBox}>
-            <div className={styles.trialLabel}>Trial limit</div>
-            <div className={styles.trialValue}>[ N ] AI insights/day during trial</div>
-            <div className={styles.trialNote}>
-              Everything else in the dashboard is unlimited from day one.
-            </div>
-          </div>
-
           <div className={styles.spacer} />
           <Link href="/sign-up" className={`${styles.ctaButton} ${styles.ctaHosted}`}>
-            Start free trial
+            Sign up
           </Link>
-          <div className={styles.ctaNote}>No card needed to start the trial.</div>
+          <div className={styles.ctaNote}>Just an account — no card, nothing to pay.</div>
         </RevealItem>
 
         <RevealItem className={`${styles.card} ${styles.selfHosted}`}>
