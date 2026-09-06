@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { NewsItem } from '@/lib/dashboard/newsApi';
 import type { DocumentOut } from '@/lib/dashboard/fundamentalsApi';
 
-const getNews = vi.fn<() => Promise<{ items: NewsItem[]; next_cursor: null }>>();
+const getNews = vi.fn<() => Promise<{ items: NewsItem[]; next_cursor: string | null }>>();
 vi.mock('@/lib/dashboard/newsApi', () => ({ getNews: () => getNews() }));
 
 const getDocuments = vi.fn<(s: string) => Promise<DocumentOut[] | null>>();
