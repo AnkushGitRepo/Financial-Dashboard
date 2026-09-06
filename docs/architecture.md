@@ -271,12 +271,18 @@ in [`/docs/api-surface.md`](./api-surface.md). All live in production.
   handlers). Pick an endpoint, fill params, send against the deployment with your session,
   copy-as-curl.
 
-## Retrieval (RAG) — chat + insights (Phase 10a) — built on `phase-10-rag`, NOT in prod
+## Retrieval (RAG) — chat + insights (Phase 10a) — merged + deployed; retrieval INERT on the hosted instance
 
-Scoping: [ADR 0020](./decisions/0020-phase-10-rag-chat.md). Built and green on the
-`phase-10-rag` branch; **not merged to `main`, not deployed** — awaiting sign-off. Every
-piece **degrades to the pre-Phase-10 behaviour** when vector search is unavailable (a
-non-Atlas self-host, or before the first index build), so nothing here is load-bearing.
+Scoping: [ADR 0020](./decisions/0020-phase-10-rag-chat.md). Signed off, merged to `main`/`v2`,
+both projects deployed 2026-09-06. Every piece **degrades to the pre-Phase-10 behaviour**
+when vector search is unavailable, and on the **hosted (Vercel) deployment it currently
+always is**: `@huggingface/transformers` → `onnxruntime-node` fails to load its native
+`libonnxruntime.so.1` in the Vercel serverless runtime, and the `outputFileTracingIncludes`
+workaround pushed past the Hobby plan's 12-serverless-function ceiling. So on the hosted
+instance `retrieve()` always returns `null` and chat/insights behave exactly as they did
+pre-Phase-10 (the import is lazy, so nothing 500s). **Self-hosters on a normal Node host get
+full RAG.** Making retrieval work on the hosted instance is an open follow-up (WASM
+onnxruntime backend, a separate embedding service, or Vercel Pro) — see ROADMAP.
 
 - **Store** — one `chunks` collection (`src/lib/rag/chunks.ts`) + an Atlas Vector Search
   index (`vectorSearch`, `dotProduct`, 384-dim, filter fields `userId`/`docType`/`symbol`),
