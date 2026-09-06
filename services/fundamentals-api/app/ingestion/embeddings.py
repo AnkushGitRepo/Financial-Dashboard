@@ -38,11 +38,19 @@ def _model():
         raise EmbeddingError("fastembed is not installed") from exc
 
     settings = get_settings()
-    logger.info("loading embedding model %s", settings.embed_model)
-    return TextEmbedding(
-        model_name=settings.embed_model,
-        cache_dir=settings.fastembed_cache_dir or None,
+    logger.info(
+        "loading embedding model %s (cache_dir=%s)",
+        settings.embed_model,
+        settings.fastembed_cache_dir,
     )
+    try:
+        return TextEmbedding(
+            model_name=settings.embed_model,
+            cache_dir=settings.fastembed_cache_dir or None,
+        )
+    except Exception as exc:
+        logger.exception("failed to construct TextEmbedding")
+        raise EmbeddingError(f"model load failed: {exc!r}") from exc
 
 
 def embed_texts(texts: list[str]) -> list[list[float]]:
@@ -56,7 +64,8 @@ def embed_texts(texts: list[str]) -> list[list[float]]:
     except EmbeddingError:
         raise
     except Exception as exc:  # surface any fastembed / onnx failure
-        raise EmbeddingError(f"embedding failed: {exc}") from exc
+        logger.exception("embedding failed")
+        raise EmbeddingError(f"embedding failed: {exc!r}") from exc
 
     if vectors and len(vectors[0]) != EMBED_DIM:
         raise EmbeddingError(
