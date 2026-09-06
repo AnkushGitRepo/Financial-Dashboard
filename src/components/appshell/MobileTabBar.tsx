@@ -35,11 +35,16 @@ function MarketsIcon() {
   );
 }
 
-function SearchIcon() {
+function AlertsIcon() {
   return (
     <svg {...ICON_PROPS}>
-      <circle cx="9.6" cy="9.6" r="6.4" stroke="currentColor" strokeWidth="1.7" />
-      <line x1="14.4" y1="14.4" x2="19" y2="19" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+      <path
+        d="M11 3a5 5 0 0 0-5 5v3l-1.4 2.7a1 1 0 0 0 .9 1.5h11a1 1 0 0 0 .9-1.5L16 11V8a5 5 0 0 0-5-5Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+      <path d="M9 17.5a2 2 0 0 0 4 0" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
     </svg>
   );
 }
@@ -60,6 +65,7 @@ export function MobileTabBar() {
   const isDash = pathname === '/dashboard';
   const isPort = pathname.startsWith('/dashboard/portfolio');
   const isMarkets = pathname.startsWith('/dashboard/markets') || pathname.startsWith('/dashboard/stock');
+  const isAlerts = pathname.startsWith('/dashboard/alerts');
 
   const tabClass = (active: boolean) => `${styles.tabItem} ${active ? styles.tabItemActive : ''}`;
 
@@ -77,9 +83,9 @@ export function MobileTabBar() {
         <MarketsIcon />
         <span className={styles.tabLabel}>Markets</span>
       </button>
-      <button className={tabClass(false)} onClick={() => router.push('/dashboard/markets')} type="button">
-        <SearchIcon />
-        <span className={styles.tabLabel}>Search</span>
+      <button className={tabClass(isAlerts)} onClick={() => router.push('/dashboard/alerts')} type="button">
+        <AlertsIcon />
+        <span className={styles.tabLabel}>Alerts</span>
       </button>
       <button className={tabClass(false)} type="button" aria-disabled="true">
         <ProfileIcon />

@@ -111,6 +111,13 @@ export function StockPageClient({
               {changePct.toFixed(2)}%)
             </p>
           )}
+          <button
+            type="button"
+            className={styles.setAlertButton}
+            onClick={() => router.push(`/dashboard/alerts?new=1&symbol=${encodeURIComponent(symbol)}`)}
+          >
+            + Set alert
+          </button>
         </div>
       </div>
 

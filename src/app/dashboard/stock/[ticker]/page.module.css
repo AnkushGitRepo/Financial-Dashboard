@@ -100,6 +100,26 @@
   color: var(--app-teal-strong);
 }
 
+.setAlertButton {
+  margin-top: 10px;
+  border: 1px solid var(--app-border);
+  background: var(--color-surface);
+  border-radius: var(--radius-pill);
+  padding: 7px 14px;
+  font-size: 12px;
+  font-family: var(--font-sans);
+  color: var(--app-ink);
+  cursor: pointer;
+  transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .setAlertButton:hover {
+    border-color: var(--app-teal-bg-strong);
+    box-shadow: 0 4px 14px rgba(12, 138, 108, 0.1);
+  }
+}
+
 .aboutCard {
   margin-bottom: 16px;
 }

@@ -217,4 +217,10 @@
     color: var(--app-text-muted);
     font-family: var(--font-sans);
   }
+
+  .mobileActions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
 }

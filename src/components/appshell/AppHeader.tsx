@@ -7,12 +7,14 @@ import { isHosted } from '@/lib/deployment-mode';
 import { SearchResultsDropdown } from '@/components/dashboard-charts/SearchResultsDropdown';
 import { useSymbolSearch } from '@/lib/dashboard/useSymbolSearch';
 import { HostedUserBadge } from './HostedUserBadge';
+import { NotificationBell } from './NotificationBell';
 import styles from './AppHeader.module.css';
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/dashboard/portfolio', label: 'Portfolio' },
   { href: '/dashboard/markets', label: 'Markets' },
+  { href: '/dashboard/alerts', label: 'Alerts' },
 ] as const;
 
 interface AppHeaderProps {
@@ -83,6 +85,7 @@ export function AppHeader({ onToggleMask }: AppHeaderProps) {
               </div>
               {focused && <SearchResultsDropdown results={results} loading={loading} onSelect={selectResult} />}
             </div>
+            <NotificationBell />
             <button onClick={onToggleMask} title="Hide values" className={styles.iconButton} type="button">
               ₹
             </button>
@@ -96,9 +99,12 @@ export function AppHeader({ onToggleMask }: AppHeaderProps) {
           <span className={styles.brandMarkSmall} />
           <span className={styles.brandNameSmall}>MarketMitra</span>
         </Link>
-        <button onClick={onToggleMask} className={styles.iconButtonSmall} type="button">
-          ₹
-        </button>
+        <div className={styles.mobileActions}>
+          <NotificationBell />
+          <button onClick={onToggleMask} className={styles.iconButtonSmall} type="button">
+            ₹
+          </button>
+        </div>
       </header>
     </>
   );
