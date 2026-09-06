@@ -282,10 +282,29 @@ Scoping session done 2026-09-06 → [ADR 0020](./docs/decisions/0020-phase-10-ra
 - **Store:** a `chunks` collection + Atlas Vector Search index (free-tier compatible). **Local embeddings** via `transformers.js` — no embedding API key, same path hosted + self-host. Indexing runs as a token-guarded cron (news + filings), never inline. PDF→text stays on the fundamentals-api (Python) side.
 - **BYO-key** still required for *generation* only. Graceful fallback to today's prompt-stuffing when no vector index is available (non-Atlas self-host).
 - **DRHP grounding** (deferred Phase 8 follow-up) is absorbed into Phase 10a's IPO-brief surface.
+- **Scoping (resolved):** shared public corpus (`userId: null`, indexed once) + a strictly-filtered per-user private layer for holdings/notes/chat-history. Not full per-user duplication.
+- **Surfaces (resolved):** split — **10a** = plumbing + chat + insight grounding; **10b** = a dedicated `/dashboard/research` page, follow-on phase.
 
-**Two open questions block the build checklist** ([ADR 0020](./docs/decisions/0020-phase-10-rag-chat.md) "Open questions"):
-- A — corpus scoping: shared-public-corpus + per-user-private layer (proposed, stays inside Atlas free tier) vs. full per-user duplication.
-- B — surface phasing: 10a (chat + insight grounding) then 10b (dedicated `/dashboard/research` surface) vs. all three surfaces in one phase.
+### Phase 10a — retrieval plumbing + grounded chat & insights ⬜
+
+_All items unstarted. Build order roughly top-to-bottom; the indexer and the retrieval lib can go in parallel._
+
+- [ ] **Embedding lib** — `src/lib/rag/embed.ts` wrapping `@xenova/transformers` (or `@huggingface/transformers`). Pick the model (criterion: quality-per-MB + cold-start load; candidates `Xenova/bge-small-en-v1.5`, `Xenova/all-MiniLM-L6-v2`). Lazy-load + module-level cache. `embedQuery(text)` / `embedBatch(texts)`. No network, no key.
+- [ ] **Store + index** — `chunks` collection (native driver). Fields: `text`, `vector`, `docType` (`news`|`filing`|`note`|`holdings`|`chat`), `symbol?`, `userId` (`null` = shared), `sourceUrl?`, `publishedAt?`, `hash` (dedupe), `createdAt`. Atlas Vector Search index def (JSON, cosine, + scalar filters) checked into `docs/` and applied via a one-off script; document the manual step for self-host.
+- [ ] **Chunker** — `src/lib/rag/chunk.ts`: ~500–800 token windows, overlap, sentence-boundary aware. Pure, unit-tested.
+- [ ] **fundamentals-api: PDF→text endpoint** — return extracted plain text for an annual-report / DRHP URL (extraction stays where `pdfplumber` already lives; the Next app never imports a PDF lib). Token-guarded like the ingest routes.
+- [ ] **Corpus indexer** — `POST /api/cron/index-corpus` (token-guarded, `CRON_SECRET` pattern). Pulls new news items + new/changed filings, chunks, embeds, upserts into `chunks` with `userId: null`, dedupe on `hash`, retention window on `news`. GitHub Actions schedule (`.github/workflows/index-corpus.yml`), fires from `main` only.
+- [ ] **Per-user corpus sync** — on holdings change / note save, (re)embed that user's holdings snapshot + notes into `chunks` with their `userId`. Small, inline is fine.
+- [ ] **`userNotes` collection + CRUD** — `GET|POST|PATCH|DELETE /api/notes`, a minimal notes panel (design-system components). Feeds the per-user corpus.
+- [ ] **`chatMessages` collection** — persist chat turns per user (chat stops being stateless). Retention: keep the last N per user, user-clearable. Feeds the per-user corpus ("saved questions").
+- [ ] **Retrieval lib** — `src/lib/rag/retrieve.ts`: `retrieve({ query, userId, filters, k })` → embed query → `$vectorSearch` over `{ userId: null } ∪ { userId }` → top-k chunks + scores. Feature-detect Vector Search; return `null` (→ caller falls back) when unavailable.
+- [ ] **Agentic chat** — rework `POST /api/ai/chat`: `streamText` with `tools:` wired to `src/lib/mcp/tools.ts` (live quotes/ratios/etc. via tool calls) **plus** a `search_context` tool backed by `retrieve()`. Replace `formatChatContext`'s fixed blob with retrieved chunks; keep `CHAT_SYSTEM` guardrails ("not investment advice", no buy/sell/hold) re-asserted for the tool-calling prompt. Fall back to the current blob when `retrieve()` returns `null`.
+- [ ] **Grounded insights** — `src/lib/insights.ts` / the prompt builders: augment the stock read, portfolio insight, and IPO brief with `retrieve()` output. IPO brief pulls real DRHP passages → `drhpExtract` populated (**closes the deferred DRHP-grounding follow-up**). Cache keys must include a corpus-version marker so re-indexing invalidates stale insights.
+- [ ] **Deployment-mode / fallback** — RAG works in self-host on a stock Atlas cluster with no extra config; non-Atlas MongoDB → feature-detect fails → prompt-stuffing fallback, no error. Nothing here gates on `isHosted()`.
+- [ ] **Cross-cutting** — `tsc` / `lint` / `next build` / `npm test` green (new unit tests: chunker, embed determinism, retrieve filter logic, chat fallback path). fundamentals-api `pytest` for the PDF-text endpoint. `/docs/architecture.md` + `/docs/api-surface.md` + `/docs/data-sources.md` (transformers.js model as a bundled dependency, not an external source) updated. Prod deploy of both projects. ADR 0020 → accepted-and-built.
+
+### Phase 10b — dedicated research surface ⬜
+`/dashboard/research` page + route: multi-step retrieval, longer-form grounded output, its own UI against the design system. Scoped after 10a ships and its retrieval quality is validated.
 
 ## Phase 11 — Advanced Analytical Agents (TradingAgents-pattern, built in-house) ❓
 Needs a dedicated discussion once Phase 8–10 exist to build on. Reminder: this means building our own multi-agent analysis pattern inspired by TauricResearch's architecture — not importing their repo as a dependency.

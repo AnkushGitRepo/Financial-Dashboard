@@ -1,7 +1,10 @@
 # 0020: Phase 10 — AI chat + insights with retrieval (RAG)
 
 Date: 2026-09-06
-Status: proposed (scoping decision — no code written yet; two open questions flagged below need the user's confirmation before the build checklist is final)
+Status: accepted (scoping decision — no code written yet). Both open
+questions resolved by the user 2026-09-06: A → shared public corpus +
+per-user private layer; B → split into Phase 10a / 10b. The v1 build
+checklist lives in `ROADMAP.md` under Phase 10a.
 
 ## Context
 
@@ -52,12 +55,13 @@ dedicated scoping session.
    bundled small embedding model (transformers.js), no embedding API key
    required. Keeps BYO-key limited to *generation* and keeps self-host
    zero-config.
-3. **Scope → per-user isolation** (see open question A — the user picked
-   "per-user everything"; this ADR proposes a reconciliation that keeps the
-   privacy guarantee without per-user copies of public documents).
-4. **Surfaces → all three:** the Mitra chat widget, the insight surfaces
-   (incl. DRHP-grounded IPO briefs), and a new dedicated research surface
-   (see open question B — proposed as Phase 10b).
+3. **Scope → shared public corpus + per-user private layer** (resolved —
+   the user initially picked "per-user everything"; on the free-tier cost
+   argument below, confirmed the reconciliation: public documents indexed
+   once and shared, only user-specific content is per-user).
+4. **Surfaces → all three, split across two phases** (resolved): Phase 10a
+   = chat + retrieval-grounded insights (incl. DRHP-grounded IPO briefs);
+   Phase 10b = a new dedicated research surface.
 
 ## Decision
 
@@ -94,15 +98,15 @@ dedicated scoping session.
   existing surface. Self-host with a stock Atlas cluster gets RAG for free;
   a non-Atlas MongoDB (no Vector Search) falls back.
 
-### Corpus scoping (proposed reconciliation — open question A)
+### Corpus scoping (resolved — was open question A)
 
-The user picked "per-user everything." Applied literally that means each
-user gets their own embedded copy of every news article and annual-report
-PDF — which on Atlas M0 (512 MB, shared) is exhausted by a handful of users
-and re-runs the same CPU embedding work per user for public documents.
-
-**Proposed instead:** two logical partitions in the one `chunks` collection,
-which delivers the same privacy guarantee:
+The user initially picked "per-user everything." Applied literally that
+means each user gets their own embedded copy of every news article and
+annual-report PDF — which on Atlas M0 (512 MB, shared) is exhausted by a
+handful of users and re-runs the same CPU embedding work per user for
+public documents. On that argument the user confirmed the reconciliation
+below: **two logical partitions in the one `chunks` collection**, which
+delivers the same privacy guarantee:
 
 - **Shared market corpus** (`userId: null`) — news archive, filings &
   fundamentals text, IPO/DRHP text. Public data, indexed once, readable by
@@ -112,11 +116,9 @@ which delivers the same privacy guarantee:
   `userId` on every query; never shared; deleted with the user.
 
 Every retrieval query pulls from `{ userId: null } ∪ { userId: <caller> }`.
-Nothing user-specific is ever visible to another user. If the user truly
-wants zero shared index (full per-user duplication) despite the free-tier
-cost, that's the alternative — **needs an explicit call.**
+Nothing user-specific is ever visible to another user.
 
-### Surfaces (open question B — proposed phasing)
+### Surfaces (resolved — was open question B)
 
 - **Phase 10a** — retrieval plumbing + the two grounded surfaces:
   1. Chat: swap prompt-stuffing for retrieval + MCP tool-calling.
@@ -172,11 +174,13 @@ cost, that's the alternative — **needs an explicit call.**
 - Re-ranking models, hybrid BM25+vector fusion — start with vector +
   scalar filters; revisit if retrieval quality is short.
 
-## Open questions for the user
+## Resolved (were open questions)
 
-- **A. Corpus scoping.** Confirm the shared-public-corpus + per-user-private
-  reconciliation above, or insist on full per-user duplication (accepting
-  the Atlas free-tier storage hit).
-- **B. Surface phasing.** Confirm the 10a (chat + insight grounding) /
-  10b (dedicated research surface) split, or require all three surfaces in
-  one phase.
+- **A. Corpus scoping** → shared public corpus (`userId: null`, indexed
+  once) + a strictly-filtered per-user private layer. Not full per-user
+  duplication.
+- **B. Surface phasing** → **Phase 10a** = retrieval plumbing + agentic
+  tool-calling chat + retrieval-grounded stock/portfolio/IPO insights
+  (DRHP grounding included and its deferred follow-up closes here).
+  **Phase 10b** = the dedicated `/dashboard/research` surface, as a
+  follow-on phase after 10a ships and is validated.
