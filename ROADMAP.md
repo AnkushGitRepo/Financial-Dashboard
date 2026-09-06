@@ -246,7 +246,7 @@ Scoped 2026-09-06 — see [ADR 0019](./docs/decisions/0019-phase-9-api-surface-m
 - [x] `src/lib/mcp/tools.test.ts` — 17 cases (registry shape, per-tool schema rejection + `run` behaviour against a mocked data layer). Live smoke-tested against `next dev` + local fundamentals-api: `initialize`, `tools/list` (all 7 with JSON Schema), `tools/call get_market_indices` (real NIFTY/SENSEX), schema rejection → `isError`.
 - [x] `/docs/api-surface.md` — new "MCP server — `/api/mcp`" section + tool table. `/docs/architecture.md` gets its section under Cross-cutting below.
 
-**Part 2 — rate limiting:** code built + **deployed inert** 2026-09-06 (no Upstash env → `rateLimitEnabled=false`); **Upstash provisioning + a redeploy pending the user** to activate it.
+**Part 2 — rate limiting:** ✅ built + **live in prod** 2026-09-06. Upstash store `marketmitra-ratelimit` (Free, primary region `iad1`) connected to both Vercel projects; code reads the integration's `KV_REST_API_*` names (`17c4fac`); both redeployed. Verified: `marketmitra-v2` 429s after 30 anon req/min with `RateLimit-*` headers; `fundamentals-api` counts `/indices`, exempts `/health`.
 - [~] Provision Upstash Redis: `vercel integration add upstash/upstash-kv` (discovered via the `marketplace` skill — it's `upstash/upstash-kv`, "Upstash for Redis"). **Interactive (plan/name prompts) → left for the user to run**, then `vercel env pull`. Injects `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`.
 - [x] `src/lib/rateLimit.ts` — `@upstash/ratelimit` sliding window, key by Clerk `userId` else first `x-forwarded-for` hop. `checkRateLimit(req, tier, {userId?})` + `withRateLimit(handler, tier)` + `rateLimitResponse` / `rateLimitHeaders`. Fails **open** if the limiter throws.
 - [x] Wired: `src/proxy.ts` middleware rate-limits `/api/(.*)` at tier `default` (hosted only), excluding `/api/mcp*`, `/api/insights*`, `/api/ai*`, `/api/cron*`. `/api/mcp` route → `withRateLimit(handler, 'mcp')`. The 4 AI routes (`insights/{stock,portfolio,ipo}`, `ai/chat`) → `withRateLimit(handlePOST, 'ai')` — each expensive route governed by exactly one limiter.
@@ -268,7 +268,7 @@ Scoped 2026-09-06 — see [ADR 0019](./docs/decisions/0019-phase-9-api-surface-m
 - [x] `tsc` / `lint` / `next build` / `npm test` (158) green. fundamentals-api `pytest` unaffected (no Python changed).
 - [x] `/docs/architecture.md` "MCP server" section added; `/docs/api-surface.md` MCP section + `public/openapi.json`. `/docs/data-sources.md` — no new external source (Upstash is infra, not a data source).
 - [x] **Prod deploy** — done 2026-09-06 (deploy `hqgdf1gal`). MCP + explorer + `/openapi.json` + `/llms.txt` live and verified. Rate limiting inert until the Upstash env vars are set (needs `vercel integration add upstash/upstash-kv` + a redeploy).
-- [ ] Activate rate limiting: user provisions Upstash → `vercel env pull` → `vercel deploy --prod` → verify a `429` under load.
+- [x] Activate rate limiting — done 2026-09-06. Upstash provisioned + connected to both projects, both redeployed (`chsaxkpoc` / `eo8vuc9qe`), 429-under-load verified on both services.
 - [x] `services/fundamentals-api` own limiter — done 2026-09-06 (see Part 2). Needs the same Upstash env vars set on the `marketmitra-fundamentals-api` Vercel project + a redeploy to go live.
 - [ ] Confirm the phase with the user before archiving.
 
