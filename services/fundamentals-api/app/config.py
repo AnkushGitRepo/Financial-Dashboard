@@ -58,6 +58,16 @@ class Settings(BaseSettings):
     # Shared secret for POST /ipos/ingest (the headless-browser refresh job).
     ipo_ingest_token: str = ""
 
+    # Fair-use rate limiting (Phase 9, ADR 0019). Fixed-window per client IP,
+    # via the Upstash Redis REST API (no new dependency — uses httpx). When
+    # both URL and token are empty the limiter is a no-op pass-through, so
+    # self-host / local dev is never throttled. Provision the same Upstash
+    # instance the main app uses (its REST URL + token), on this Vercel
+    # project too.
+    upstash_redis_rest_url: str = ""
+    upstash_redis_rest_token: str = ""
+    rate_limit_per_minute: int = 120
+
 
 @lru_cache
 def get_settings() -> Settings:

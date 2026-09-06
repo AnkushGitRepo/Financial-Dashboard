@@ -153,11 +153,23 @@ dashboard caller share one upstream hit. Capped at 100 symbols/request.
 pytest
 ```
 
-All 63 tests run offline — no network, no database. They use saved
+All 79 tests run offline — no network, no database. They use saved
 fixtures (a real Screener.in page a maintainer saved to disk, a synthetic
 but taxonomy-accurate XBRL instance document, a generated PDF with a ruled
 table) rather than live calls, so they're deterministic and don't depend on
 Screener.in/NSE/BSE/Yahoo staying reachable or unchanged.
+
+## Rate limiting (`UPSTASH_REDIS_REST_URL` / `_TOKEN`)
+
+A fixed-window per-client-IP limiter (`app/rate_limit.py`, ADR 0019),
+applied as HTTP middleware to every route except `/health`. It's a **no-op
+pass-through** unless both Upstash env vars are set, so local dev and
+self-host are never throttled. On the hosted deployment, point these at the
+same Upstash Redis instance the main app uses (`vercel integration add
+upstash/upstash-kv` on this project too, or copy the two vars across).
+`RATE_LIMIT_PER_MINUTE` defaults to 120. Fails open — a limiter error never
+takes a request down. Uses `httpx` (already a dependency); no `redis`
+package.
 
 ## Current real coverage (stated plainly, not aspirationally)
 

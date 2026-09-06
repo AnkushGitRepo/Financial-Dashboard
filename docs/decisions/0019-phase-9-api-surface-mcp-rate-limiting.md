@@ -110,9 +110,12 @@ Phase 9 delivers three things, buildable largely in parallel:
     `/api/ai*` (own stricter tiers) and `/api/cron*` (bearer-guarded).
   - `/api/mcp/route.ts` → `withRateLimit(handler, 'mcp')`.
   - `insights/{stock,portfolio,ipo}` + `ai/chat` → `withRateLimit(handlePOST, 'ai')`.
-  - `services/fundamentals-api`'s own public endpoints: **deferred** — it's
-    currently reached only server-to-server (via the Next app / MCP tools),
-    so the Next front door covers the real exposure. Tracked as a follow-up.
+  - `services/fundamentals-api` (its URL is public and documented, so it's a
+    real bypass of the Next front door): **done** — `app/rate_limit.py` +
+    an `@app.middleware("http")` in `main.py`, fixed-window per client IP via
+    the Upstash REST API (`httpx` only, no `redis` dep), `/health` exempt,
+    fails open, no-op when the Upstash env vars are absent.
+    `RATE_LIMIT_PER_MINUTE` default 120.
 - **Tiers (starting budgets in `rateLimit.ts`, tuned later):** `default`
   authed 120/min · anon 30/min; `ai` authed 15/min · anon 6/min; `mcp`
   authed 120/min · anon 60/min.
