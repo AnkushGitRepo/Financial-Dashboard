@@ -5,6 +5,7 @@
 // This module owns the news path. Filing (annual-report / DRHP) indexing
 // is layered on separately; it reuses `indexTextDocument` here.
 
+import { getDocuments } from '@/lib/dashboard/fundamentalsApi';
 import { getNews, type NewsItem } from '@/lib/dashboard/newsApi';
 import { chunkText } from './chunk';
 import {
@@ -15,23 +16,59 @@ import {
   type EnsureIndexesResult,
 } from './chunks';
 import { embedBatch } from './embed';
+import { fetchPdfText } from './pdfTextClient';
 
 /** Cap the windows embedded for one document so a 400-page DRHP can't blow
  *  a single cron run's time budget. */
 const MAX_WINDOWS_PER_DOC = 400;
 const EMBED_BATCH = 32;
 
+/** Symbols whose annual-report filings feed the shared corpus. Overridable
+ *  with `RAG_FILING_SYMBOLS` (comma-separated). A small default set that
+ *  the indexer churns through a few at a time. */
+const DEFAULT_FILING_SYMBOLS = [
+  'RELIANCE',
+  'TCS',
+  'HDFCBANK',
+  'INFY',
+  'ICICIBANK',
+  'BHARTIARTL',
+  'SBIN',
+  'LT',
+  'ITC',
+  'HINDUNILVR',
+];
+
+function filingSymbols(override?: string[]): string[] {
+  if (override && override.length > 0) return override.map((s) => s.toUpperCase());
+  const env = process.env.RAG_FILING_SYMBOLS;
+  if (env) {
+    return env
+      .split(',')
+      .map((s) => s.trim().toUpperCase())
+      .filter(Boolean);
+  }
+  return DEFAULT_FILING_SYMBOLS;
+}
+
 export interface IndexCorpusOptions {
   /** How many recent news items to (re)consider per run. Default 150. */
   newsLimit?: number;
   /** Prune news chunks whose publishedAt is older than this. Default 45. */
   newsRetentionDays?: number;
+  /** Restrict/override the filing symbol set for this run. */
+  filingSymbols?: string[];
+  /** Max annual-report PDFs to fetch + embed per run (they're large). Default 3. */
+  maxFilings?: number;
+  /** Cap pages pulled from each filing PDF. Default 120. */
+  filingMaxPages?: number;
   now?: Date;
 }
 
 export interface IndexCorpusResult {
   vectorIndex: EnsureIndexesResult['vectorIndex'];
   news: { seen: number; changed: number; pruned: number };
+  filings: { seen: number; indexed: number; skipped: number };
   errors: string[];
 }
 
@@ -85,6 +122,83 @@ async function pruneOldNews(now: Date, retentionDays: number): Promise<number> {
   return res.deletedCount ?? 0;
 }
 
+/** An annual-report filing already indexed at this exact period_end needs
+ *  no re-fetch — the PDF is immutable once filed. */
+async function filingAlreadyIndexed(source: string, periodEnd: Date | null): Promise<boolean> {
+  const col = await chunksCollection();
+  const query = periodEnd ? { source, publishedAt: periodEnd } : { source };
+  return (await col.findOne(query, { projection: { _id: 1 } })) !== null;
+}
+
+interface FilingsRun {
+  seen: number;
+  indexed: number;
+  skipped: number;
+  errors: string[];
+}
+
+async function indexFilings(
+  symbols: string[],
+  maxFilings: number,
+  maxPages: number
+): Promise<FilingsRun> {
+  const run: FilingsRun = { seen: 0, indexed: 0, skipped: 0, errors: [] };
+
+  for (const symbol of symbols) {
+    if (run.indexed >= maxFilings) break;
+
+    let docs;
+    try {
+      docs = await getDocuments(symbol);
+    } catch (err) {
+      run.errors.push(`filings ${symbol}: ${err instanceof Error ? err.message : 'list failed'}`);
+      continue;
+    }
+    const annualReports = (docs ?? []).filter((d) =>
+      d.document_type.toLowerCase().includes('annual')
+    );
+    // Newest period first.
+    annualReports.sort((a, b) => (a.period_end ?? '').localeCompare(b.period_end ?? '')).reverse();
+
+    for (const doc of annualReports.slice(0, 1)) {
+      if (run.indexed >= maxFilings) break;
+      run.seen += 1;
+
+      const source = `filing:${symbol}:${doc.url}`;
+      const periodEnd = doc.period_end ? new Date(doc.period_end) : null;
+      const validPeriod = periodEnd && !Number.isNaN(periodEnd.getTime()) ? periodEnd : null;
+
+      if (await filingAlreadyIndexed(source, validPeriod)) {
+        run.skipped += 1;
+        continue;
+      }
+
+      try {
+        const pdf = await fetchPdfText(doc.url, { maxPages });
+        if (!pdf || !pdf.text.trim()) {
+          run.skipped += 1;
+          continue;
+        }
+        const meta: ChunkMeta = {
+          docType: 'filing',
+          userId: null,
+          symbol,
+          sourceUrl: doc.url,
+          title: doc.title,
+          publishedAt: validPeriod,
+        };
+        const res = await indexTextDocument(source, meta, pdf.text);
+        if (res.windows > 0) run.indexed += 1;
+        else run.skipped += 1;
+      } catch (err) {
+        run.errors.push(`filing ${source}: ${err instanceof Error ? err.message : 'failed'}`);
+      }
+    }
+  }
+
+  return run;
+}
+
 export async function indexCorpus(options: IndexCorpusOptions = {}): Promise<IndexCorpusResult> {
   const now = options.now ?? new Date();
   const newsLimit = options.newsLimit ?? 150;
@@ -115,9 +229,17 @@ export async function indexCorpus(options: IndexCorpusOptions = {}): Promise<Ind
     errors.push(`prune: ${err instanceof Error ? err.message : 'failed'}`);
   }
 
+  const filings = await indexFilings(
+    filingSymbols(options.filingSymbols),
+    options.maxFilings ?? 3,
+    options.filingMaxPages ?? 120
+  );
+  errors.push(...filings.errors);
+
   return {
     vectorIndex: indexes.vectorIndex,
     news: { seen: page.items.length, changed, pruned },
+    filings: { seen: filings.seen, indexed: filings.indexed, skipped: filings.skipped },
     errors,
   };
 }
