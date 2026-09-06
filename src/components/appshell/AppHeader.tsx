@@ -88,6 +88,17 @@ export function AppHeader({ onToggleMask }: AppHeaderProps) {
               {focused && <SearchResultsDropdown results={results} loading={loading} onSelect={selectResult} />}
             </div>
             <NotificationBell />
+            <Link href="/dashboard/settings" title="Settings" className={styles.iconButton}>
+              <svg width="15" height="15" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <circle cx="10" cy="10" r="2.6" stroke="currentColor" strokeWidth="1.6" />
+                <path
+                  d="M10 2.5v2M10 15.5v2M4.7 4.7l1.4 1.4M13.9 13.9l1.4 1.4M2.5 10h2M15.5 10h2M4.7 15.3l1.4-1.4M13.9 6.1l1.4-1.4"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </Link>
             <button onClick={onToggleMask} title="Hide values" className={styles.iconButton} type="button">
               ₹
             </button>

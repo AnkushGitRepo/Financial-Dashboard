@@ -120,6 +120,10 @@
   font-size: 13px;
   color: var(--app-text-muted);
   font-family: var(--font-sans);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
   transition: transform var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
 }
 
