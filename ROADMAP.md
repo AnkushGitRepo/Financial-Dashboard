@@ -166,8 +166,27 @@ Scoped 2026-09-06 — see [ADR 0017](./docs/decisions/0017-ipo-tracker-gmp-scope
 
 **Explicitly out of v1 scope** (ADR 0017): GMP history/charts, buybacks/rights issues/NFOs, broker- or category-wise subscription breakdown, "apply via broker" links, email delivery, a second GMP source / cross-checking.
 
-## Phase 8 — AI Insights (stock-level + portfolio-level) ❓
-Needs a dedicated discussion: which LLM provider(s) for v1, insight scope/format, how trial-limit counting (from the hosted pricing model) actually gets enforced per insight generated.
+## Phase 8 — AI Insights (stock / portfolio / IPO / Mitra chat) 🔄
+Scoped 2026-09-06 — see [ADR 0018](./docs/decisions/0018-ai-insights-scope.md). v1 = AI SDK v6 with three BYO provider adapters (Gemini / Anthropic / OpenRouter), a `/dashboard/settings` page storing the user's key AES-256-GCM-encrypted in Mongo (env fallback for self-host), insight cards on the stock / portfolio / IPO surfaces (per-user cache for stock+portfolio, cross-user shared for IPO), and the "Mitra" widget wired to a real streamed chat. Hard guardrail: neutral synthesis only — no buy/sell/hold, no price targets, every insight ends "…not investment advice." Trial-limit counting is moot (no paid tier).
+
+**Foundation (part 1):**
+- [ ] Deps: `ai` + `@ai-sdk/google` + `@ai-sdk/anthropic` + `@openrouter/ai-sdk-provider`. `src/lib/ai/` — `providers.ts` (`{provider,apiKey,model} → LanguageModel`, default model per provider), `generate.ts` (`generateText`/`generateObject` wrappers), `prompts.ts` (system prompts with the guardrail baked in).
+- [ ] Key storage: `userSettings` MongoDB collection + `src/lib/userSettings.ts`; AES-256-GCM helper (`src/lib/crypto.ts`) keyed on `SETTINGS_ENC_KEY`; `src/lib/ai/userAiConfig.ts` `getAiConfig(userId)` → stored key ▸ `AI_PROVIDER`/`AI_API_KEY` env ▸ null.
+- [ ] `/dashboard/settings` page (server + client): provider select, key input (password), optional model, "Test & save" (one live "reply OK" validation call), delete. Linked from the `AppHeader` user area + every insight card's empty state. `GET/PUT/DELETE /api/settings/ai` (Zod, session-scoped). `.env.local.example` gains `SETTINGS_ENC_KEY` + the optional `AI_*` vars.
+
+**Insights (parts 2–4):**
+- [ ] `insights` MongoDB collection (`scope, key, userId, inputHash, content, model, generatedAt`) + `src/lib/insights.ts` (get-or-generate with input-hash + TTL). Guardrail-checked in `prompts.ts`.
+- [ ] **Stock insight** — `POST /api/insights/stock {symbol}`, per-user cache `(userId, symbol)` ~24h, input = ratios/financials/shareholding/news snapshot. Card on `/dashboard/stock/[ticker]` (Generate / cached+Refresh / add-key states).
+- [ ] **Portfolio insight** — `POST /api/insights/portfolio`, per-user cache `(userId, 'portfolio')` ~6h, input = enriched holdings. Card on `/dashboard/portfolio`.
+- [ ] **IPO insight** — `POST /api/insights/ipo {slug}`, **cross-user shared** cache (`userId=null`, key `slug`); may use the deployment `AI_API_KEY`, else the requesting user's key (ADR 0018 §5, amends ADR 0016). Card in the `/dashboard/ipos` expanded row.
+- [ ] **DRHP grounding (best-effort, trimmable):** scraper extracts `ipos.drhp_url` from the IPO detail page (migration); `GET /ipos/{slug}/drhp-extract` returns key sections via `pdfplumber`; the IPO prompt uses it when present. IPO insight must still work without it.
+
+**Mitra chat (part 5):**
+- [ ] Replace `aiWidgetContent.ts`'s scripted `AI_REPLIES` with `POST /api/ai/chat` — streamed (AI SDK), context = portfolio summary + holdings + recent news, requires the user's key, declines advice-seeking questions. Wire `AiWidget.tsx` to it.
+
+**Cross-cutting:**
+- [ ] Works in both modes — AI gated on `getAiConfig`, not `isHosted()`. `tsc`/`lint`/`next build`/`npm test` green; new unit tests for `providers.ts` / `crypto.ts` / `insights.ts` (hash + cache) / the guardrail check. Live-verify each surface with a real key.
+- [ ] `/docs/architecture.md` + `/docs/api-surface.md`; deploy (Mongo collections need no migration; `SETTINGS_ENC_KEY` + `ipos.drhp_url` migration on prod Neon); confirm the phase.
 
 ## Phase 9 — API Surface Formalization + Agent-Context Docs ❓
 Needs a dedicated discussion: documentation format (JSON/Markdown response modes as originally requested), testing playground scope, what "agent-context prompts" concretely means as a deliverable. Note: document endpoints incrementally as each phase ships them, not only in this dedicated pass.
