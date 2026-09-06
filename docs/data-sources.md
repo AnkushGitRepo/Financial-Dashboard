@@ -66,6 +66,15 @@ For each source, record: what it is, the endpoint(s) used, auth/key requirements
 - **Cost:** free
 - **ToS notes:** Google News RSS is a public feed Google serves; entries link back to the publishers (via `news.google.com` redirects) and MarketMitra keeps only headline + summary + link + timestamp, no article bodies. Reviewed 2026-09-06.
 
+### Chittorgarh (IPO calendar + subscription + grey-market premium)
+- **Type:** scraper (Tier 3, last resort — Phase 7, [ADR 0017](./decisions/0017-ipo-tracker-gmp-scope.md))
+- **Used for:** IPO calendar (dates, price band, lot size, issue size), live subscription figures, and **grey-market premium (GMP)** — none of which has a free official API. NSE/BSE public IPO endpoints are the Tier 1 attempt for the non-GMP fields; GMP is Tier 3 only.
+- **Endpoint(s):** `https://www.chittorgarh.com/` IPO dashboard pages, via `scrapling`'s static parser, isolated in `services/fundamentals-api/app/ingestion/tier3_ipo_scraper/`
+- **Auth:** none
+- **Rate limits:** none published; scraped at most every `ipo_cache_ttl_minutes` (~60) via lazy refresh-on-read, with request pacing and a browser-like User-Agent
+- **Cost:** free
+- **ToS notes:** Reviewed 2026-09-06. Chittorgarh's Disclaimer & Privacy Statement (`chittorgarh.com/article/disclaimer-and-privacy-statement/238/`) states *"no user may distribute, modify, transmit, or use the contents in any manner for public or commercial purposes without prior written permission"*, and the site returns `403` to non-browser clients. This is **not a sanctioned integration** — it is an accepted known risk on the same terms as Screener.in (ADR 0011): kept in one isolated, swappable module; GMP shown only with an "unofficial grey-market estimate, not from any exchange" caveat and degrading to "unavailable" on any scrape failure; alerts on GMP skip rather than fire on missing data. If the source becomes unworkable, the module is swapped or GMP is dropped, without touching the rest of the IPO tracker.
+
 <!--
 Template for a new entry:
 

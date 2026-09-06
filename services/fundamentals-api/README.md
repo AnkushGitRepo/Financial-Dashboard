@@ -51,7 +51,9 @@ NIFTY BANK/INDIA VIX quotes, live via yfinance — not company-keyed, not
 cached), `GET /quote?symbols=A,B,C` (batched live quote — last price,
 previous close, intraday % change, 52-week high/low — for N symbols at
 once, see "Live quote" below), `GET /news` (markets news feed, optional
-`?symbols=A,B,C` filter — see "News feed" below), and `GET /search?q=`
+`?symbols=A,B,C` filter — see "News feed" below), `GET /ipos` (IPO
+calendar + subscription + GMP, optional `?status=` filter — see "IPO
+tracker" below), and `GET /search?q=`
 (search across all ~2,570 NSE-listed equities plus the tracked indices —
 see "Company search" below). Every company response that can come from
 more than one tier carries a `source_tier` field.
@@ -101,6 +103,30 @@ tagged with any of those symbols.
 
 `refresh_all()` exists for an optional warm-up cron; reads don't need it.
 
+## IPO tracker (`GET /ipos`)
+
+`app/ingestion/tier3_ipo_scraper/` + `app/services/ipo_service.py` +
+`app/api/routes/ipos.py` (ADR 0017). IPO calendar, live subscription
+figures, and **grey-market premium (GMP)** — none of which has a free
+official API — scraped from one aggregator (InvestorGain's Live IPO GMP
+report), in an isolated swappable module. **GMP is an unofficial
+grey-market estimate, not from any exchange and not a prediction** — every
+surface labels it so, and it degrades to "unavailable" on any scrape
+failure.
+
+The aggregator page is a client-rendered SPA, so live ingestion runs out
+of band: a scheduled headless-browser job renders the page, parses it with
+this module, and `POST`s the rows to `/ipos/ingest` (guarded by
+`ipo_ingest_token`). `GET /ipos` only reads Postgres (`ipos` table, deduped
+on slug, listed IPOs pruned after `ipo_listed_retention_days`).
+
+`GET /ipos?status=upcoming|open|closed|listed` (omit for all) → rows with
+`{ slug, name, source_url, category (mainboard|sme), status, price,
+ipo_size_cr, lot_size, rating, subscription_times, anchor, gmp, gmp_pct,
+gmp_low, gmp_high, gmp_updated_at, open_date, close_date, allotment_date,
+listing_date, source_tier, fetched_at }`, ordered open → upcoming →
+closed → listed.
+
 ## Live quote (`GET /quote?symbols=A,B,C`)
 
 `app/ingestion/quotes.py` + `app/api/routes/quote.py`. The read path the
@@ -124,7 +150,7 @@ dashboard caller share one upstream hit. Capped at 100 symbols/request.
 pytest
 ```
 
-All 50 tests run offline — no network, no database. They use saved
+All 63 tests run offline — no network, no database. They use saved
 fixtures (a real Screener.in page a maintainer saved to disk, a synthetic
 but taxonomy-accurate XBRL instance document, a generated PDF with a ruled
 table) rather than live calls, so they're deterministic and don't depend on
@@ -137,6 +163,7 @@ Screener.in/NSE/BSE/Yahoo staying reachable or unchanged.
 | Quote / company info | Tier 1 (BSE via `bsedata`; NSE via `nsepython`) | Tier 2 (`yfinance`) | Both wired and tested. NSE itself is frequently blocked at Akamai's edge (see `app/ingestion/tier1_nse_bse.py`) — this is exactly why Tier 2 exists. |
 | Price history | Tier 2 (`yfinance`) | — | Wired and tested. |
 | Live quote (`GET /quote`) | Tier 2 (`yfinance` `fast_info`) | — | Batched, DB-free, 60s in-process cache. Last price / prev close / intraday % / 52-week range. Feeds MarketMitra's alerts engine (ADR 0014). Verified live for RELIANCE, TCS, NIFTY 50; a bad symbol is dropped, not faked. |
+| IPO tracker (`GET /ipos`) | Tier 3 (aggregator scrape) | Tier 1 NSE/BSE IPO endpoints (attempt) | ADR 0017. IPO calendar + subscription + **GMP** (no free official source for GMP). Parser verified against a maintainer-saved page (23 real IPOs); live ingestion is an out-of-band headless-browser job (SPA page). GMP labelled everywhere as an unofficial grey-market estimate; degrades to "unavailable". |
 | News feed (`GET /news`) | Free RSS — broad markets feeds + Google News RSS per symbol | — | ADR 0015. Postgres-backed, lazy TTL refresh, 30-day retention. Verified live: 4 broad feeds return real items (Business Standard 403s; NDTV Profit's feed carries too much non-markets content — both dropped), Google-News-per-symbol returns real publisher-attributed items. VADER headline-tone label per item (skews optimistic on financial text — labelled as tone, not a signal). Title + summary + link only, no scraped bodies. |
 | Ratios | Tier 3 (Screener.in) | — | Tiers 1/2 don't expose comparable named/computed ratios as raw data. |
 | Shareholding pattern | Tier 1 (direct NSE endpoint) | Tier 3 (Screener.in) | Tier 1's response shape is unverified (NSE blocked during development); Tier 3 is verified against two real companies and captures full quarterly history (typically 12 quarters), not just the latest. |

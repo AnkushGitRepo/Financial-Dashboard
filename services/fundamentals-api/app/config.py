@@ -49,6 +49,15 @@ class Settings(BaseSettings):
     news_symbol_cache_ttl_minutes: int = 60
     news_retention_days: int = 30
 
+    # IPO tracker (GET /ipos, ADR 0017). Lazy TTL: a read past this re-fetches
+    # (best-effort — the aggregator is a SPA, so the reliable path is an
+    # out-of-band job POSTing to /ipos/ingest). Listed IPOs are pruned after
+    # `ipo_listed_retention_days`.
+    ipo_cache_ttl_minutes: int = 60
+    ipo_listed_retention_days: int = 30
+    # Shared secret for POST /ipos/ingest (the headless-browser refresh job).
+    ipo_ingest_token: str = ""
+
 
 @lru_cache
 def get_settings() -> Settings:

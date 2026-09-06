@@ -199,6 +199,44 @@ class PriceHistoryPointORM(Base):
     company: Mapped[CompanyORM] = relationship(back_populates="price_history")
 
 
+class IpoORM(Base):
+    """An IPO's calendar + subscription + grey-market premium (ADR 0017).
+    Deduped on `slug`. GMP fields are an unofficial grey-market estimate,
+    labelled as such everywhere they surface."""
+
+    __tablename__ = "ipos"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    slug: Mapped[str] = mapped_column(String(160), unique=True)
+    name: Mapped[str] = mapped_column(String(256))
+    source_url: Mapped[str | None] = mapped_column(String(512))
+    category: Mapped[str] = mapped_column(String(16))  # mainboard | sme
+    status: Mapped[str] = mapped_column(String(16), index=True)  # upcoming | open | closed | listed
+
+    price: Mapped[float | None] = mapped_column(Numeric(12, 2))
+    ipo_size_cr: Mapped[float | None] = mapped_column(Numeric(14, 2))
+    lot_size: Mapped[int | None]
+    rating: Mapped[int | None]  # 0-5 "fire" rating from the aggregator
+    subscription_times: Mapped[float | None] = mapped_column(Numeric(12, 2))
+    anchor: Mapped[bool | None]
+
+    gmp: Mapped[float | None] = mapped_column(Numeric(12, 2))
+    gmp_pct: Mapped[float | None] = mapped_column(Numeric(8, 2))
+    gmp_low: Mapped[float | None] = mapped_column(Numeric(12, 2))
+    gmp_high: Mapped[float | None] = mapped_column(Numeric(12, 2))
+    gmp_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    open_date: Mapped[date | None] = mapped_column(Date)
+    close_date: Mapped[date | None] = mapped_column(Date)
+    allotment_date: Mapped[date | None] = mapped_column(Date)
+    listing_date: Mapped[date | None] = mapped_column(Date)
+
+    source_tier: Mapped[str] = mapped_column(String(32), default="tier3_ipo_aggregator")
+    fetched_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
 class NewsItemORM(Base):
     """A single news headline (ADR 0015). URL is the dedup key. Sentiment is
     a VADER headline-tone label, not an analyst/market signal."""

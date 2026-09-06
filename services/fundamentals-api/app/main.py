@@ -3,7 +3,17 @@ import logging
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 
-from app.api.routes import companies, documents, financials, indices, news, prices, quote, search
+from app.api.routes import (
+    companies,
+    documents,
+    financials,
+    indices,
+    ipos,
+    news,
+    prices,
+    quote,
+    search,
+)
 from app.config import get_settings
 
 logging.basicConfig(level=get_settings().log_level)
@@ -25,6 +35,7 @@ app.include_router(prices.router)
 app.include_router(documents.router)
 app.include_router(indices.router)
 app.include_router(news.router)
+app.include_router(ipos.router)
 app.include_router(quote.router)
 app.include_router(search.router)
 

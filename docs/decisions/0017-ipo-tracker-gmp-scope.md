@@ -162,3 +162,40 @@ stored/managed via `src/lib/alerts/store.ts` (or a thin `ipoWatch.ts`).
 - Deployment-mode gate: IPO data is public — no `isHosted()` gating; the
   `ipo_watch` / per-IPO alerts use whatever `getCurrentUserId()` resolves,
   same as Phase 5.
+
+## Amendment (2026-09-06): ToS gate resolved — accept the trade-off
+
+The gate ran before any build. Findings on **Chittorgarh** (the lead
+aggregator):
+
+- Terms: *"no user may distribute, modify, transmit, or use the contents
+  in any manner for public or commercial purposes without prior written
+  permission"* (Disclaimer & Privacy Statement,
+  `chittorgarh.com/article/disclaimer-and-privacy-statement/238/`).
+- The site actively blocks non-browser clients — an automated GET of its
+  own disclaimer page returns `403`.
+
+InvestorGain / IPO Watch were taken to be equivalent (GMP data is these
+sites' core product; none will license redistribution).
+
+**Decision (user): accept the trade-off**, on the same terms as
+Screener.in in [ADR 0011](./0011-three-tier-fundamentals-data-sourcing.md):
+
+- The scraper lives in **one isolated, swappable module**
+  (`app/ingestion/tier3_ipo_scraper/`) with its own README noting this
+  finding, so changing or removing the source is a contained edit.
+- GMP is surfaced **only** with the caveat "unofficial estimate from
+  grey-market dealers, compiled by a third-party tracker — not from any
+  exchange, not a prediction", and degrades to "GMP unavailable" the
+  moment the scrape fails. Alerts on GMP skip rather than fire on missing
+  data.
+- Polite request pacing (reuse `app/ingestion/rate_limit.py`), a real
+  browser-like `User-Agent`, and a wide cache TTL so the site is hit
+  rarely.
+- `/docs/data-sources.md` records the finding verbatim, dated, as an
+  accepted known risk — not presented as a sanctioned integration.
+
+This does bend `ROADMAP.md`'s "scraping never enters production" standing
+rule a second time (Phase 4 bent it for Screener). That rule is now
+effectively "scraping is Tier-3 last-resort, isolated, and honestly
+labelled" in practice — noted here rather than silently.
