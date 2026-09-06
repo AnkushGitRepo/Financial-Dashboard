@@ -151,3 +151,16 @@ The top-level `README.md` had drifted badly from reality:
 - The v1-teardown line *"has to be rebuilt deliberately if and when it's re-added"* → *"was rebuilt deliberately"*.
 
 Docs only — no code, no deploy. `ADR 0008` itself left as-is (ADRs are never edited; ADR 0016 already records the reconciliation).
+
+## 2026-09-06 — Rate limiting activated in prod (Upstash provisioned)
+
+- User created the Upstash store via the Vercel dashboard: **`marketmitra-ratelimit`** ("Upstash for Redis", Free, 500k commands/mo), **primary region `iad1`** (co-located with the functions, as advised), connected to **both** Vercel projects (Production + Preview).
+- The Vercel Upstash integration injects **`KV_REST_API_URL` / `KV_REST_API_TOKEN`** (+ `KV_URL` / `REDIS_URL` / read-only token) — *not* the `UPSTASH_REDIS_REST_*` names the code originally expected. Fixed in `17c4fac`: `src/lib/rateLimit.ts` reads `KV_REST_API_* || UPSTASH_REDIS_REST_*`; `services/fundamentals-api/app/config.py` uses `AliasChoices(...)` + `populate_by_name` (keeps the by-name test construction working). `.env.example` (both), README (both), ADR 0019 updated.
+- Redeployed both: `marketmitra-v2` (`chsaxkpoc`), `marketmitra-fundamentals-api` (`eo8vuc9qe`).
+- **Verified live:**
+  - `marketmitra-v2` `/api/search?q=…` — single request returns `RateLimit-Limit: 30 / Remaining: 29 / Reset: 51`; 40 rapid anon requests → first 29× `200`, then `429` (default anon tier = 30/min, sliding window).
+  - `marketmitra-fundamentals-api` `/health` → **no** `RateLimit-*` headers (exempt); `/indices` → `RateLimit-Limit: 120`, `Remaining` decrements 119→115 across 5 requests (fixed-window, `RATE_LIMIT_PER_MINUTE` default).
+- ADR 0016's landing-page "the hosted shared instance has fair-use rate limits" line is now true.
+- **Phase 9 is functionally complete** — MCP server, rate limiting (both services), and the API explorer are all built, deployed, and verified. Awaiting the user's explicit sign-off before the archiving protocol.
+- Minor: the Upstash REST tokens were pasted into chat during setup. They're scoped to this rate-limit KV store (no user data) and freshly created; rotate via the store's Settings → "Rotate Secrets" if desired.
+- Next: Phase 9 sign-off. Still open: the two GitHub Actions scheduler secrets; one real alert fire + one real IPO-alert fire in market hours; Resend email; Phase 4 Tier 1 filing-URL discovery.
