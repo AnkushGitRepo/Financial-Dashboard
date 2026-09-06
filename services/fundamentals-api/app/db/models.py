@@ -13,6 +13,7 @@ from sqlalchemy import (
     Date,
     DateTime,
     ForeignKey,
+    Index,
     Numeric,
     String,
     UniqueConstraint,
@@ -196,6 +197,48 @@ class PriceHistoryPointORM(Base):
     )
 
     company: Mapped[CompanyORM] = relationship(back_populates="price_history")
+
+
+class NewsItemORM(Base):
+    """A single news headline (ADR 0015). URL is the dedup key. Sentiment is
+    a VADER headline-tone label, not an analyst/market signal."""
+
+    __tablename__ = "news_items"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    url: Mapped[str] = mapped_column(String(1024), unique=True)
+    title: Mapped[str] = mapped_column(String(512))
+    summary: Mapped[str | None] = mapped_column(String(2000))
+    source: Mapped[str] = mapped_column(String(128))
+    published_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    sentiment: Mapped[str] = mapped_column(String(16))  # positive | neutral | negative
+    sentiment_score: Mapped[float] = mapped_column(Numeric(6, 4))
+    fetched_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    symbols: Mapped[list[NewsItemSymbolORM]] = relationship(
+        back_populates="news_item", cascade="all, delete-orphan"
+    )
+
+
+class NewsItemSymbolORM(Base):
+    """Many-to-many tag: which NSE symbol(s) a news item is about. Empty for
+    a broad-feed item that matched no company."""
+
+    __tablename__ = "news_item_symbols"
+    __table_args__ = (
+        UniqueConstraint("news_item_id", "symbol", name="uq_news_item_symbol"),
+        Index("ix_news_item_symbols_symbol", "symbol"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    news_item_id: Mapped[int] = mapped_column(
+        ForeignKey("news_items.id", ondelete="CASCADE")
+    )
+    symbol: Mapped[str] = mapped_column(String(32))
+
+    news_item: Mapped[NewsItemORM] = relationship(back_populates="symbols")
 
 
 class DocumentReferenceORM(Base):

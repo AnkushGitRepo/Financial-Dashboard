@@ -42,6 +42,13 @@ class Settings(BaseSettings):
     # any dashboard caller share one upstream yfinance hit. Seconds, not hours.
     quote_cache_ttl_seconds: int = 60
 
+    # News feed (GET /news, ADR 0015). Lazy refresh-on-read: a read re-fetches
+    # only when the newest relevant item is older than the TTL. Broad market
+    # feeds move slower than per-company Google News queries.
+    news_broad_cache_ttl_minutes: int = 30
+    news_symbol_cache_ttl_minutes: int = 60
+    news_retention_days: int = 30
+
 
 @lru_cache
 def get_settings() -> Settings:

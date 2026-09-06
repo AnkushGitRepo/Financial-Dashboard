@@ -50,10 +50,11 @@ reports, BSE-hosted PDFs), `GET /indices` (real NIFTY 50/SENSEX/
 NIFTY BANK/INDIA VIX quotes, live via yfinance — not company-keyed, not
 cached), `GET /quote?symbols=A,B,C` (batched live quote — last price,
 previous close, intraday % change, 52-week high/low — for N symbols at
-once, see "Live quote" below), and `GET /search?q=` (search across all
-~2,570 NSE-listed equities plus the tracked indices — see "Company
-search" below). Every company response that can come from more than one
-tier carries a `source_tier` field.
+once, see "Live quote" below), `GET /news` (markets news feed, optional
+`?symbols=A,B,C` filter — see "News feed" below), and `GET /search?q=`
+(search across all ~2,570 NSE-listed equities plus the tracked indices —
+see "Company search" below). Every company response that can come from
+more than one tier carries a `source_tier` field.
 
 ## Company search (`GET /search?q=`)
 
@@ -65,6 +66,40 @@ even though `www.nseindia.com` is blocked in this project's dev environment
 trade-off as the rest of Tier 1 (ADR 0011). Lazily populated on first
 search call (a few thousand rows, fast); not part of the three-tier
 per-company fallback chain since it's a lookup table, not company data.
+
+## News feed (`GET /news`)
+
+`app/ingestion/news.py` + `app/services/news_service.py` +
+`app/api/routes/news.py` (ADR 0015). Free RSS only, two sources:
+
+- **Broad Indian-markets RSS** (Economic Times, LiveMint, BusinessLine,
+  Moneycontrol, NDTV Profit) → the global stream. Company tagging is
+  best-effort: an item is tagged with a symbol only when that company's
+  distinctive multi-word name appears whole (word-bounded) in the
+  headline/summary — short or single-word names (ITC, MRF, Infosys) are
+  deliberately not matched, to keep precision high. Untagged items are
+  normal and still appear in the global feed.
+- **Google News RSS, one query per company name** (`"<name>" NSE`) → the
+  stock-detail and portfolio views. The symbol tag is exact by
+  construction. Runs for every held symbol plus a curated tracked set
+  (`news_service.TRACKED_SYMBOLS`).
+
+Stored in Postgres (`news_items` deduped on URL + `news_item_symbols`),
+**lazy TTL refresh-on-read** like ratios/prices
+(`news_broad_cache_ttl_minutes` / `news_symbol_cache_ttl_minutes`), 30-day
+retention (`news_retention_days`). We keep title + summary + link +
+published-at only — **no article bodies are fetched or scraped**. Each
+item carries a VADER **headline-tone** label (`positive|neutral|negative`
++ score) — not an analyst rating or a trading signal; generic-lexicon
+sentiment on financial headlines skews optimistic, a known limitation
+(a finance lexicon layer is a possible follow-up).
+
+`GET /news?limit=&cursor=` → `{ items: [{ url, title, summary, source,
+published_at, sentiment, sentiment_score, symbols[] }], next_cursor }`,
+newest first, keyset-paginated. `GET /news?symbols=A,B,C` filters to items
+tagged with any of those symbols.
+
+`refresh_all()` exists for an optional warm-up cron; reads don't need it.
 
 ## Live quote (`GET /quote?symbols=A,B,C`)
 
@@ -89,7 +124,7 @@ dashboard caller share one upstream hit. Capped at 100 symbols/request.
 pytest
 ```
 
-All 36 tests run offline — no network, no database. They use saved
+All 50 tests run offline — no network, no database. They use saved
 fixtures (a real Screener.in page a maintainer saved to disk, a synthetic
 but taxonomy-accurate XBRL instance document, a generated PDF with a ruled
 table) rather than live calls, so they're deterministic and don't depend on
@@ -102,6 +137,7 @@ Screener.in/NSE/BSE/Yahoo staying reachable or unchanged.
 | Quote / company info | Tier 1 (BSE via `bsedata`; NSE via `nsepython`) | Tier 2 (`yfinance`) | Both wired and tested. NSE itself is frequently blocked at Akamai's edge (see `app/ingestion/tier1_nse_bse.py`) — this is exactly why Tier 2 exists. |
 | Price history | Tier 2 (`yfinance`) | — | Wired and tested. |
 | Live quote (`GET /quote`) | Tier 2 (`yfinance` `fast_info`) | — | Batched, DB-free, 60s in-process cache. Last price / prev close / intraday % / 52-week range. Feeds MarketMitra's alerts engine (ADR 0014). Verified live for RELIANCE, TCS, NIFTY 50; a bad symbol is dropped, not faked. |
+| News feed (`GET /news`) | Free RSS — broad markets feeds + Google News RSS per symbol | — | ADR 0015. Postgres-backed, lazy TTL refresh, 30-day retention. Verified live: 5 broad feeds return real items (Business Standard's RSS 403s and was dropped), Google-News-per-symbol returns real publisher-attributed items. VADER headline-tone label per item (skews optimistic on financial text — labelled as tone, not a signal). Title + summary + link only, no scraped bodies. |
 | Ratios | Tier 3 (Screener.in) | — | Tiers 1/2 don't expose comparable named/computed ratios as raw data. |
 | Shareholding pattern | Tier 1 (direct NSE endpoint) | Tier 3 (Screener.in) | Tier 1's response shape is unverified (NSE blocked during development); Tier 3 is verified against two real companies and captures full quarterly history (typically 12 quarters), not just the latest. |
 | Financial statements (P&L/BS/CF) | Tier 3 (Screener.in) | — | Tier 1's XBRL parser and PDF table extractor are both implemented and unit-tested against fixtures, but wiring them into the live service needs a filing-URL discovery step (find the latest quarterly XBRL / annual report PDF for a company) that hasn't been built yet. |
