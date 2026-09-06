@@ -216,12 +216,12 @@ Carried past sign-off 2026-09-06. Each is small and independent; none gates Phas
   env — fails safe to Tier 3, no regression. *Follow-up: verify the NSE/BSE parsers against
   real live responses and correct the field maps; multi-period XBRL context extraction.*
 - [x] **Phase 5 — ~10-min alert scheduler activated** 2026-09-06. `CRON_SECRET` rotated (fresh value in the GitHub repo secret + `marketmitra-v2` prod env, redeployed). `evaluate-alerts.yml` `workflow_dispatch` run → success; `POST /api/cron/evaluate-alerts?force=1` with the new token → `200 {ran:true,...}`, wrong token → `401`. `schedule:` fires from `main` (now the default branch).
-- [~] **Phase 5 — email delivery.** Code done 2026-09-06: `sendEmail()` wired against the
-  `resend` SDK (`src/lib/notifications/channels.ts`, `renderEmail()` template, 6 tests) —
-  ships **inert** (`skipped` without `RESEND_API_KEY`). To activate: create a Resend account,
-  set `RESEND_API_KEY` (+ `ALERT_EMAIL_FROM` with a Resend-verified domain for real
-  multi-recipient sending — `onboarding@resend.dev` only reaches the account owner), redeploy.
-  Then one live send test. ADR 0014 amendment.
+- [x] **Phase 5 — email delivery.** `sendEmail()` wired against the `resend` SDK
+  (`src/lib/notifications/channels.ts`, `renderEmail()` template, 6 tests). `RESEND_API_KEY`
+  set on `marketmitra-v2` production + deployed 2026-09-06 — email delivery is **live**.
+  ADR 0014 amendment. **Remaining caveat:** sender is the default `onboarding@resend.dev`,
+  which only delivers to the Resend account owner's own address; reaching arbitrary
+  recipients needs a verified domain in `ALERT_EMAIL_FROM`.
 - [ ] **Phase 5 — verify one real alert fires end-to-end** during NSE market hours (create an alert near the current price, hit the cron route, confirm the notification).
 - [x] **Phase 7 — IPO refresh workflow activated + validated** 2026-09-06. `IPO_INGEST_TOKEN` rotated (GitHub repo secret + `marketmitra-fundamentals-api` prod env, redeployed). `refresh-ipos.yml` `workflow_dispatch` run → success: Playwright rendered the InvestorGain SPA, **parsed 40 IPO rows, ingested 40** via the authenticated `/ipos/ingest` (`{ingested:40}`) — the never-CI-tested render step now proven. Runs every ~2h from `main`.
 - [ ] **Phase 7 — watch one real IPO alert fire** on an actual trigger day.

@@ -67,3 +67,11 @@ Rolling log of work sessions, most recent first is NOT required — append chron
 - `.env.local.example` + README alerts-cron paragraph updated; ADR 0014 amendment appended; ROADMAP Phase-5 follow-up → `[~]` (code done, needs a Resend account).
 - Committed `52cbea1`, pushed `v2` + `main`, deployed `marketmitra-v2` to prod (`marketmitra-v2-ffk1v3edn`, READY). Smoke: `/` 200, `/api/mcp` `tools/list` returns the 7 tools. Ships **inert** — no `RESEND_API_KEY` in prod yet.
 - **To activate:** user creates a Resend account, sets `RESEND_API_KEY` (+ `ALERT_EMAIL_FROM` with a verified domain for hosted), redeploys; then watch one real send.
+
+## 2026-09-06 — Resend key set in prod; email delivery live
+
+- User created a Resend account and set `RESEND_API_KEY` (Secret type) on `marketmitra-v2` **production**. Redeployed (`marketmitra-v2-crq84tpa3`, Ready). `/` 200.
+- Email delivery is now **active** in prod: a triggered alert/IPO notification will fan out to email (hosted mode → the Clerk user's primary address) in addition to in-app + webhook.
+- **Caveat still standing:** `ALERT_EMAIL_FROM` is unset, so the sender is Resend's shared `onboarding@resend.dev`, which **only delivers to the Resend account owner's own email**. For the first live test to actually land, the alert-owner's Clerk primary email must be that same address. Arbitrary-recipient sending needs a Resend-verified domain in `ALERT_EMAIL_FROM`.
+- ROADMAP Phase-5 email line → `[x]` (with the sender caveat noted).
+- Next: watch one real alert fire + one real IPO-alert fire during NSE market hours (Sat/Sun now — markets closed; the 10-min `evaluate-alerts` scheduler no-ops outside hours unless `?force=1`).
