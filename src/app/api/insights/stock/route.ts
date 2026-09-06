@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getCurrentUserId } from '@/lib/currentUserId';
-import { getAiConfig } from '@/lib/ai/userAiConfig';
+import { getUserAiConfig } from '@/lib/ai/userAiConfig';
 import { generateInsightText } from '@/lib/ai/generate';
 import { STOCK_SYSTEM } from '@/lib/ai/prompts';
 import { buildStockPrompt } from '@/lib/ai/insightPrompts';
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   if (!parsed.success) return NextResponse.json({ success: false, error: parsed.error.message }, { status: 422 });
   const symbol = parsed.data.symbol.toUpperCase();
 
-  const aiConfig = await getAiConfig(userId, { allowEnv: false });
+  const aiConfig = await getUserAiConfig(userId);
   if (!aiConfig) {
     return NextResponse.json(
       { success: false, error: 'no_ai_key', hint: 'Add your AI provider key in Settings.' },

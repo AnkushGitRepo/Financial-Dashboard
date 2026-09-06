@@ -238,6 +238,30 @@
   font-family: var(--font-sans);
 }
 
+.sendButton:disabled,
+.composerInput:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.keyHint {
+  margin-top: 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--app-text-muted);
+}
+
+.keyHint a {
+  color: var(--app-ink);
+  text-decoration: underline;
+}
+
+.msgTyping::after {
+  content: '▌';
+  margin-left: 1px;
+  opacity: 0.45;
+}
+
 .launcher {
   width: 58px;
   height: 58px;

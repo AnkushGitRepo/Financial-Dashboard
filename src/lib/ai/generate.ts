@@ -1,4 +1,4 @@
-import { generateText } from 'ai';
+import { generateText, streamText, type ModelMessage } from 'ai';
 import { resolveModel, type AiConfig } from './providers';
 
 export interface GenerateResult {
@@ -37,6 +37,28 @@ export async function generateInsightText(
   } catch (err) {
     return { ok: false, error: normalizeAiError(err) };
   }
+}
+
+/**
+ * Streaming multi-turn generation for the Mitra chat widget. Returns the
+ * AI SDK stream result; the route handler turns it into a `text/plain`
+ * streamed response with `.toTextStreamResponse()`. `resolveModel` can
+ * throw for a malformed config — the caller wraps this in try/catch and
+ * returns a clean 502 before the stream starts.
+ */
+export function streamChat(
+  config: AiConfig,
+  system: string,
+  messages: ModelMessage[]
+): ReturnType<typeof streamText> {
+  const model = resolveModel(config);
+  return streamText({
+    model,
+    system,
+    messages,
+    temperature: 0.4,
+    maxOutputTokens: 600,
+  });
 }
 
 /** A cheap round-trip to check a key works, for "Test & save". */

@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { AI_REPLIES, INSIGHTS } from '@/lib/dashboard/aiWidgetContent';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { INSIGHTS } from '@/lib/dashboard/aiWidgetContent';
 import styles from './AiWidget.module.css';
 
 export type Section = 'dashboard' | 'portfolio' | 'markets' | 'stock';
@@ -18,10 +19,20 @@ interface ChatMessage {
   text: string;
 }
 
+type KeyState = 'unknown' | 'present' | 'absent';
+
 const BENTO_TILES = Array.from({ length: 9 });
 
+/** New array with the last message's text replaced — keeps updates immutable
+ * while a streamed reply fills in token by token. */
+function withLastText(msgs: ChatMessage[], from: 'ai', text: string): ChatMessage[] {
+  const out = msgs.slice();
+  out[out.length - 1] = { from, text };
+  return out;
+}
+
 // `open` lives here so the panel stays open/closed across section
-// navigation, matching the source design. Insight/message state lives in
+// navigation, matching the source design. Chat/insight state lives in
 // AiPanelBody below, keyed by `section` from the parent (AppShell.tsx) so
 // switching sections resets it by remounting — not via setState-in-effect.
 export function AiWidget({ section }: { section: Section }) {
@@ -43,19 +54,77 @@ function AiPanelBody({ section, onClose }: { section: Section; onClose: () => vo
   const [insightIndex, setInsightIndex] = useState(0);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [keyState, setKeyState] = useState<KeyState>('unknown');
 
   const insights = INSIGHTS[section];
   const insight = insights[insightIndex % insights.length];
 
-  const send = () => {
+  // Whether an AI provider key is configured — controls the composer hint.
+  useEffect(() => {
+    let alive = true;
+    fetch('/api/settings/ai')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => {
+        if (alive) setKeyState(j?.data ? 'present' : 'absent');
+      })
+      .catch(() => {
+        if (alive) setKeyState('absent');
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const send = async () => {
     const text = draft.trim();
-    if (!text) return;
-    const reply = AI_REPLIES[messages.length % AI_REPLIES.length];
+    if (!text || busy) return;
+
+    const history: ChatMessage[] = [...messages, { from: 'user', text }];
+    setMessages([...history, { from: 'ai', text: '' }]);
     setDraft('');
-    setMessages((prev) => [...prev, { from: 'user', text }]);
-    setTimeout(() => {
-      setMessages((prev) => [...prev, { from: 'ai', text: reply }]);
-    }, 520);
+    setBusy(true);
+
+    try {
+      const res = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: history.map((m) => ({
+            role: m.from === 'user' ? 'user' : 'assistant',
+            content: m.text,
+          })),
+        }),
+      });
+
+      if (!res.ok || !res.body) {
+        const body = await res.json().catch(() => null);
+        const msg =
+          body?.error === 'no_ai_key'
+            ? 'Add your AI provider key in Settings to chat with Mitra.'
+            : 'Mitra could not answer just now. Try again shortly.';
+        if (body?.error === 'no_ai_key') setKeyState('absent');
+        setMessages((prev) => withLastText(prev, 'ai', msg));
+        return;
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let acc = '';
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        acc += decoder.decode(value, { stream: true });
+        setMessages((prev) => withLastText(prev, 'ai', acc));
+      }
+      if (!acc.trim()) {
+        setMessages((prev) => withLastText(prev, 'ai', 'Mitra returned an empty response.'));
+      }
+    } catch {
+      setMessages((prev) => withLastText(prev, 'ai', 'Mitra could not answer just now. Try again shortly.'));
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -92,12 +161,27 @@ function AiPanelBody({ section, onClose }: { section: Section; onClose: () => vo
 
         {messages.length > 0 && (
           <div className={styles.messages}>
-            {messages.map((m, i) => (
-              <div key={i} className={m.from === 'user' ? styles.msgUser : styles.msgAi}>
-                {m.text}
-              </div>
-            ))}
+            {messages.map((m, i) => {
+              const isStreamingAi = busy && m.from === 'ai' && i === messages.length - 1;
+              return (
+                <div
+                  key={i}
+                  className={`${m.from === 'user' ? styles.msgUser : styles.msgAi} ${
+                    isStreamingAi ? styles.msgTyping : ''
+                  }`}
+                >
+                  {m.text || (isStreamingAi ? 'Thinking' : '')}
+                </div>
+              );
+            })}
           </div>
+        )}
+
+        {keyState === 'absent' && (
+          <p className={styles.keyHint}>
+            Mitra needs your AI provider key. <Link href="/dashboard/settings">Add it in Settings</Link> — it
+            stays on this deployment and nothing is charged by MarketMitra.
+          </p>
         )}
 
         <div className={styles.composer}>
@@ -107,10 +191,11 @@ function AiPanelBody({ section, onClose }: { section: Section; onClose: () => vo
             onKeyDown={(e) => {
               if (e.key === 'Enter') send();
             }}
+            disabled={busy}
             placeholder={section === 'stock' ? 'Ask about these fundamentals' : 'Ask Mitra about your portfolio'}
             className={styles.composerInput}
           />
-          <button onClick={send} className={styles.sendButton} type="button" aria-label="Send">
+          <button onClick={send} disabled={busy} className={styles.sendButton} type="button" aria-label="Send">
             ↑
           </button>
         </div>

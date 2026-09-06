@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getCurrentUserId } from '@/lib/currentUserId';
-import { getAiConfig } from '@/lib/ai/userAiConfig';
+import { getUserAiConfig } from '@/lib/ai/userAiConfig';
 import { generateInsightText } from '@/lib/ai/generate';
 import { PORTFOLIO_SYSTEM } from '@/lib/ai/prompts';
 import { buildPortfolioPrompt } from '@/lib/ai/insightPrompts';
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   const parsed = bodySchema.safeParse(await request.json().catch(() => ({})));
   const force = parsed.success ? parsed.data?.force : false;
 
-  const aiConfig = await getAiConfig(userId, { allowEnv: false });
+  const aiConfig = await getUserAiConfig(userId);
   if (!aiConfig) {
     return NextResponse.json(
       { success: false, error: 'no_ai_key', hint: 'Add your AI provider key in Settings.' },

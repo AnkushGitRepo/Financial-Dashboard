@@ -1,4 +1,5 @@
 import { getAiSettings, type AiProvider } from '@/lib/userSettings';
+import { isHosted } from '@/lib/deployment-mode';
 import type { AiConfig } from './providers';
 
 /**
@@ -31,4 +32,16 @@ export async function getAiConfig(
   }
 
   return null;
+}
+
+/**
+ * Config for a *per-user* AI surface (stock read, portfolio insight, Mitra
+ * chat). Uses the caller's own stored key, and the deployment
+ * `AI_PROVIDER`/`AI_API_KEY` env key **only in self-host** — where there is
+ * a single local user, so "the deployment key" and "the user's key" are the
+ * same thing. In hosted mode a per-user surface never falls back to the
+ * operator's key (ADR 0018 §2/§5) — only shared IPO briefs may.
+ */
+export function getUserAiConfig(userId: string | null): Promise<AiConfig | null> {
+  return getAiConfig(userId, { allowEnv: !isHosted() });
 }

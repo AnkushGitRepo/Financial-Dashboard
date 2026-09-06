@@ -1,8 +1,7 @@
-// Scripted content for the "Mitra" AI assistant widget. This is a UI
-// concept demo, not real AI output — there's no LLM backend wired up yet.
-// Making these insights genuinely AI-generated is Phase 8 (AI Insights)
-// territory, a separate, not-yet-scoped phase (see ROADMAP.md) — out of
-// scope for the real-data wiring done elsewhere in src/lib/dashboard/.
+// Scripted content for the "Mitra" widget's "Proactive insight" tiles.
+// The chat below them is real as of Phase 8 pt.5 (streamed via
+// `/api/ai/chat`, ADR 0018) — these section-keyed proactive tiles are
+// still a UI concept demo, tracked as a Phase 9+ follow-up.
 
 export interface Insight {
   title: string;
@@ -31,9 +30,3 @@ export const INSIGHTS: Record<'dashboard' | 'portfolio' | 'markets' | 'stock', I
     { title: 'Valuation vs. its own history', body: 'P/E of 18.4 sits slightly above the 5-year median of 16.1 for this company.' },
   ],
 };
-
-export const AI_REPLIES: string[] = [
-  "Over the last four quarters the trend holds — margins expanded while sales grew, so the gain isn't one-off.",
-  'Trimming the position to your 15% single-stock guardrail frees about ₹25,000. Want me to draft that order?',
-  "That's demo data, but the same answer would come from your live holdings once the account is linked.",
-];

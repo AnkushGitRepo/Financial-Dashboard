@@ -1,7 +1,7 @@
 import { getCurrentUserId } from '@/lib/currentUserId';
 import { getEnrichedHoldings } from '@/lib/dashboard/enrichedHoldings';
 import { getPortfolioValueHistory } from '@/lib/dashboard/portfolioHistory';
-import { getAiConfig } from '@/lib/ai/userAiConfig';
+import { getUserAiConfig } from '@/lib/ai/userAiConfig';
 import { getCachedInsight } from '@/lib/insights';
 import type { PricePeriod } from '@/lib/dashboard/fundamentalsApi';
 import { PortfolioPageClient } from './PortfolioPageClient';
@@ -30,7 +30,7 @@ export default async function PortfolioPage() {
   ) as Record<PricePeriod, Awaited<ReturnType<typeof getPortfolioValueHistory>>>;
 
   const [aiConfig, cachedInsight] = await Promise.all([
-    getAiConfig(userId, { allowEnv: false }),
+    getUserAiConfig(userId),
     getCachedInsight('portfolio', 'portfolio', userId).catch(() => null),
   ]);
   const aiInsight = {
