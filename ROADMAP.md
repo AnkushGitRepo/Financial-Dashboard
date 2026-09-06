@@ -128,8 +128,37 @@ Scoped 2026-09-06 — see [ADR 0015](./docs/decisions/0015-news-feed-scope.md). 
 
 **Explicitly out of v1 scope** (ADR 0015): notifications on news, LLM sentiment/summarisation, near-duplicate-story dedup across outlets, full article text / reader view, non-English news, user-configurable sources or per-source muting, per-user saved/read state.
 
-## Phase 7 — IPO Tracker + GMP Alerts (nodemailer) ❓
-Needs a dedicated discussion: GMP data source (same tiered-sourcing principle as Phase 4 likely applies — check before assuming scraping), exact alert trigger logic (threshold AND/OR last-apply-date), reuse of Phase 5's alert delivery pipeline.
+## Phase 7 — IPO Tracker + GMP Alerts 🔄
+Scoped 2026-09-06 — see [ADR 0017](./docs/decisions/0017-ipo-tracker-gmp-scope.md). v1 = IPO calendar + subscription + **GMP** (scraped from one aggregator, heavily caveated), ingested in `fundamentals-api` with lazy TTL refresh; alerts reuse Phase 5's engine (two new variants: a per-user `ipo_watch` subscription + per-IPO `ipo` alerts) with four triggers (opens / last day / allotment+listing / GMP threshold); a `/dashboard/ipos` page + a dashboard-home widget. The title's "nodemailer" is superseded by ADR 0014 — IPO alerts go through `deliverNotification` (in-app + webhook).
+
+**GATE — do first:** ToS review of the chosen GMP/IPO aggregator (Chittorgarh is the lead candidate), recorded in `/docs/data-sources.md`. Resolve, don't defer. If clearly hostile → GMP display-only from another site, or drop GMP for v1.
+
+**Backend — fundamentals-api:**
+- [ ] Migration: `ipos` table — identity + slug (dedup key), exchange, `ipo_type` (mainboard|sme), `status` (upcoming|open|closed|listed), open/close/allotment/listing dates, price band, lot size, issue size, `subscription_times`, `gmp` + `gmp_pct` + `gmp_updated_at`, `source_tier`, `fetched_at`. `ipo_cache_ttl_minutes` (~60) in `config.py`.
+- [ ] `app/ingestion/ipos.py` + isolated `app/ingestion/tier3_ipo_scraper/` (mirrors `tier3_screener_scrapling/`) — Tier 1 NSE/BSE IPO endpoints (`nsepython`/BSE) attempt, Tier 3 aggregator scrape as the practical primary (NSE often blocked). Parse calendar + subscription + GMP. Degrade to "GMP unavailable" cleanly.
+- [ ] `app/services/ipo_service.py` — lazy TTL refresh-on-read, dedup upsert on slug.
+- [ ] `GET /ipos?status=` endpoint (registered in `main.py`). Offline tests against a saved aggregator-page fixture (calendar/subscription/GMP parsing) + a status-filter test.
+- [ ] Docs: service README (endpoint + coverage row) and `/docs/data-sources.md` (aggregator entry with the resolved ToS line).
+
+**Backend — main app (alerts reuse):**
+- [ ] Zod variants in `src/lib/alerts/schemas.ts`: `ipo_watch` (`{ triggers:{opens,lastDay,allotmentListing}, gmpThresholdPct?, ipoType }`, one per user) + `ipo` (`{ ipoSlug, trigger, gmpThresholdPct?/Abs? }`, per-IPO).
+- [ ] `src/lib/alerts/store.ts` (or thin `ipoWatch.ts`) — one `ipo_watch` doc per user with a `sentKeys` set (`"<slug>:<trigger>"`), pruned for IPOs listed >30d ago.
+- [ ] `src/lib/alerts/ipoAlerts.ts` — pure `evaluateIpoWatch(watch, ipoList, now)` + `evaluateIpoAlert(alert, ipoList, now)` (date triggers in `Asia/Kolkata`; `gmp_threshold` reuses the crossing logic + skips on missing GMP). Table tests.
+- [ ] `evaluateAlerts()` — new branch: fetch `GET /ipos` once per cycle, evaluate IPO alerts, deliver via `deliverNotification`. Loop-test coverage.
+- [ ] `GET/POST/PATCH/DELETE /api/alerts` already generic — extend where the discriminated union needs it; document the new variants in `/docs/api-surface.md`.
+
+**Frontend — Next.js:**
+- [ ] `src/lib/dashboard/iposApi.ts` client + `/api/ipos` thin proxy if the list filters client-side.
+- [ ] `/dashboard/ipos` — Open now / Upcoming / Recently listed sections; each row shows dates, price band, lot size, issue size, subscription ×, and **GMP with its "unofficial grey-market estimate, not from any exchange" caveat inline**. Page-header "Notify me about IPOs" control → the `ipo_watch` subscription (trigger checkboxes + mainboard-only). "Set alert" per row → a per-IPO `ipo` alert. "IPOs" added to `AppHeader` nav (not the mobile tab bar — already at 5).
+- [ ] "IPOs open now" compact card on `/dashboard` home, linking to the page.
+- [ ] Built against the design system + `--app-*` tokens.
+
+**Cross-cutting:**
+- [ ] No `isHosted()` gating (IPO data is public). Works in both modes.
+- [ ] `tsc` / `lint` / `next build` / `npm test` green; fundamentals-api `pytest` green. Verify live: `/ipos` returns real IPOs + GMP; the page + widget render; one IPO alert fires end-to-end.
+- [ ] Update `/docs/architecture.md`; confirm the phase with the user before archiving.
+
+**Explicitly out of v1 scope** (ADR 0017): GMP history/charts, buybacks/rights issues/NFOs, broker- or category-wise subscription breakdown, "apply via broker" links, email delivery, a second GMP source / cross-checking.
 
 ## Phase 8 — AI Insights (stock-level + portfolio-level) ❓
 Needs a dedicated discussion: which LLM provider(s) for v1, insight scope/format, how trial-limit counting (from the hosted pricing model) actually gets enforced per insight generated.
