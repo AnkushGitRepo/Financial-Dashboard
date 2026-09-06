@@ -11,7 +11,13 @@ vi.mock('./chunks', () => ({
   deleteSourceChunks: (...a: unknown[]) => deleteSourceChunks(...a),
 }));
 
-const { syncUserNote, removeUserNote, syncUserHoldings, noteSource } = await import('./userSync');
+const getEnrichedHoldings = vi.fn();
+vi.mock('@/lib/dashboard/enrichedHoldings', () => ({
+  getEnrichedHoldings: () => getEnrichedHoldings(),
+}));
+
+const { syncUserNote, removeUserNote, syncUserHoldings, resyncUserHoldings, noteSource } =
+  await import('./userSync');
 
 const note: UserNote = {
   id: 'n1',
@@ -69,6 +75,21 @@ describe('syncUserHoldings', () => {
     expect(await syncUserHoldings('u1', [])).toBe(true);
     expect(deleteSourceChunks).toHaveBeenCalledWith('holdings:u1');
     expect(replaceSourceChunks).not.toHaveBeenCalled();
+  });
+});
+
+describe('resyncUserHoldings', () => {
+  it('fetches enriched holdings then re-embeds the snapshot', async () => {
+    getEnrichedHoldings.mockResolvedValue([
+      { symbol: 'TCS', name: 'TCS', sector: 'IT', quantity: 2, avgPrice: 3000, ltp: 3200 },
+    ]);
+    await resyncUserHoldings('u1');
+    expect(replaceSourceChunks.mock.calls[0][0]).toBe('holdings:u1');
+  });
+
+  it('never throws when the fetch fails', async () => {
+    getEnrichedHoldings.mockRejectedValue(new Error('fundamentals down'));
+    await expect(resyncUserHoldings('u1')).resolves.toBeUndefined();
   });
 });
 

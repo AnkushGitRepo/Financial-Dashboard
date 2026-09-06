@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getCurrentUserId } from '@/lib/currentUserId';
 import { deleteHolding, updateHolding } from '@/lib/holdings';
+import { resyncUserHoldings } from '@/lib/rag/userSync';
 
 const updateHoldingSchema = z.object({
   quantity: z.number().positive(),
@@ -25,6 +26,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (!holding) {
     return NextResponse.json({ success: false, error: 'Holding not found' }, { status: 404 });
   }
+  void resyncUserHoldings(userId);
   return NextResponse.json({ success: true, data: holding });
 }
 
@@ -39,5 +41,6 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   if (!deleted) {
     return NextResponse.json({ success: false, error: 'Holding not found' }, { status: 404 });
   }
+  void resyncUserHoldings(userId);
   return NextResponse.json({ success: true, data: null });
 }

@@ -3,7 +3,7 @@
 // after a holdings mutation — a sync failure must never fail the write, so
 // every function here swallows its errors and returns a boolean.
 
-import type { EnrichedHolding } from '@/lib/dashboard/enrichedHoldings';
+import { getEnrichedHoldings, type EnrichedHolding } from '@/lib/dashboard/enrichedHoldings';
 import type { UserNote } from '@/lib/notes/userNotes';
 import { chunkText } from './chunk';
 import { deleteSourceChunks, replaceSourceChunks, type ChunkMeta } from './chunks';
@@ -80,4 +80,15 @@ export async function syncUserHoldings(
     { docType: 'holdings', userId, title: 'My holdings', publishedAt: new Date() },
     `Current holdings:\n${lines.join('\n')}`
   );
+}
+
+/** Fire-and-forget helper for the holdings mutation routes: fetch the
+ *  user's enriched holdings and re-embed the snapshot. Swallows everything. */
+export async function resyncUserHoldings(userId: string): Promise<void> {
+  try {
+    const holdings = await getEnrichedHoldings(userId);
+    await syncUserHoldings(userId, holdings);
+  } catch {
+    /* best-effort */
+  }
 }
