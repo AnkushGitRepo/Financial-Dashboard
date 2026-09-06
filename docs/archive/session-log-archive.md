@@ -118,3 +118,56 @@ Rolled up 2026-09-06 when Phases 4–8 were signed off. Feature detail:
   inert until secret + default branch set). 4 tests; suite 67.
 - **2026-09-06** — Phase 7 deployed to production: prod Neon migrated, `IPO_INGEST_TOKEN`
   set, both projects redeployed, `refresh_ipos.py` run once → 39 real IPOs seeded.
+
+---
+
+## Rollup 2 — Phase 8 + Phase 9 (2026-09-06)
+
+Rolled up 2026-09-06 when Phase 9 was signed off. Feature detail:
+[ai-insights.md](./ai-insights.md), [api-surface.md](./api-surface.md).
+
+### Phase 8 — AI insights + Mitra chat
+
+- **2026-09-06** — Phase 8 scoped (ADR 0018): four surfaces, AI SDK v7 with three BYO
+  adapters (not the shared-key Gateway), key AES-256-GCM encrypted in `userSettings`,
+  IPO briefs cross-user-shared / stock+portfolio per-user, guardrail on every prompt.
+- **2026-09-06** — pt.1: `src/lib/ai/` (providers / generate / prompts / userAiConfig),
+  `crypto.ts`, `/dashboard/settings` + `/api/settings/ai`. 101 tests.
+- **2026-09-06** — pt.2: `insights.ts` get-or-generate cache + `InsightCard` on stock /
+  portfolio / IPO. 109 tests.
+- **2026-09-06** — pt.5: Mitra chat real (streamed `/api/ai/chat`), `chatContext.ts`;
+  `getUserAiConfig` self-host env-key fix; DRHP grounding deferred. 114 tests.
+- **2026-09-06** — Phase 8 deployed (`SETTINGS_ENC_KEY` set).
+- **2026-09-06** — Post-deploy fix: "key not working" was the retired `gemini-2.5-flash`
+  model (Google 404s it for new keys) → default `gemini-3.6-flash`; `normalizeAiError`
+  surfaces the provider's own text; `MAX_OUTPUT_TOKENS` 700→2048. `adc8301`, `ade642b`.
+- **2026-09-06** — Prod verification pass for Phase 4–8 sign-off (interrupted by an IDE
+  restart). Found the `getAiConfig` cold-start bug (see next).
+- **2026-09-06** — `getAiConfig` cold-start bug fixed (`ffd3225`→`09fd986`→`ee8d443`): a
+  blanket `.catch(() => null)` read a cold Mongo timeout as "no key" and SSR'd "Add your AI
+  key". Landed on retry-with-backoff + `resolveHasAiKey()` degrading a persistent DB error
+  to the optimistic "Generate" affordance. Prod-verified across HDFCBANK/LT/BAJFINANCE/MARUTI.
+
+### Phases 4–8 sign-off + Phase 9
+
+- **2026-09-06** — Phases 4–8 signed off; archiving/pruning protocol run (5 archive files,
+  architecture.md collapsed, session-log Rollup 1, ROADMAP flipped ✅, CLAUDE.md rewritten).
+- **2026-09-06** — `v2` merged to `main` (so GH Actions `schedule:` fires); the IDE
+  file-sync tool's `" N"` duplicate files were swept into a commit then removed (`542d419`)
+  and gitignore-guarded (`6e3c5c7`). Phase 9 scoped (ADR 0019): full MCP server, Upstash
+  rate limiting, hosted API explorer.
+- **2026-09-06** — Phase 9 Part 1: MCP server at `/api/mcp` — 7 read-only tools
+  (`src/lib/mcp/`), `mcp-handler`@2, `public/llms.txt`. Route-in-Next-app, not a standalone
+  service. 17 tests, suite 148. Deployed.
+- **2026-09-06** — Phase 9 Parts 2+3: `src/lib/rateLimit.ts` + `src/proxy.ts` middleware +
+  `withRateLimit` on `/api/mcp` and the AI routes; `services/fundamentals-api` got its own
+  `app/rate_limit.py` + HTTP middleware (httpx-only, no `redis` dep). `public/openapi.json`
+  + `/dashboard/api` explorer (CI-checked against the routes). 2 explorer bugs found + fixed
+  in prod verification (MCP `Accept` header; SSE pretty-print). 158 tests.
+- **2026-09-06** — Post-sign-off follow-ups: scripted "Proactive insight" chat tiles
+  (`aiWidgetContent.ts`) deleted → real section-aware starter prompt chips; stock
+  price-history chart x-axis fixed (dedup repeated month labels + reverse to chronological
+  order — `/prices` returns newest-first).
+- **2026-09-06** — README correctness sweep: "## Status" was frozen at Phase 3; removed the
+  "paid hosted option (7-day free trial)" / "billing UI" language (contradicts the no-paid-tier
+  constraint).

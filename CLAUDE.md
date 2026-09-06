@@ -44,7 +44,7 @@ MarketMitra is a financial dashboard (Indian markets: indices, stocks, IPOs, new
 
 ## Active focus
 
-**No build in flight.** Phase 9 is done and in prod; it needs the user's explicit sign-off, then the archiving protocol runs on it (collapse ROADMAP + architecture.md detail, log the prune). The only feature-level thing not yet built is Phases 10 (RAG) / 11 (multi-agent) — both ❓, both need a scoping session first (like the Phase 5–9 questionnaires), do not build from assumptions.
+**No build in flight.** Phases 0–9 are signed off, archived, and in production (Phase 9 signed off + archived 2026-09-06). The only feature-level work left is Phases 10 (RAG) / 11 (multi-agent) — both ❓, both need a scoping session first (like the Phase 5–9 questionnaires), do not build from assumptions.
 
 The [ADR 0019](./docs/decisions/0019-phase-9-api-surface-mcp-rate-limiting.md) MCP tool layer (`src/lib/mcp/`) is the natural foundation for Phase 10/11 — those can call the tools rather than re-plumb data access.
 

@@ -4,7 +4,7 @@ This is the entry-point document for building MarketMitra v2 across many session
 
 ## How to use this document
 
-- Find the current phase (marked 🔄 below). Read its checklist. Work through unchecked items in order unless they're explicitly parallel. **As of 2026-09-06: Phases 0–8 are ✅ (signed off, archived); Phase 9 is 🔄 (scoped via [ADR 0019](./docs/decisions/0019-phase-9-api-surface-mcp-rate-limiting.md), checklist ready, no code yet); Phases 10–11 stay ❓.** The small non-blocking leftovers from Phases 4–8 live under "Post-sign-off follow-ups" after Phase 8.
+- Find the current phase (marked 🔄 below). Read its checklist. Work through unchecked items in order unless they're explicitly parallel. **As of 2026-09-06: Phases 0–9 are ✅ (signed off, archived, in production). Phases 10 (RAG) / 11 (multi-agent) stay ❓ — need a scoping session, not a build.** Non-blocking leftovers (scheduler activation, Resend email, real alert/IPO-alert fire tests, DRHP grounding) live under "Post-sign-off follow-ups" after Phase 8 — each needs a user action.
 - **After completing any single checklist item** — not just at the end of a phase — do all of the following before moving to the next item:
   1. Check the box in this file.
   2. If the item involved a real decision (a library choice, a schema choice, a structural change), add or update an ADR in `/docs/decisions/`.
@@ -239,7 +239,9 @@ Carried past sign-off 2026-09-06. Each is small and independent; none gates Phas
 
 ---
 
-## Phase 9 — API Surface: MCP server + rate limiting + API explorer 🔄
+## Phase 9 — API Surface: MCP server + rate limiting + API explorer ✅
+**Signed off 2026-09-06.** All three parts built, deployed, and prod-verified (MCP `/api/mcp`; Upstash rate limiting live on both services; explorer `/dashboard/api`). Full build detail archived to [`/docs/archive/api-surface.md`](./docs/archive/api-surface.md); `/docs/architecture.md` holds the summary. Remaining follow-ups (scheduler activation, Resend, real fire tests, DRHP) are under "Post-sign-off follow-ups" above.
+
 Scoped 2026-09-06 — see [ADR 0019](./docs/decisions/0019-phase-9-api-surface-mcp-rate-limiting.md). Three deliverables, buildable largely in parallel: (1) a **full MCP server** exposing the read-only public data as agent tools (supersedes the original "JSON/Markdown response modes"), (2) **Upstash Redis** (Vercel Marketplace) sliding-window **rate limiting** on `/api/*` + the fundamentals-api public endpoints + the MCP server, (3) a **hosted interactive API explorer** page. Per-user MCP tools, API keys, and monetized tiers are explicitly out of v1.
 
 **Part 1 — MCP server:** ✅ built + deployed 2026-09-06.
@@ -275,7 +277,7 @@ Scoped 2026-09-06 — see [ADR 0019](./docs/decisions/0019-phase-9-api-surface-m
 - [x] **Prod deploy** — done 2026-09-06 (deploy `hqgdf1gal`). MCP + explorer + `/openapi.json` + `/llms.txt` live and verified. Rate limiting inert until the Upstash env vars are set (needs `vercel integration add upstash/upstash-kv` + a redeploy).
 - [x] Activate rate limiting — done 2026-09-06. Upstash provisioned + connected to both projects, both redeployed (`chsaxkpoc` / `eo8vuc9qe`), 429-under-load verified on both services.
 - [x] `services/fundamentals-api` own limiter — done 2026-09-06 (see Part 2). Needs the same Upstash env vars set on the `marketmitra-fundamentals-api` Vercel project + a redeploy to go live.
-- [ ] Confirm the phase with the user before archiving.
+- [x] Confirmed as done by the user 2026-09-06 ("approved"); archiving protocol run — detail moved to [`/docs/archive/api-surface.md`](./docs/archive/api-surface.md).
 
 ## Phase 10 — AI Chat with RAG ❓
 Needs a dedicated discussion: what's actually in the retrieval corpus (news? filings? portfolio data? all three?), which vector store, how it's scoped per-user vs. general market knowledge.

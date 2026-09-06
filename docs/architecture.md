@@ -4,15 +4,12 @@ Current system architecture for MarketMitra v2. Kept in sync with reality — wh
 ships and is signed off, its detailed build notes move to `/docs/archive/<feature-name>.md`
 and only a short summary stays here (see the context maintenance protocol in `/CLAUDE.md`).
 
-## Status: Phases 0–8 signed off — Phase 9 in progress
+## Status: Phases 0–9 signed off and in production
 
 v2 is a teardown-and-rebuild of the v1 Financial-Dashboard repo ([ADR 0001](./decisions/0001-teardown-and-rebuild.md)).
-All feature phases through Phase 8 are built, deployed to production, and signed off
-(2026-09-06). `v2` was merged to `main` on 2026-09-06 so the GitHub Actions cron
-schedulers can fire; both branches are currently identical. **Phase 9 (API surface —
-MCP server / rate limiting / API explorer, [ADR 0019](./decisions/0019-phase-9-api-surface-mcp-rate-limiting.md))
-is underway** — the MCP server (`/api/mcp`) is built and tested; rate limiting and the
-explorer page are next.
+Every feature phase through **Phase 9 (API surface)** is built, deployed to production, and
+signed off (2026-09-06). `v2` was merged to `main` so the GitHub Actions cron schedulers can
+fire from the default branch; both branches are kept identical.
 
 - **Phase 2–3:** scaffold + deployment-mode gate, landing page, on-brand auth pages,
   dashboard shell. ([archive: landing-page, auth-pages, dashboard-shell](./archive/))
@@ -22,16 +19,16 @@ explorer page are next.
 - **Phase 6:** news feed (`/dashboard/news`). ([archive](./archive/news-feed.md))
 - **Phase 7:** IPO tracker + GMP (`/dashboard/ipos`). ([archive](./archive/ipo-tracker.md))
 - **Phase 8:** AI insights + Mitra chat (`/dashboard/settings` + insight cards + chat). ([archive](./archive/ai-insights.md))
+- **Phase 9:** API surface — MCP server (`/api/mcp`), fair-use rate limiting, interactive explorer (`/dashboard/api`). ([archive](./archive/api-surface.md))
 
 The repo is a small monorepo: the Next.js app at the root (`src/`) plus a standalone Python
 service under `services/fundamentals-api/`.
 
-**Open follow-ups carried past sign-off** (tracked in ROADMAP.md, not blockers):
-activating the two GitHub Actions schedulers (alert eval, IPO refresh); Resend email
-delivery; one real alert fire + one real IPO-alert fire in market hours; DRHP grounding for
-IPO briefs. (Done since sign-off: Tier 1 filing-URL discovery for financial statements;
-scripted "Proactive insight" chat tiles replaced; hosted fair-use rate limiting shipped,
-activated, and verified.)
+**Open follow-ups** (tracked in ROADMAP.md, not blockers, each needs a user action):
+activating the two GitHub Actions schedulers (`gh secret set` — they fire from `main`, now
+the default branch); Resend email delivery (needs a from-domain); one real alert fire + one
+real IPO-alert fire in market hours; DRHP grounding for the IPO brief. Phases 10 (RAG) / 11
+(multi-agent) are ❓ — a scoping session, not a build task.
 
 ## Stack
 
@@ -252,31 +249,27 @@ live-as-you-type reads go through thin same-origin `/api/*` proxies (`/api/holdi
 `/api/insights/*`, `/api/ai/chat`). The scheduled work is `GET|POST /api/cron/evaluate-alerts`.
 All public endpoints are documented in [`/docs/api-surface.md`](./api-surface.md).
 
-## MCP server (`/api/mcp`, Phase 9 — in progress)
+## API surface — MCP server, rate limiting, explorer (Phase 9)
 
-Full rationale: [ADR 0019](./decisions/0019-phase-9-api-surface-mcp-rate-limiting.md).
-The supported interface for automated / agent access to MarketMitra's **public**
-data. A stateless Streamable HTTP MCP server mounted in the Next app
-(`src/app/api/mcp/route.ts` via `mcp-handler`@2 + `@modelcontextprotocol/server`@2),
-**not** a standalone service — the tools wrap the same `src/lib/dashboard/*`
-clients the dashboard uses, which already call `services/fundamentals-api`.
+Full detail: [archive/api-surface.md](./archive/api-surface.md); rationale in
+[ADR 0019](./decisions/0019-phase-9-api-surface-mcp-rate-limiting.md); per-endpoint reference
+in [`/docs/api-surface.md`](./api-surface.md). All live in production.
 
-- **Tools (`src/lib/mcp/tools.ts`, registered by `src/lib/mcp/server.ts`):**
-  `search_symbols`, `get_quote`, `get_company_fundamentals` (optional
-  `sections`), `get_price_history`, `get_news`, `list_ipos`,
-  `get_market_indices` — all read-only. Zod input schemas; each `run()`
-  returns a plain object, wrapped into a `CallToolResult` (pretty JSON text
-  + `structuredContent`).
-- **No auth in v1** (public data). Per-user tools (portfolio / alerts /
-  settings) are deferred pending an MCP auth design. **Rate limiting is
-  Phase 9 Part 2** (Upstash) — not yet built.
-- **Guardrail parity with ADR 0018:** every data-touching result carries a
-  "public reference data, not investment advice" note; news carries
-  "headline tone, not a signal"; IPO GMP carries "unofficial estimate".
-- **Discovery:** `public/llms.txt` (served at `/llms.txt`) points agents here.
-- Endpoint + tool table: [`/docs/api-surface.md`](./api-surface.md).
-- **Not yet done:** prod deploy (ships with Part 2), rate limiting, the
-  interactive API explorer page (Part 3).
+- **MCP server — `/api/mcp`** (`src/lib/mcp/`, `mcp-handler`@2, a Next route not a standalone
+  service). 7 read-only tools wrapping `src/lib/dashboard/*`: `search_symbols`, `get_quote`,
+  `get_company_fundamentals`, `get_price_history`, `get_news`, `list_ipos`,
+  `get_market_indices`. No auth in v1 (public data; per-user tools deferred). Every result
+  carries "not investment advice" / "headline tone" / "unofficial GMP" framing.
+  `public/llms.txt` points agents here.
+- **Rate limiting** — `@upstash/ratelimit` on `/api/*` (via `src/proxy.ts` middleware) +
+  `/api/mcp` + the AI routes (`src/lib/rateLimit.ts`), and a fixed-window limiter on the
+  fundamentals-api public endpoints (`app/rate_limit.py` + middleware). Keyed by Clerk
+  `userId` else client IP, fails open, no-op when no Upstash creds (self-host). Reads
+  `KV_REST_API_*` (Vercel integration) or `UPSTASH_REDIS_REST_*`. Live against an Upstash
+  store in `iad1` connected to both Vercel projects.
+- **API explorer — `/dashboard/api`** + `public/openapi.json` (CI-checked against the route
+  handlers). Pick an endpoint, fill params, send against the deployment with your session,
+  copy-as-curl.
 
 ## Shipped features (see `/docs/archive/` for detail)
 
@@ -288,3 +281,4 @@ clients the dashboard uses, which already call `services/fundamentals-api`.
 - **News feed (Phase 6)** — [archive/news-feed.md](./archive/news-feed.md)
 - **IPO tracker + GMP (Phase 7)** — [archive/ipo-tracker.md](./archive/ipo-tracker.md)
 - **AI insights + Mitra chat (Phase 8)** — [archive/ai-insights.md](./archive/ai-insights.md)
+- **API surface: MCP server + rate limiting + explorer (Phase 9)** — [archive/api-surface.md](./archive/api-surface.md)
