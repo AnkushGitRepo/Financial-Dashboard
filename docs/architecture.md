@@ -4,11 +4,15 @@ Current system architecture for MarketMitra v2. Kept in sync with reality — wh
 ships and is signed off, its detailed build notes move to `/docs/archive/<feature-name>.md`
 and only a short summary stays here (see the context maintenance protocol in `/CLAUDE.md`).
 
-## Status: Phases 0–8 complete — awaiting Phase 9 scoping
+## Status: Phases 0–8 signed off — Phase 9 in progress
 
 v2 is a teardown-and-rebuild of the v1 Financial-Dashboard repo ([ADR 0001](./decisions/0001-teardown-and-rebuild.md)).
 All feature phases through Phase 8 are built, deployed to production, and signed off
-(2026-09-06). Code lives on the `v2` branch (not merged to `main`).
+(2026-09-06). `v2` was merged to `main` on 2026-09-06 so the GitHub Actions cron
+schedulers can fire; both branches are currently identical. **Phase 9 (API surface —
+MCP server / rate limiting / API explorer, [ADR 0019](./decisions/0019-phase-9-api-surface-mcp-rate-limiting.md))
+is underway** — the MCP server (`/api/mcp`) is built and tested; rate limiting and the
+explorer page are next.
 
 - **Phase 2–3:** scaffold + deployment-mode gate, landing page, on-brand auth pages,
   dashboard shell. ([archive: landing-page, auth-pages, dashboard-shell](./archive/))
@@ -241,6 +245,32 @@ live-as-you-type reads go through thin same-origin `/api/*` proxies (`/api/holdi
 `/api/alerts`, `/api/notifications`, `/api/search`, `/api/news`, `/api/settings/ai`,
 `/api/insights/*`, `/api/ai/chat`). The scheduled work is `GET|POST /api/cron/evaluate-alerts`.
 All public endpoints are documented in [`/docs/api-surface.md`](./api-surface.md).
+
+## MCP server (`/api/mcp`, Phase 9 — in progress)
+
+Full rationale: [ADR 0019](./decisions/0019-phase-9-api-surface-mcp-rate-limiting.md).
+The supported interface for automated / agent access to MarketMitra's **public**
+data. A stateless Streamable HTTP MCP server mounted in the Next app
+(`src/app/api/mcp/route.ts` via `mcp-handler`@2 + `@modelcontextprotocol/server`@2),
+**not** a standalone service — the tools wrap the same `src/lib/dashboard/*`
+clients the dashboard uses, which already call `services/fundamentals-api`.
+
+- **Tools (`src/lib/mcp/tools.ts`, registered by `src/lib/mcp/server.ts`):**
+  `search_symbols`, `get_quote`, `get_company_fundamentals` (optional
+  `sections`), `get_price_history`, `get_news`, `list_ipos`,
+  `get_market_indices` — all read-only. Zod input schemas; each `run()`
+  returns a plain object, wrapped into a `CallToolResult` (pretty JSON text
+  + `structuredContent`).
+- **No auth in v1** (public data). Per-user tools (portfolio / alerts /
+  settings) are deferred pending an MCP auth design. **Rate limiting is
+  Phase 9 Part 2** (Upstash) — not yet built.
+- **Guardrail parity with ADR 0018:** every data-touching result carries a
+  "public reference data, not investment advice" note; news carries
+  "headline tone, not a signal"; IPO GMP carries "unofficial estimate".
+- **Discovery:** `public/llms.txt` (served at `/llms.txt`) points agents here.
+- Endpoint + tool table: [`/docs/api-surface.md`](./api-surface.md).
+- **Not yet done:** prod deploy (ships with Part 2), rate limiting, the
+  interactive API explorer page (Part 3).
 
 ## Shipped features (see `/docs/archive/` for detail)
 

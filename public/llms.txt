@@ -1,0 +1,47 @@
+# MarketMitra
+
+> A free, open-source financial dashboard for Indian markets (NSE): indices,
+> stocks, fundamentals, news sentiment, IPOs, and AI insights. Built to serve
+> both a human dashboard UI and a documented API surface an AI agent can call.
+> All figures are public reference data — not investment advice.
+
+## MCP server (recommended for agents)
+
+MarketMitra exposes its read-only public data as an MCP server over
+Streamable HTTP:
+
+    https://marketmitra-v2.vercel.app/api/mcp
+
+Client config: `{ "url": "https://marketmitra-v2.vercel.app/api/mcp" }`
+
+Tools (all read-only, no auth; rate-limited):
+
+- `search_symbols` — resolve a company name to an NSE trading symbol
+- `get_quote` — batched live quotes (price, prev close, day change, 52w range)
+- `get_company_fundamentals` — ratios, financial statements, shareholding,
+  peers, annual-report links, business description
+- `get_price_history` — daily OHLCV over 1mo / 6mo / 1y / 5y
+- `get_news` — Indian-markets headlines; `sentiment` is rough headline tone,
+  not analysis and not a signal
+- `list_ipos` — IPO calendar, subscription, and unofficial grey-market
+  premium (GMP is a third-party estimate, not an exchange figure)
+- `get_market_indices` — NIFTY 50, SENSEX, NIFTY BANK, INDIA VIX
+
+Resolve company names with `search_symbols` before calling the others.
+
+## REST API
+
+The dashboard's own HTTP endpoints (holdings, alerts, notifications, AI
+insights, chat, search, news) are documented at:
+
+    https://github.com/AnkushGitRepo/Financial-Dashboard/blob/main/docs/api-surface.md
+
+Per-user endpoints require a Clerk session. The MCP server above is the
+supported interface for automated/agent access to public data.
+
+## Notes
+
+- Data sourcing is free-only (no paid vendors). Some fields can be null when
+  an upstream source came up short; every record carries a `source_tier`.
+- MarketMitra has no paid tier. The hosted instance applies fair-use rate
+  limits.

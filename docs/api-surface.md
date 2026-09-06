@@ -135,6 +135,33 @@ Every endpoint here is a Next.js App Router route handler under `app/api/**/rout
 
 **Note:** the dashboard's stock/ratios/financials/shareholding/price/indices/quote/news data comes from `services/fundamentals-api` (a separate service, documented in its own `README.md` — see ADR 0011), consumed directly by Next.js Server Components rather than proxied through a `/api/*` route, since it's an already-documented service being consumed, not a new one MarketMitra is shipping. `/api/search` above is the one deliberate exception.
 
+## MCP server — `/api/mcp` (Phase 9, ADR 0019)
+
+The **supported interface for automated / agent access to public data.** A
+stateless Streamable HTTP MCP server mounted in the Next app
+(`src/app/api/mcp/route.ts` via `mcp-handler`), wrapping the same
+`src/lib/dashboard/*` clients the dashboard uses. Tool logic lives in
+`src/lib/mcp/tools.ts`; `src/lib/mcp/server.ts` registers it.
+
+- **Endpoint:** `GET|POST /api/mcp` — client config `{ "url": "https://<host>/api/mcp" }`. Streamable HTTP (2025-era clients get the SDK's stateless fallback). No SSE, no sessions.
+- **Auth:** none in v1 — all tools are read-only public data. Rate-limited (Phase 9 Part 2). Per-user tools (portfolio / alerts / settings) are explicitly deferred pending an MCP auth design.
+- **Guardrail:** every tool result that touches market data carries a "public reference data, not investment advice" note; news carries "headline tone, not a signal"; IPO GMP carries "unofficial grey-market estimate".
+- **Discovery:** `/llms.txt` (static, `public/llms.txt`) points agents here.
+
+### Tools (v1)
+
+| Tool | Input | Returns |
+| --- | --- | --- |
+| `search_symbols` | `{ query: string }` | `{ query, count, results: [{type,symbol,name}] }` — ≤15 matches across ~2,570 NSE equities + indices |
+| `get_quote` | `{ symbols: string[1..50] }` | `{ count, quotes: QuoteOut[], missing: string[], note }` — unknown symbols reported in `missing`, never faked |
+| `get_company_fundamentals` | `{ symbol: string, sections?: ("company"\|"ratios"\|"shareholding"\|"peers"\|"documents"\|"financials")[] }` | `{ symbol, found, company?, ratios?, shareholding?, peers?, documents?, financials?: {profit_and_loss,balance_sheet,cash_flow} }` — `found:false` with a hint when the symbol is unknown |
+| `get_price_history` | `{ symbol: string, period?: "1mo"\|"6mo"\|"1y"\|"5y" }` (default `1y`) | `{ symbol, period, count, points: PricePointOut[] }` — newest first |
+| `get_news` | `{ symbols?: string[≤20], limit?: 1..50, cursor?: string }` (default limit 20) | `{ count, items: NewsItem[], next_cursor, note }` — omit `symbols` for the broad stream; `sentiment` = headline tone only |
+| `list_ipos` | `{ status?: "upcoming"\|"open"\|"closed"\|"listed" }` | `{ count, ipos: Ipo[], note }` — GMP fields are an unofficial third-party estimate |
+| `get_market_indices` | `{}` | `{ count, indices: IndexQuoteOut[], note }` — NIFTY 50, SENSEX, NIFTY BANK, INDIA VIX |
+
+Field shapes (`QuoteOut`, `PricePointOut`, `NewsItem`, `Ipo`, `IndexQuoteOut`, …) are defined in `src/lib/dashboard/{fundamentalsApi,newsApi,iposApi}.ts` and documented in `services/fundamentals-api/README.md`. Any field can be null/empty when the free source chain came up short; every record carries `source_tier`.
+
 <!--
 Template for a new entry:
 

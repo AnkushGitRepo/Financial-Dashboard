@@ -56,17 +56,23 @@ checklist lives in `ROADMAP.md` under Phase 9.
 
 Phase 9 delivers three things, buildable largely in parallel:
 
-### 1. MCP server (`services/mcp/` — new, or a route group in the Next app)
+### 1. MCP server — `/api/mcp` route in the Next app
 
 - **Transport:** Streamable HTTP MCP server (not stdio) so it's hostable on
   Vercel and callable by remote agents. A stdio entrypoint may be added for
   local use if cheap.
-- **Placement:** leaning toward a standalone `services/mcp/` (TypeScript,
-  `@modelcontextprotocol/sdk`) that calls the same underlying libraries the
-  route handlers use (`src/lib/*`) — **decided at build time** after a
-  spike; the alternative is an `/api/mcp/[transport]` route group inside the
-  Next app. Either way it reuses existing data-access code, does not
-  re-implement it.
+- **Placement — RESOLVED 2026-09-06 (build): a route inside the Next app**
+  (`src/app/api/mcp/route.ts`) via **`mcp-handler`@2** (Vercel's adapter,
+  wraps `@modelcontextprotocol/server`@2 — the SDK v2 packages; `mcp-handler`
+  does not inspect the pathname so no `[transport]` segment is needed),
+  *not* a standalone `services/mcp/`. Rationale: the v1 tools wrap `src/lib/dashboard/*`
+  functions that already exist (`searchSymbols`, `getQuotes`, `getCompany`
+  et al., `getNews`, `getIpos`, `getIndices`) — those already call
+  `fundamentals-api` over HTTP, so a standalone MCP service would just add a
+  third hop and a third deploy target for zero benefit. The route group
+  reuses `FUNDAMENTALS_API_URL`, the same libs, the same CI/test suite, and
+  the same Vercel project. Stateless Streamable HTTP (no Redis needed for
+  the MCP transport itself; Part 2's rate-limit store is separate).
 - **Tools (v1)** — read-only, mapping to existing capability:
   `search_symbols`, `get_quote`, `get_company_fundamentals` (ratios /
   financials / shareholding / peers / about / documents), `get_price_history`,
