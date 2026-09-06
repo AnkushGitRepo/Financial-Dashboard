@@ -35,9 +35,16 @@ from datetime import date, datetime
 import httpx
 
 from app.config import get_settings
-from app.ingestion import pdf_financials, xbrl_parser
+from app.ingestion import xbrl_parser
 from app.ingestion.rate_limit import RateLimiter
 from app.schemas import PeriodType, StatementType
+
+# NOTE: `app.ingestion.pdf_financials` is imported lazily inside
+# `extract_tier1_line_items` — it pulls in `pdfplumber`, which the trimmed
+# production `requirements.txt` deliberately omits (ADR 0013). Keeping it off
+# this module's import chain means `filing_discovery` (which IS on the live
+# request path) stays lean; the PDF branch just degrades to "no items" and
+# the caller falls through to Tier 3.
 
 logger = logging.getLogger("fundamentals.filing_discovery")
 
@@ -331,10 +338,12 @@ async def extract_tier1_line_items(
 
     if not raw_items and filing.pdf_url:
         try:
+            from app.ingestion import pdf_financials  # lazy — see module note
+
             pdf_bytes = await _download(filing.pdf_url)
             raw_items = pdf_financials.extract_statement_from_pdf(pdf_bytes, statement_type)
-        except Exception as exc:  # noqa: BLE001
-            logger.info("PDF parse for %s failed: %s", filing.pdf_url, exc)
+        except Exception as exc:  # noqa: BLE001 — incl. ModuleNotFoundError for pdfplumber
+            logger.info("PDF parse for %s skipped/failed: %s", filing.pdf_url, exc)
 
     return [
         {
