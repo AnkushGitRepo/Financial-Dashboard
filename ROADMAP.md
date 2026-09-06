@@ -285,13 +285,13 @@ Scoping session done 2026-09-06 → [ADR 0020](./docs/decisions/0020-phase-10-ra
 - **Scoping (resolved):** shared public corpus (`userId: null`, indexed once) + a strictly-filtered per-user private layer for holdings/notes/chat-history. Not full per-user duplication.
 - **Surfaces (resolved):** split — **10a** = plumbing + chat + insight grounding; **10b** = a dedicated `/dashboard/research` page, follow-on phase.
 
-### Phase 10a — retrieval plumbing + grounded chat & insights ⬜
+### Phase 10a — retrieval plumbing + grounded chat & insights 🔄
 
-_All items unstarted. Build order roughly top-to-bottom; the indexer and the retrieval lib can go in parallel._
+_Build order roughly top-to-bottom; the indexer and the retrieval lib can go in parallel. Branch: `phase-10-rag`._
 
-- [ ] **Embedding lib** — `src/lib/rag/embed.ts` wrapping `@xenova/transformers` (or `@huggingface/transformers`). Pick the model (criterion: quality-per-MB + cold-start load; candidates `Xenova/bge-small-en-v1.5`, `Xenova/all-MiniLM-L6-v2`). Lazy-load + module-level cache. `embedQuery(text)` / `embedBatch(texts)`. No network, no key.
+- [x] **Embedding lib** — `src/lib/rag/embed.ts` wraps `@huggingface/transformers` v4 (auto-external in Next 16; the abandoned `@xenova/*` v2 rejected). Model **`Xenova/all-MiniLM-L6-v2`** (384-dim, ~23 MB `q8`), overridable via `RAG_EMBED_MODEL`; cache dir `RAG_MODEL_CACHE_DIR` (default `/tmp/...`), optional offline `RAG_LOCAL_MODEL_PATH`. Lazy singleton pipeline, `embedBatch` / `embedQuery`, mean-pool + normalize (cosine-ready). No key. 6 tests (mocked). _Note: `npm audit` flags high-sev transitive advisories in `adm-zip` (onnxruntime-node install-time unzip) and `sharp` (image path) — neither reachable from text-only embedding; no upstream fix yet, revisit on bump._
 - [ ] **Store + index** — `chunks` collection (native driver). Fields: `text`, `vector`, `docType` (`news`|`filing`|`note`|`holdings`|`chat`), `symbol?`, `userId` (`null` = shared), `sourceUrl?`, `publishedAt?`, `hash` (dedupe), `createdAt`. Atlas Vector Search index def (JSON, cosine, + scalar filters) checked into `docs/` and applied via a one-off script; document the manual step for self-host.
-- [ ] **Chunker** — `src/lib/rag/chunk.ts`: ~500–800 token windows, overlap, sentence-boundary aware. Pure, unit-tested.
+- [x] **Chunker** — `src/lib/rag/chunk.ts`: char-budget windows (default 2400/300 ≈ 600/75 tokens), sentence + paragraph boundary aware, overlap carry, tiny-tail merge bounded by the ceiling, CRLF/blank-run normalize. Pure, 8 tests.
 - [ ] **fundamentals-api: PDF→text endpoint** — return extracted plain text for an annual-report / DRHP URL (extraction stays where `pdfplumber` already lives; the Next app never imports a PDF lib). Token-guarded like the ingest routes.
 - [ ] **Corpus indexer** — `POST /api/cron/index-corpus` (token-guarded, `CRON_SECRET` pattern). Pulls new news items + new/changed filings, chunks, embeds, upserts into `chunks` with `userId: null`, dedupe on `hash`, retention window on `news`. GitHub Actions schedule (`.github/workflows/index-corpus.yml`), fires from `main` only.
 - [ ] **Per-user corpus sync** — on holdings change / note save, (re)embed that user's holdings snapshot + notes into `chunks` with their `userId`. Small, inline is fine.
