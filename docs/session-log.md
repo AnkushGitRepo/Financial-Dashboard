@@ -46,3 +46,15 @@ Rolling log of work sessions, most recent first is NOT required — append chron
   - **`CLAUDE.md`** — Current phase / Active focus already refreshed (`54ebd45`); tightened for post-sign-off.
 - Not pruned (living reference): `/docs/decisions/`, `/docs/data-sources.md`, `/docs/api-surface.md`.
 - Next: no build in flight. Open (all user actions): activate the two GitHub Actions schedulers; Resend email; one real alert fire + one real IPO-alert fire in market hours; DRHP grounding. Phases 10 (RAG) / 11 (multi-agent) need a scoping session.
+
+## 2026-09-06 — Both GitHub Actions schedulers activated + validated
+
+- User ran `gh auth login`; I did the rest.
+- **Tokens rotated** (the originals were `Secret`-type on Vercel and unrecoverable): fresh `CRON_SECRET` and `IPO_INGEST_TOKEN` generated, set as GitHub repo secrets (`gh secret set`) **and** on the Vercel projects via `vercel env update` (`CRON_SECRET` → `marketmitra-v2`; `IPO_INGEST_TOKEN` → `marketmitra-fundamentals-api`, plus the vestigial copy on `marketmitra-v2` for consistency). Both projects redeployed (`jlkj9a5p0` / `6j7dxlcin`).
+- **Verified live:**
+  - `POST /api/cron/evaluate-alerts?force=1` — new token → `200 {ran:true, activeAlerts:1, ...}`; wrong token → `401`.
+  - `POST /ipos/ingest {"rows":[]}` — no token / wrong token → `401`; new token → `200`.
+  - `gh workflow run evaluate-alerts.yml` → **success** (11s).
+  - `gh workflow run refresh-ipos.yml` → **success** (37s): Playwright rendered the InvestorGain SPA, **parsed 40 IPO rows, ingested 40** (`ingest ok: {'ingested': 40, 'total': 39}`) — this is the first time that render step has run in CI, and it worked.
+- Both `schedule:` triggers now fire from `main` (the default branch): `evaluate-alerts` every 10 min during ~market hours, `refresh-ipos` every ~2 h.
+- **Still open:** Phase 5 email (Resend — needs a from-domain decision); one real alert fire + one real IPO-alert fire on an actual trigger during market hours (the plumbing is proven; just needs a live trigger to watch a notification land); DRHP grounding. Phases 10/11 need a scoping session.

@@ -215,18 +215,12 @@ Carried past sign-off 2026-09-06. Each is small and independent; none gates Phas
   (13). fundamentals-api suite **86 passed**, ruff clean. NSE fetch unverified from a blocked
   env — fails safe to Tier 3, no regression. *Follow-up: verify the NSE/BSE parsers against
   real live responses and correct the field maps; multi-period XBRL context extraction.*
-- [~] **Phase 5 — activate the ~10-min alert scheduler.** `.github/workflows/evaluate-alerts.yml`
-  exists. Activate: `gh secret set CRON_SECRET` + make `v2` the repo default branch (GitHub
-  runs `schedule:` only from the default branch). Or cron-job.org / a home crontab.
+- [x] **Phase 5 — ~10-min alert scheduler activated** 2026-09-06. `CRON_SECRET` rotated (fresh value in the GitHub repo secret + `marketmitra-v2` prod env, redeployed). `evaluate-alerts.yml` `workflow_dispatch` run → success; `POST /api/cron/evaluate-alerts?force=1` with the new token → `200 {ran:true,...}`, wrong token → `401`. `schedule:` fires from `main` (now the default branch).
 - [ ] **Phase 5 — email delivery.** Provision Resend (`vercel integration add resend/resend-email`),
   wire the `sendEmail` seam, add an alert-email template, one live send test. Needs a
   from-domain decision.
-- [ ] **Phase 5 — verify one real alert fires end-to-end** during NSE market hours.
-- [~] **Phase 7 — activate the IPO refresh workflow.** `.github/workflows/refresh-ipos.yml`
-  exists. Activate: `gh secret set IPO_INGEST_TOKEN` + the same value as `IPO_INGEST_TOKEN`
-  on the `marketmitra-fundamentals-api` Vercel project + `v2` as repo default branch. The
-  Playwright render step still needs one CI run to validate. Until then prod IPO data is
-  only as fresh as the last manual `refresh_ipos.py` run.
+- [ ] **Phase 5 — verify one real alert fires end-to-end** during NSE market hours (create an alert near the current price, hit the cron route, confirm the notification).
+- [x] **Phase 7 — IPO refresh workflow activated + validated** 2026-09-06. `IPO_INGEST_TOKEN` rotated (GitHub repo secret + `marketmitra-fundamentals-api` prod env, redeployed). `refresh-ipos.yml` `workflow_dispatch` run → success: Playwright rendered the InvestorGain SPA, **parsed 40 IPO rows, ingested 40** via the authenticated `/ipos/ingest` (`{ingested:40}`) — the never-CI-tested render step now proven. Runs every ~2h from `main`.
 - [ ] **Phase 7 — watch one real IPO alert fire** on an actual trigger day.
 - [ ] **Phase 8 — DRHP grounding for the IPO brief.** The wired GMP source carries zero DRHP
   links; needs a separate per-IPO SPA scrape or a SEBI filing-list scrape. Carries
