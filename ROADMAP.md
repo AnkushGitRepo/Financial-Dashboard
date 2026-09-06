@@ -257,16 +257,17 @@ Scoped 2026-09-06 — see [ADR 0019](./docs/decisions/0019-phase-9-api-surface-m
 - [x] ADR 0016 cross-reference added (see ADR 0019 §2).
 - [x] Tests: `src/lib/rateLimit.test.ts` — 7 cases (disabled pass-through, IP vs user keying, authed budget, 429 + Retry-After, RateLimit-* headers on success, fail-open). Suite **155 passed**.
 
-**Part 3 — interactive API explorer:**
-- [ ] Machine-readable spec: a hand-kept `openapi.json` (or equivalent) generated from / cross-checked against `api-surface.md`; add a CI check that it matches the route handlers.
-- [ ] `/dashboard/api` (or `/api-explorer`) page — endpoint list, params form, "Send" against the real deployment using the viewer's own session, pretty-printed response, copy-as-curl. No secret entry in the UI.
-- [ ] Documents the MCP server for humans (connection URL, tool list).
-- [ ] Built against `/docs/design-system.md` + `--app-*` tokens.
+**Part 3 — interactive API explorer:** ✅ built 2026-09-06 (not yet prod-deployed).
+- [x] `public/openapi.json` — hand-kept OpenAPI 3.1 covering all 15 `/api/*` operations (+ tags, security schemes, request-body examples). Served at `/openapi.json`. `src/app/dashboard/api/openapi.test.ts` (3 cases) is the CI check: every documented path ↔ a `route.ts`, every documented method exported, no undocumented route.
+- [x] `/dashboard/api` — `page.tsx` (server, reads `openapi.json` + the MCP tool list) + `ApiExplorerClient.tsx` (endpoint list grouped by tag, method chips, per-endpoint panel: path/query param inputs, JSON request-body textarea prefilled from the spec example, "Send" against the real deployment with `credentials: 'include'`, pretty response + status + timing + `RateLimit-*` readout, "Copy as curl") + `page.module.css`. No secret entry.
+- [x] MCP server card at the top — connection URL (absolute, set after mount to avoid a hydration mismatch), the `{ "url": … }` config block, and the 7-tool list.
+- [x] Built against `/docs/design-system.md` + `--app-*` tokens. "API" added to the `AppHeader` nav. Live-verified in selfhost: `GET /api/search?q=tcs` → 200 with the real TCS row, timing shown.
 
 **Cross-cutting:**
-- [ ] Works in both deployment modes (self-host: no Upstash → no limit; MCP + explorer function the same).
-- [ ] `tsc` / `lint` / `next build` / `npm test` green; fundamentals-api `pytest` green.
-- [ ] `/docs/architecture.md` gets an "API surface (MCP + rate limiting + explorer)" section; `/docs/api-surface.md` + `/docs/data-sources.md` updated.
+- [x] Both deployment modes — self-host: no Upstash → `rateLimitEnabled=false`, MCP + explorer unaffected; the explorer's authed endpoints just resolve to the `local` user.
+- [x] `tsc` / `lint` / `next build` / `npm test` (158) green. fundamentals-api `pytest` unaffected (no Python changed).
+- [x] `/docs/architecture.md` "MCP server" section added; `/docs/api-surface.md` MCP section + `public/openapi.json`. `/docs/data-sources.md` — no new external source (Upstash is infra, not a data source).
+- [ ] **Prod deploy** — pending (deploy the whole phase together once Upstash is provisioned, or deploy MCP + explorer now with the limiter inert).
 - [ ] Confirm the phase with the user before archiving.
 
 ## Phase 10 — AI Chat with RAG ❓

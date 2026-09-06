@@ -1,0 +1,245 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "MarketMitra API",
+    "version": "1.0.0",
+    "description": "Public + session-scoped HTTP API for the MarketMitra dashboard. For automated / agent access to public market data, prefer the MCP server at /api/mcp (see /llms.txt and docs/api-surface.md). Session-scoped endpoints authenticate via the Clerk session cookie in hosted mode; in self-host mode they resolve to a single local user with no login."
+  },
+  "servers": [
+    { "url": "https://marketmitra-v2.vercel.app", "description": "Production" },
+    { "url": "http://localhost:3000", "description": "Local dev" }
+  ],
+  "tags": [
+    { "name": "Market data", "description": "Public. Also available as MCP tools at /api/mcp." },
+    { "name": "Portfolio", "description": "Session-scoped. The signed-in user's holdings." },
+    { "name": "Alerts", "description": "Session-scoped. Price / %-move / 52w / portfolio / IPO alerts." },
+    { "name": "Notifications", "description": "Session-scoped. In-app notification centre." },
+    { "name": "AI", "description": "Session-scoped. BYO-key AI insights + chat. 400 no_ai_key when the user has no key." },
+    { "name": "Settings", "description": "Session-scoped. The user's encrypted AI provider key." },
+    { "name": "System", "description": "Machine-to-machine / infrastructure." }
+  ],
+  "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "__session",
+        "description": "Clerk session cookie (hosted mode). Sent automatically by the browser; the API explorer uses your current session."
+      },
+      "cronBearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "CRON_SECRET bearer token."
+      }
+    },
+    "schemas": {
+      "Envelope": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "data": {},
+          "error": { "type": ["string", "null"] }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/search": {
+      "get": {
+        "tags": ["Market data"],
+        "summary": "Search NSE symbols",
+        "description": "Live search across ~2,570 NSE equities + tracked indices. Proxies fundamentals-api; returns the array directly (not the standard envelope).",
+        "security": [],
+        "parameters": [
+          { "name": "q", "in": "query", "required": true, "schema": { "type": "string", "minLength": 1 }, "example": "reliance" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Up to 15 matches, index matches first.",
+            "content": { "application/json": { "schema": { "type": "array", "items": { "type": "object", "properties": { "type": { "type": "string", "enum": ["company", "index"] }, "symbol": { "type": "string" }, "name": { "type": "string" } } } } } }
+          }
+        }
+      }
+    },
+    "/api/news": {
+      "get": {
+        "tags": ["Market data"],
+        "summary": "Market news feed",
+        "description": "Recent Indian-markets headlines. Omit `symbols` for the broad stream. `sentiment` is headline tone, not a signal. Page with `cursor` from `next_cursor`.",
+        "security": [],
+        "parameters": [
+          { "name": "symbols", "in": "query", "required": false, "schema": { "type": "string" }, "description": "Comma-separated NSE symbols.", "example": "RELIANCE,TCS" },
+          { "name": "limit", "in": "query", "required": false, "schema": { "type": "integer", "minimum": 1, "maximum": 50, "default": 20 } },
+          { "name": "cursor", "in": "query", "required": false, "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "A page of news items.", "content": { "application/json": { "schema": { "type": "object", "properties": { "items": { "type": "array", "items": { "type": "object" } }, "next_cursor": { "type": ["string", "null"] } } } } } } }
+      }
+    },
+    "/api/holdings": {
+      "get": {
+        "tags": ["Portfolio"],
+        "summary": "List holdings",
+        "security": [{ "cookieAuth": [] }],
+        "responses": { "200": { "description": "The user's holdings.", "content": { "application/json": { "schema": { "type": "array", "items": { "type": "object" } } } } }, "401": { "description": "Not authenticated." } }
+      },
+      "post": {
+        "tags": ["Portfolio"],
+        "summary": "Add a holding",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["symbol", "quantity", "avgPrice"], "properties": { "symbol": { "type": "string" }, "quantity": { "type": "number", "exclusiveMinimum": 0 }, "avgPrice": { "type": "number", "exclusiveMinimum": 0 } } }, "example": { "symbol": "RELIANCE", "quantity": 10, "avgPrice": 2450.5 } } } },
+        "responses": { "201": { "description": "Created." }, "401": { "description": "Not authenticated." }, "422": { "description": "Invalid input." } }
+      }
+    },
+    "/api/holdings/{id}": {
+      "patch": {
+        "tags": ["Portfolio"],
+        "summary": "Update a holding",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "properties": { "quantity": { "type": "number", "exclusiveMinimum": 0 }, "avgPrice": { "type": "number", "exclusiveMinimum": 0 } } }, "example": { "quantity": 15, "avgPrice": 2500 } } } },
+        "responses": { "200": { "description": "Updated." }, "401": { "description": "Not authenticated." }, "404": { "description": "Not found / not owned." } }
+      },
+      "delete": {
+        "tags": ["Portfolio"],
+        "summary": "Delete a holding",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Deleted." }, "401": { "description": "Not authenticated." }, "404": { "description": "Not found / not owned." } }
+      }
+    },
+    "/api/alerts": {
+      "get": {
+        "tags": ["Alerts"],
+        "summary": "List alerts",
+        "security": [{ "cookieAuth": [] }],
+        "responses": { "200": { "description": "All the user's alerts, newest first." }, "401": { "description": "Not authenticated." } }
+      },
+      "post": {
+        "tags": ["Alerts"],
+        "summary": "Create an alert (or upsert the IPO watch)",
+        "description": "Body is a discriminated union on `type`: price_threshold | percent_move | week52_breach | portfolio_pnl | ipo | ipo_watch. `ipo_watch` is upserted (one per user) and returns 200.",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object" }, "example": { "type": "price_threshold", "symbol": "TCS", "params": { "direction": "above", "price": 4200 }, "note": "watch breakout", "rearm": false } } } },
+        "responses": { "201": { "description": "Created." }, "200": { "description": "IPO watch upserted." }, "401": { "description": "Not authenticated." }, "422": { "description": "Invalid input." } }
+      }
+    },
+    "/api/alerts/{id}": {
+      "patch": {
+        "tags": ["Alerts"],
+        "summary": "Update an alert",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object" }, "example": { "status": "paused" } } } },
+        "responses": { "200": { "description": "Updated." }, "401": { "description": "Not authenticated." }, "404": { "description": "Not found." }, "422": { "description": "Invalid input." } }
+      },
+      "delete": {
+        "tags": ["Alerts"],
+        "summary": "Delete an alert",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Deleted." }, "401": { "description": "Not authenticated." }, "404": { "description": "Not found." } }
+      }
+    },
+    "/api/notifications": {
+      "get": {
+        "tags": ["Notifications"],
+        "summary": "List notifications",
+        "security": [{ "cookieAuth": [] }],
+        "responses": { "200": { "description": "Notifications + `meta.unread`." }, "401": { "description": "Not authenticated." } }
+      }
+    },
+    "/api/notifications/read": {
+      "post": {
+        "tags": ["Notifications"],
+        "summary": "Mark notification(s) read",
+        "description": "`{id}` marks one; `{}` or `{all:true}` marks all.",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": { "required": false, "content": { "application/json": { "schema": { "type": "object", "properties": { "id": { "type": "string" }, "all": { "type": "boolean" } } }, "example": { "all": true } } } },
+        "responses": { "200": { "description": "OK." }, "401": { "description": "Not authenticated." } }
+      }
+    },
+    "/api/settings/ai": {
+      "get": {
+        "tags": ["Settings"],
+        "summary": "Get AI key status",
+        "description": "Never returns the key — only provider, model, and a last-4 hint.",
+        "security": [{ "cookieAuth": [] }],
+        "responses": { "200": { "description": "Key status view (or null)." }, "401": { "description": "Not authenticated." } }
+      },
+      "put": {
+        "tags": ["Settings"],
+        "summary": "Set the AI provider key",
+        "description": "Validates the key with a live call before storing it. 503 without SETTINGS_ENC_KEY on the server.",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["provider", "apiKey"], "properties": { "provider": { "type": "string", "enum": ["gemini", "anthropic", "openrouter"] }, "apiKey": { "type": "string" }, "model": { "type": "string" } } }, "example": { "provider": "gemini", "apiKey": "AIza...", "model": "" } } } },
+        "responses": { "200": { "description": "Saved." }, "400": { "description": "Provider rejected the key." }, "401": { "description": "Not authenticated." }, "503": { "description": "SETTINGS_ENC_KEY not configured." } }
+      },
+      "delete": {
+        "tags": ["Settings"],
+        "summary": "Remove the stored AI key",
+        "security": [{ "cookieAuth": [] }],
+        "responses": { "200": { "description": "Removed." }, "401": { "description": "Not authenticated." } }
+      }
+    },
+    "/api/insights/stock": {
+      "post": {
+        "tags": ["AI"],
+        "summary": "Generate / fetch a stock insight",
+        "description": "Neutral synthesis of a company's public fundamentals. Per-user cache, 24h. Requires the user's own AI key. Rate limited (ai tier).",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["symbol"], "properties": { "symbol": { "type": "string" }, "force": { "type": "boolean" } } }, "example": { "symbol": "RELIANCE" } } } },
+        "responses": { "200": { "description": "Insight text + metadata." }, "400": { "description": "no_ai_key." }, "401": { "description": "Not authenticated." }, "429": { "description": "Rate limited." } }
+      }
+    },
+    "/api/insights/portfolio": {
+      "post": {
+        "tags": ["AI"],
+        "summary": "Generate / fetch a portfolio insight",
+        "description": "Neutral synthesis of the user's holdings. Per-user cache, 6h. 400 with no holdings. Rate limited (ai tier).",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": { "required": false, "content": { "application/json": { "schema": { "type": "object", "properties": { "force": { "type": "boolean" } } }, "example": {} } } },
+        "responses": { "200": { "description": "Insight text + metadata." }, "400": { "description": "no_ai_key or no holdings." }, "401": { "description": "Not authenticated." }, "429": { "description": "Rate limited." } }
+      }
+    },
+    "/api/insights/ipo": {
+      "post": {
+        "tags": ["AI"],
+        "summary": "Generate / fetch an IPO brief",
+        "description": "Neutral synthesis of one IPO's public data. Cross-user shared cache keyed by slug, 12h. May use the operator key. Rate limited (ai tier).",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["slug"], "properties": { "slug": { "type": "string" }, "force": { "type": "boolean" } } }, "example": { "slug": "example-ipo" } } } },
+        "responses": { "200": { "description": "Brief text + metadata." }, "400": { "description": "no_ai_key." }, "401": { "description": "Not authenticated." }, "429": { "description": "Rate limited." } }
+      }
+    },
+    "/api/ai/chat": {
+      "post": {
+        "tags": ["AI"],
+        "summary": "Mitra chat (streamed)",
+        "description": "Streamed text/plain token response (not the envelope). Answers only from a server-built portfolio + news context. Rate limited (ai tier).",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["messages"], "properties": { "messages": { "type": "array", "items": { "type": "object", "properties": { "role": { "type": "string", "enum": ["user", "assistant"] }, "content": { "type": "string" } } } } } }, "example": { "messages": [{ "role": "user", "content": "How is my portfolio doing?" }] } } } },
+        "responses": { "200": { "description": "A text token stream." }, "400": { "description": "no_ai_key." }, "401": { "description": "Not authenticated." }, "422": { "description": "Invalid body." }, "429": { "description": "Rate limited." } }
+      }
+    },
+    "/api/mcp": {
+      "post": {
+        "tags": ["Market data"],
+        "summary": "MCP server (JSON-RPC over Streamable HTTP)",
+        "description": "The Model Context Protocol endpoint. Client config: { \"url\": \"https://<host>/api/mcp\" }. Tools: search_symbols, get_quote, get_company_fundamentals, get_price_history, get_news, list_ipos, get_market_indices. Send `initialize`, then `tools/list` / `tools/call`. Public, rate limited (mcp tier).",
+        "security": [],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object" }, "example": { "jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {} } } } },
+        "responses": { "200": { "description": "A JSON-RPC result (as an SSE `message` event or JSON, per the client's Accept header)." }, "429": { "description": "Rate limited." } }
+      }
+    },
+    "/api/cron/evaluate-alerts": {
+      "post": {
+        "tags": ["System"],
+        "summary": "Run one alert-evaluation cycle",
+        "description": "Machine-to-machine. Bearer CRON_SECRET (dev-open, prod-503 when unset). No-ops outside NSE session hours unless ?force=1. Vercel Cron / GitHub Actions issue GET; both are accepted.",
+        "security": [{ "cronBearer": [] }],
+        "parameters": [{ "name": "force", "in": "query", "required": false, "schema": { "type": "string", "enum": ["1"] }, "description": "Bypass the market-hours gate." }],
+        "responses": { "200": { "description": "{ ran, fired, skippedNoData, errors, ... }" }, "401": { "description": "Bad / missing bearer." }, "503": { "description": "CRON_SECRET not set (production)." } }
+      }
+    }
+  }
+}
