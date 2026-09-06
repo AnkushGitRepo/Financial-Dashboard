@@ -32,8 +32,9 @@ The repo is now a small monorepo: the Next.js app at the root (`src/`) plus a st
 | `/dashboard/portfolio`       | Holdings, allocation, diversification/drift analysis         | protected                              | open directly                              |
 | `/dashboard/markets`         | Index quotes, market breadth, top gainers/losers, search      | protected                              | open directly                              |
 | `/dashboard/stock/[ticker]`  | Stock detail — price chart, ratios, financials, shareholding | protected                              | open directly                              |
+| `/dashboard/alerts`          | Price & portfolio alerts — list / create / edit / pause      | protected                              | open directly                              |
 
-All four `/dashboard*` routes share one layout (`src/app/dashboard/layout.tsx` → `AppShell`) — see "Dashboard app shell" below.
+All `/dashboard*` routes share one layout (`src/app/dashboard/layout.tsx` → `AppShell`) — see "Dashboard app shell" below.
 
 `src/proxy.ts` runs `clerkMiddleware`, protects `/dashboard(.*)`, and redirects unauthenticated visitors to `/sign-in?redirect_url=...` — but only when `isHosted()` is true. In selfhost mode `proxy.ts` passes every request through untouched. Verified end-to-end in production (hosted) and locally in both modes.
 
@@ -76,6 +77,19 @@ Full visual design imported from an approved Claude Design project ("MarketMitra
 - **Still scripted, out of scope for this pass:** the "Mitra" AI widget's insights/replies (`aiWidgetContent.ts`) remain demo content — real AI-generated insights are Phase 8 territory, a separate not-yet-scoped phase.
 - **Company logos, real fallback** (`src/components/dashboard-charts/CompanyLogo.tsx`) — every avatar spot (movers, holdings table, stock detail header, search results) renders a real per-symbol logo from a community-maintained open directory (`dharunashokkumar.github.io/indian-listed-company-logos`, itself sourced from TradingView's per-symbol icons), falling back to text initials only on a genuine load failure — confirmed the directory 404s for real for unlisted tickers, so the fallback path is real, not decorative.
 - **Search across the whole NSE universe, not just the watchlist** — both the Markets page search and the header search hit a new fundamentals-api `GET /search?q=` (company name/symbol prefix match across ~2,570 real NSE-listed equities, sourced from NSE's own `archives.nseindia.com` equity list — reachable even though `www.nseindia.com` is blocked, see ADR 0011 — plus the four tracked indices). Consumed via a thin same-origin Next.js proxy (`/api/search`) so the browser can call it live-as-you-type without CORS setup on the Python service. See ADR 0012's amendment section for the full detail.
+
+## Alerts engine (`/dashboard/alerts`, Phase 5 — in progress, not yet approved)
+
+Full rationale: [ADR 0014](./decisions/0014-alerts-engine-scope.md). Price / percent-move / 52-week-breach / portfolio-P&L alerts, evaluated on a schedule, delivered through a generic notification subsystem (in-app always; email + webhook when configured). Built but not yet phase-approved; email transport is a stub pending provider provisioning.
+
+- **Data (MongoDB, main app DB):** `alerts` and `notifications` collections. `src/lib/alerts/store.ts` and `src/lib/notifications/store.ts` mirror `holdings.ts`'s pattern; `userId` via the same `currentUserId.ts` hosted/`"local"` split.
+- **Pure logic (unit-tested, no I/O):** `src/lib/alerts/evaluators.ts` — one evaluator per type + `decideAlertTransition` (one-shot vs re-arm, cooldown, hysteresis via `armed`/`cooldownUntil` on the alert doc). `src/lib/alerts/marketHours.ts` (`isNseSession`, IST via `Intl`, not holiday-aware by design). `src/lib/alerts/portfolioMetrics.ts`.
+- **The cycle:** `src/lib/alerts/evaluate.ts` — load active alerts → collect symbols (incl. portfolio-alert users' holdings) → one batched `GET /quote` to fundamentals-api → evaluate → `applyAlertTransition` → `deliverNotification` for fires. Degrades gracefully: a symbol with no live quote is skipped, never fired on.
+- **Delivery:** `src/lib/notifications/deliver.ts` `deliverNotification(userId, payload, channels)` — always writes the in-app record, then fans out. `resolveChannels()` reads `ALERT_WEBHOOK_URL` / `ALERT_EMAIL_TO` / Clerk email, **not** gated on `isHosted()`. **v1 external channel is webhook** (fully implemented); `sendEmail` is a no-throw seam (`status: 'skipped'`) — email deferred to a follow-up (ADR 0014 amendment: only Resend is available and it needs a new integration + verifiable domain).
+- **Schedule:** `GET|POST /api/cron/evaluate-alerts`, guarded by a `CRON_SECRET` bearer token (dev-open, prod-503 when unset), `?force=1` to bypass the hours gate. Not behind `proxy.ts` auth. Root `vercel.json` declares a **once-daily** cron (`0 4 * * *`) — the Hobby plan's ceiling (ADR 0014 amendment 2026-09-06); real ~10-min cadence comes from an external scheduler hitting the same URL (README recipe). Verified live in production post-deploy.
+- **API:** `GET/POST /api/alerts`, `PATCH/DELETE /api/alerts/[id]`, `GET /api/notifications`, `POST /api/notifications/read` — all in `/docs/api-surface.md`.
+- **UI:** `/dashboard/alerts` (`AlertsPageClient` + `AlertForm` + `alertText.ts`), a `NotificationBell` in `AppHeader` (desktop + mobile, 60s poll + focus refetch), an "Alerts" nav item + mobile tab, and a "Set alert" button on the stock page that deep-links `?new=1&symbol=`.
+- **Tests:** `vitest` (repo's first for the Next.js side — `npm test`, `vitest.config.mts`). 78 tests: the pure evaluators/market-hours/portfolio-maths, the `evaluateAlerts` loop (mocked quote/delivery/store), and the alerts/notifications/cron route handlers.
 
 ## Data flow
 
