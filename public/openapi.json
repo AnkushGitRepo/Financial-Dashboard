@@ -240,6 +240,19 @@
         "parameters": [{ "name": "force", "in": "query", "required": false, "schema": { "type": "string", "enum": ["1"] }, "description": "Bypass the market-hours gate." }],
         "responses": { "200": { "description": "{ ran, fired, skippedNoData, errors, ... }" }, "401": { "description": "Bad / missing bearer." }, "503": { "description": "CRON_SECRET not set (production)." } }
       }
+    },
+    "/api/cron/index-corpus": {
+      "post": {
+        "tags": ["System"],
+        "summary": "Rebuild the shared retrieval corpus",
+        "description": "Machine-to-machine (Phase 10 / ADR 0020). Bearer CRON_SECRET (dev-open, prod-503 when unset). Pulls recent news, chunks + embeds it locally, upserts into the `chunks` collection with userId=null, prunes stale news. GET and POST both accepted. `?indexesOnly=1` just ensures the collection + Atlas Vector Search indexes and returns.",
+        "security": [{ "cronBearer": [] }],
+        "parameters": [
+          { "name": "indexesOnly", "in": "query", "required": false, "schema": { "type": "string", "enum": ["1"] }, "description": "Ensure indexes only; do not index." },
+          { "name": "newsLimit", "in": "query", "required": false, "schema": { "type": "integer", "minimum": 1 }, "description": "How many recent news items to (re)consider (default 150)." }
+        ],
+        "responses": { "200": { "description": "{ vectorIndex, news: { seen, changed, pruned }, errors, ms }" }, "401": { "description": "Bad / missing bearer." }, "503": { "description": "CRON_SECRET not set (production)." } }
+      }
     }
   }
 }

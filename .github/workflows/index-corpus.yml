@@ -1,0 +1,48 @@
+# Rebuilds MarketMitra's shared retrieval corpus (Phase 10 / ADR 0020).
+#
+# The chunk + embed work runs inside the Next app (transformers.js, local
+# embeddings — no API key). This job just hits the same CRON_SECRET-guarded
+# route on a schedule, the way evaluate-alerts.yml does. The first run
+# downloads the ~23 MB embedding model to the function's /tmp; later runs
+# on a warm instance reuse it.
+#
+# ACTIVATION (two one-time steps):
+#   1. GitHub only runs `schedule:` triggers from the repository's DEFAULT
+#      branch. `workflow_dispatch` (the "Run workflow" button) works from
+#      any branch.
+#   2. Add the repo secret:  gh secret set CRON_SECRET
+#      (same value as CRON_SECRET on the marketmitra-v2 Vercel project).
+#   Optionally override the target with a repo variable INDEX_CORPUS_URL.
+
+name: index-corpus
+
+on:
+  schedule:
+    # Every 2 hours. News moves through the day; the corpus doesn't need
+    # minute freshness and each run re-embeds only changed items.
+    - cron: "20 */2 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: index-corpus
+  cancel-in-progress: false
+
+jobs:
+  index:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Trigger corpus indexing
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          TARGET_URL: ${{ vars.INDEX_CORPUS_URL || 'https://marketmitra-v2.vercel.app/api/cron/index-corpus' }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::error::CRON_SECRET repo secret is not set — see this workflow's ACTIVATION notes."
+            exit 1
+          fi
+          echo "POST ${TARGET_URL}"
+          curl --fail-with-body --silent --show-error --max-time 290 \
+            -X POST \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${TARGET_URL}"
