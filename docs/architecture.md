@@ -271,18 +271,20 @@ in [`/docs/api-surface.md`](./api-surface.md). All live in production.
   handlers). Pick an endpoint, fill params, send against the deployment with your session,
   copy-as-curl.
 
-## Retrieval (RAG) — chat + insights (Phase 10a) — merged + deployed; retrieval INERT on the hosted instance
+## Retrieval (RAG) — chat + insights (Phase 10a)
 
 Scoping: [ADR 0020](./decisions/0020-phase-10-rag-chat.md). Signed off, merged to `main`/`v2`,
 both projects deployed 2026-09-06. Every piece **degrades to the pre-Phase-10 behaviour**
-when vector search is unavailable, and on the **hosted (Vercel) deployment it currently
-always is**: `@huggingface/transformers` → `onnxruntime-node` fails to load its native
-`libonnxruntime.so.1` in the Vercel serverless runtime, and the `outputFileTracingIncludes`
-workaround pushed past the Hobby plan's 12-serverless-function ceiling. So on the hosted
-instance `retrieve()` always returns `null` and chat/insights behave exactly as they did
-pre-Phase-10 (the import is lazy, so nothing 500s). **Self-hosters on a normal Node host get
-full RAG.** Making retrieval work on the hosted instance is an open follow-up (WASM
-onnxruntime backend, a separate embedding service, or Vercel Pro) — see ROADMAP.
+when vector search or the embedding service is unavailable (`retrieve()` returns `null`,
+insight grounding is empty, chat falls back to its data tools) — nothing here is
+load-bearing.
+
+**Embeddings run on the fundamentals-api, not in the Next app.** `onnxruntime-node` can't
+load `libonnxruntime.so.1` in Vercel's Node serverless runtime, so `src/lib/rag/embed.ts`
+POSTs text to `services/fundamentals-api` `POST /embed` (`fastembed`, `BAAI/bge-small-en-v1.5`,
+384-dim, L2-normalised; `IPO_INGEST_TOKEN` bearer). `embedBatch` / `embedQuery` throw on any
+failure, which the callers already treat as "no retrieval". Self-host runs both services, so
+the path is identical there.
 
 - **Store** — one `chunks` collection (`src/lib/rag/chunks.ts`) + an Atlas Vector Search
   index (`vectorSearch`, `dotProduct`, 384-dim, filter fields `userId`/`docType`/`symbol`),
@@ -290,9 +292,10 @@ onnxruntime backend, a separate embedding service, or Vercel Pro) — see ROADMA
   shared public corpus (news, filings), a Clerk id = that user's private layer (notes,
   holdings snapshot, recent questions). `replaceSourceChunks()` upserts by
   `(source, chunkIndex)` and no-ops on an unchanged content hash.
-- **Embeddings** — local, `@huggingface/transformers` v4 (`all-MiniLM-L6-v2`, 384-dim, q8),
-  `src/lib/rag/embed.ts`. No API key, identical hosted + self-host; BYO-key stays for
-  *generation* only. Model caches to `/tmp` (or `RAG_LOCAL_MODEL_PATH`).
+- **Embeddings** — `src/lib/rag/embed.ts` POSTs to the fundamentals-api's `POST /embed`
+  (`fastembed`, `BAAI/bge-small-en-v1.5`, 384-dim, `IPO_INGEST_TOKEN` bearer). No LLM/embedding
+  API key; BYO-key stays for *generation* only. See the section note above for why it's not
+  in the Next runtime.
 - **Indexer** — `POST /api/cron/index-corpus` (`CRON_SECRET` bearer, `.github/workflows/
   index-corpus.yml`, every 2 h). News (chunk → embed → upsert, 45-day retention) + annual
   report filings (`RAG_FILING_SYMBOLS` set → `getDocuments` → `POST /documents/extract-text`

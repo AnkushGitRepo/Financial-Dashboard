@@ -6,6 +6,7 @@ from fastapi.responses import ORJSONResponse
 from app.api.routes import (
     companies,
     documents,
+    embed,
     financials,
     indices,
     ipos,
@@ -38,6 +39,7 @@ app.include_router(documents.router)
 app.include_router(indices.router)
 app.include_router(news.router)
 app.include_router(pdf_text.router)
+app.include_router(embed.router)
 app.include_router(ipos.router)
 app.include_router(quote.router)
 app.include_router(search.router)

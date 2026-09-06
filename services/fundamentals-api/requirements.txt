@@ -44,3 +44,7 @@ vaderSentiment>=3.3
 scrapling>=0.4.15
 lxml>=5.3
 pdfplumber>=0.11
+# Phase 10 retrieval embeddings, served from POST /embed (ADR 0020). Pulls
+# onnxruntime (CPU) + tokenizers; the ~64 MB quantised bge-small model is
+# downloaded to fastembed_cache_dir (/tmp on Vercel) on first use.
+fastembed>=0.8

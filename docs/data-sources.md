@@ -12,14 +12,14 @@ For each source, record: what it is, the endpoint(s) used, auth/key requirements
 
 ## Active sources
 
-### Hugging Face model hub — `all-MiniLM-L6-v2` (retrieval embeddings)
-- **Type:** bundled model dependency (NOT a runtime data source)
-- **Used for:** Phase 10a retrieval (ADR 0020) — local sentence embeddings for the `chunks` corpus and query-time vector search, via `@huggingface/transformers` v4. No API key; no per-request network call once the model is cached.
-- **Endpoint(s):** `huggingface.co` / `cdn-lfs.huggingface.co` — the ONNX weights (`Xenova/all-MiniLM-L6-v2`, ~23 MB q8) are fetched **once** on first use and cached to `/tmp` (or served from `RAG_LOCAL_MODEL_PATH` with zero network). Overridable via `RAG_EMBED_MODEL`.
-- **Auth:** none
-- **Rate limits:** n/a — a one-time weights download, not a queried API
-- **Cost:** free (Apache-2.0 model, MIT/Apache library)
-- **ToS notes:** not a scrape; a published open-weights model downloaded through its official distribution. No content is retrieved from HF at request time.
+### Retrieval embeddings — `services/fundamentals-api` `POST /embed` (fastembed / `bge-small-en-v1.5`)
+- **Type:** internal service endpoint + a bundled model dependency (NOT a third-party runtime data source)
+- **Used for:** Phase 10a retrieval (ADR 0020). The main app can't run ONNX embeddings in its Vercel serverless runtime (`onnxruntime-node` can't load `libonnxruntime.so.1`), so `src/lib/rag/embed.ts` POSTs text to the fundamentals-api's `/embed`, which embeds it with `fastembed` (`BAAI/bge-small-en-v1.5`, 384-dim, L2-normalised). Both the corpus indexer and query-time vector search go through this.
+- **Endpoint(s):** `${FUNDAMENTALS_API_URL}/embed`, server-to-server, `IPO_INGEST_TOKEN` bearer. The quantised ONNX model (~64 MB, `qdrant/bge-small-en-v1.5-onnx-q`) is downloaded from the HF hub **once per function instance** to `fastembed_cache_dir` (`/tmp` on Vercel) and reused.
+- **Auth:** `IPO_INGEST_TOKEN` (the shared trusted-caller secret) between the two services; none for the model download.
+- **Rate limits:** the fundamentals-api's own fair-use limiter applies; `/embed` batches are capped at 64 texts.
+- **Cost:** free (Apache-2.0 model, Apache-2.0 `fastembed` + `onnxruntime`).
+- **ToS notes:** not a scrape; a published open-weights model via its official distribution. No third-party content is fetched at request time.
 
 ### NSE (National Stock Exchange) public endpoints
 - **Type:** public API (unofficial — no formal developer program or SLA)

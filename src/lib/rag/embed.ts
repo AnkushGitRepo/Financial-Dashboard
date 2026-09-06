@@ -1,69 +1,64 @@
-// Local sentence embeddings for retrieval (Phase 10 / ADR 0020).
+// Sentence embeddings for retrieval (Phase 10 / ADR 0020).
 //
-// Runs in-process via transformers.js + onnxruntime — no embedding API key,
-// no network at query time once the model is cached. BYO-key stays limited
-// to *generation*.
+// The main app can't run ONNX embeddings in its own Vercel serverless
+// runtime (`onnxruntime-node` can't load `libonnxruntime.so.1` there), so
+// this delegates to `services/fundamentals-api`'s `POST /embed` (fastembed,
+// `BAAI/bge-small-en-v1.5`, 384-dim, L2-normalised → dot product = cosine).
+// Self-host runs that service too, so this path is identical in both modes.
 //
-// `@huggingface/transformers` is imported **lazily** inside `getPipeline()`:
-// on a host where its native onnxruntime binary can't load (e.g. a Vercel
-// serverless function missing `libonnxruntime.so`), the import throws at
-// call time — which `retrieve()` and the indexer already catch — instead of
-// crashing every route that transitively imports this module at cold start.
-//
-// Model: all-MiniLM-L6-v2 (384-dim, ~23 MB quantised) by default. Mean
-// pooling + L2 normalise, so a plain dot product is cosine similarity —
-// what the Atlas Vector Search index is configured for.
-//
-// Config (all optional):
-//   RAG_EMBED_MODEL       HF repo id or local dir name (default below)
-//   RAG_MODEL_CACHE_DIR   where downloaded weights are cached (default /tmp/...)
-//   RAG_LOCAL_MODEL_PATH  serve weights from disk only, no Hub fetch
+// Both functions **throw** on any failure (no token, service down, non-200).
+// Callers already treat that as "no retrieval": `retrieve()` returns `null`,
+// the indexer collects a per-item error, `userSync` returns `false`.
 
-import type { FeatureExtractionPipeline } from '@huggingface/transformers';
+const baseUrl = () => process.env.FUNDAMENTALS_API_URL ?? 'http://localhost:8420';
 
-export const DEFAULT_EMBED_MODEL = 'Xenova/all-MiniLM-L6-v2';
-/** Output dimensionality of the default model. Must match the Atlas index. */
+/** Output dimensionality of the embedding model. Must match the Atlas
+ *  Vector Search index definition in `chunks.ts`. */
 export const EMBED_DIM = 384;
 
-const MODEL_ID = process.env.RAG_EMBED_MODEL || DEFAULT_EMBED_MODEL;
+/** Keep in step with `MAX_TEXTS` on the Python `/embed` route. */
+const MAX_BATCH = 64;
+const DEFAULT_TIMEOUT_MS = 45_000;
 
-let pipe: Promise<FeatureExtractionPipeline> | null = null;
-
-/** Lazily import transformers.js, configure it once, and build (then reuse)
- *  the feature-extraction pipeline. The first call pays the model load. */
-function getPipeline(): Promise<FeatureExtractionPipeline> {
-  if (!pipe) {
-    pipe = (async () => {
-      const { env, pipeline } = await import('@huggingface/transformers');
-      env.cacheDir = process.env.RAG_MODEL_CACHE_DIR || '/tmp/mm-transformers-cache';
-      env.useFSCache = true;
-      if (process.env.RAG_LOCAL_MODEL_PATH) {
-        env.localModelPath = process.env.RAG_LOCAL_MODEL_PATH;
-        env.allowLocalModels = true;
-        env.allowRemoteModels = false;
-      }
-      return pipeline('feature-extraction', MODEL_ID, { dtype: 'q8' });
-    })();
-  }
-  return pipe;
+export interface EmbedOptions {
+  /** Per-request timeout. The first call on a cold service instance pays a
+   *  one-time model download (~15-20s), so keep this generous for batch
+   *  work and shorter for interactive queries. */
+  timeoutMs?: number;
 }
 
-/** Embed many strings at once. Returns one unit vector per input, in order.
- *  An empty input list resolves to `[]` without loading the model. */
-export async function embedBatch(texts: string[]): Promise<number[][]> {
+export async function embedBatch(texts: string[], opts: EmbedOptions = {}): Promise<number[][]> {
   if (texts.length === 0) return [];
-  const extractor = await getPipeline();
-  const output = await extractor(texts, { pooling: 'mean', normalize: true });
-  return output.tolist() as number[][];
+
+  const token = process.env.IPO_INGEST_TOKEN;
+  if (!token) {
+    throw new Error('IPO_INGEST_TOKEN is not set — cannot reach the embedding service');
+  }
+
+  const out: number[][] = [];
+  for (let i = 0; i < texts.length; i += MAX_BATCH) {
+    const slice = texts.slice(i, i + MAX_BATCH);
+    const response = await fetch(`${baseUrl()}/embed`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
+      body: JSON.stringify({ texts: slice }),
+      signal: AbortSignal.timeout(opts.timeoutMs ?? DEFAULT_TIMEOUT_MS),
+    });
+    if (!response.ok) {
+      throw new Error(`embedding service returned ${response.status}`);
+    }
+    const body = (await response.json()) as { vectors?: number[][] };
+    if (!body.vectors || body.vectors.length !== slice.length) {
+      throw new Error('embedding service returned an unexpected shape');
+    }
+    out.push(...body.vectors);
+  }
+  return out;
 }
 
-/** Embed a single query string to one unit vector. */
+/** Embed a single query string. Uses a tighter timeout — an interactive
+ *  caller (chat / an insight card) should fall back fast, not hang. */
 export async function embedQuery(text: string): Promise<number[]> {
-  const [vector] = await embedBatch([text]);
+  const [vector] = await embedBatch([text], { timeoutMs: 20_000 });
   return vector;
-}
-
-/** For tests / callers that need to reset the cached pipeline. */
-export function __resetEmbedPipelineForTests(): void {
-  pipe = null;
 }

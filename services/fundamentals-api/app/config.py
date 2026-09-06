@@ -61,8 +61,15 @@ class Settings(BaseSettings):
     # its listing date is more than `ipo_listed_retention_days` in the past.
     ipo_cache_ttl_minutes: int = 60
     ipo_listed_retention_days: int = 10
-    # Shared secret for POST /ipos/ingest (the headless-browser refresh job).
+    # Shared secret for POST /ipos/ingest (the headless-browser refresh job)
+    # and the other server-to-server routes (/documents/extract-text, /embed).
     ipo_ingest_token: str = ""
+
+    # Retrieval embeddings for the main app's Phase 10 RAG (ADR 0020), served
+    # from POST /embed via fastembed. Dimension MUST stay 384 (matches
+    # EMBED_DIM on the Next side and the Atlas Vector Search index).
+    embed_model: str = "BAAI/bge-small-en-v1.5"
+    fastembed_cache_dir: str = "/tmp/fastembed_cache"
 
     # Fair-use rate limiting (Phase 9, ADR 0019). Fixed-window per client IP,
     # via the Upstash Redis REST API (no new dependency — uses httpx). When
