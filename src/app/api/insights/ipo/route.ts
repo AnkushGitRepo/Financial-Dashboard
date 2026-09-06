@@ -7,6 +7,7 @@ import { generateInsightText } from '@/lib/ai/generate';
 import { IPO_SYSTEM } from '@/lib/ai/prompts';
 import { buildIpoPrompt } from '@/lib/ai/insightPrompts';
 import { getOrGenerate, hashInput } from '@/lib/insights';
+import { retrieveInsightGrounding } from '@/lib/rag/insightContext';
 import { getIpos } from '@/lib/dashboard/iposApi';
 
 export const dynamic = 'force-dynamic';
@@ -38,6 +39,16 @@ async function handlePOST(request: Request) {
     return NextResponse.json({ success: false, error: 'That IPO is not in the current list.' }, { status: 404 });
   }
 
+  // Shared surface — retrieve against the shared corpus only (userId: null).
+  // Picks up DRHP/prospectus passages once those are indexed; today mostly
+  // returns news about the company.
+  const grounding = await retrieveInsightGrounding({
+    query: `${ipo.name} IPO — business, offer structure, use of proceeds, risks`,
+    userId: null,
+    docTypes: ['filing', 'news'],
+    limit: 6,
+  });
+
   const input = {
     ipo: {
       name: ipo.name,
@@ -54,7 +65,8 @@ async function handlePOST(request: Request) {
       listing_date: ipo.listing_date,
       anchor: ipo.anchor,
     },
-    drhpExtract: null as string | null, // DRHP grounding is Phase 8 pt.4
+    drhpExtract: null as string | null, // full-DRHP text still needs a URL source
+    grounding: grounding.passages,
   };
 
   const result = await getOrGenerate({

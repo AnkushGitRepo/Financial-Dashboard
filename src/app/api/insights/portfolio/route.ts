@@ -7,6 +7,7 @@ import { generateInsightText } from '@/lib/ai/generate';
 import { PORTFOLIO_SYSTEM } from '@/lib/ai/prompts';
 import { buildPortfolioPrompt } from '@/lib/ai/insightPrompts';
 import { getOrGenerate, hashInput } from '@/lib/insights';
+import { retrieveInsightGrounding } from '@/lib/rag/insightContext';
 import { getEnrichedHoldings } from '@/lib/dashboard/enrichedHoldings';
 
 export const dynamic = 'force-dynamic';
@@ -35,6 +36,13 @@ async function handlePOST(request: Request) {
     return NextResponse.json({ success: false, error: 'No holdings to analyse yet.' }, { status: 400 });
   }
 
+  const grounding = await retrieveInsightGrounding({
+    query: `portfolio review: ${holdings.map((h) => h.name).join(', ')} — recent news, sector moves`,
+    userId,
+    docTypes: ['news', 'note'],
+    limit: 6,
+  });
+
   const input = {
     holdings: holdings.map((h) => ({
       symbol: h.symbol,
@@ -44,6 +52,7 @@ async function handlePOST(request: Request) {
       avgPrice: h.avgPrice,
       ltp: h.ltp,
     })),
+    grounding: grounding.passages,
   };
 
   const result = await getOrGenerate({

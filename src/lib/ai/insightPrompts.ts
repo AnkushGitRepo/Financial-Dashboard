@@ -6,8 +6,17 @@ import type { CompanyOut, RatioOut } from '@/lib/dashboard/fundamentalsApi';
 import type { NewsItem } from '@/lib/dashboard/newsApi';
 import type { EnrichedHolding } from '@/lib/dashboard/enrichedHoldings';
 import type { Ipo } from '@/lib/dashboard/iposApi';
+import type { GroundingPassage } from '@/lib/rag/insightContext';
 
 const money = (n: number | null | undefined) => (n == null ? '—' : `₹${n.toLocaleString('en-IN')}`);
+
+/** Render retrieval grounding (Phase 10 / ADR 0020) as a prompt block, or
+ *  '' when there is none. Kept here so the hashed input and the prompt
+ *  text stay in lockstep. */
+function groundingBlock(passages: GroundingPassage[] | undefined, heading: string): string {
+  if (!passages || passages.length === 0) return '';
+  return `\n${heading}:\n${passages.map((p) => `- (${p.source}) ${p.text}`).join('\n')}`;
+}
 
 export interface StockInsightInput {
   symbol: string;
@@ -17,6 +26,7 @@ export interface StockInsightInput {
   financialsSummary: { label: string; latest: string | null; prior: string | null }[];
   shareholdingLatest: { category: string; percentage: string }[];
   news: Pick<NewsItem, 'title' | 'sentiment' | 'published_at'>[];
+  grounding?: GroundingPassage[];
 }
 
 export function buildStockPrompt(i: StockInsightInput): string {
@@ -37,6 +47,7 @@ export function buildStockPrompt(i: StockInsightInput): string {
     `Recent financials: ${fin || '(none available)'}.`,
     `Latest shareholding: ${sh || '(none available)'}.`,
     `Recent news:\n${news}`,
+    groundingBlock(i.grounding, 'Retrieved context (indexed news / filings)'),
   ]
     .filter(Boolean)
     .join('\n');
@@ -44,6 +55,7 @@ export function buildStockPrompt(i: StockInsightInput): string {
 
 export interface PortfolioInsightInput {
   holdings: Pick<EnrichedHolding, 'symbol' | 'name' | 'sector' | 'quantity' | 'avgPrice' | 'ltp'>[];
+  grounding?: GroundingPassage[];
 }
 
 export function buildPortfolioPrompt(i: PortfolioInsightInput): string {
@@ -60,7 +72,10 @@ export function buildPortfolioPrompt(i: PortfolioInsightInput): string {
     `Holdings (${i.holdings.length}):`,
     ...rows,
     `Total current value ${money(Math.round(totalValue))}, total invested ${money(Math.round(totalCost))}.`,
-  ].join('\n');
+    groundingBlock(i.grounding, 'Retrieved context (indexed news / your notes)'),
+  ]
+    .filter(Boolean)
+    .join('\n');
 }
 
 export interface IpoInsightInput {
@@ -81,6 +96,7 @@ export interface IpoInsightInput {
     | 'anchor'
   >;
   drhpExtract?: string | null;
+  grounding?: GroundingPassage[];
 }
 
 export function buildIpoPrompt(i: IpoInsightInput): string {
@@ -94,6 +110,13 @@ export function buildIpoPrompt(i: IpoInsightInput): string {
   ];
   if (i.drhpExtract) {
     lines.push(`\nDRHP extract (key sections):\n${i.drhpExtract}`);
+  } else if (i.grounding && i.grounding.length > 0) {
+    lines.push(
+      groundingBlock(i.grounding, 'Retrieved context (indexed DRHP / prospectus / news passages)')
+    );
+    lines.push(
+      '\n(No full DRHP text — use the retrieved passages above plus the structured data, and say where detail is missing.)'
+    );
   } else {
     lines.push(
       '\n(No DRHP text available — base the brief on the structured data above and general public knowledge of the company, and say so where detail is missing.)'

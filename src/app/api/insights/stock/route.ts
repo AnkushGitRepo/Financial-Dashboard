@@ -7,6 +7,7 @@ import { generateInsightText } from '@/lib/ai/generate';
 import { STOCK_SYSTEM } from '@/lib/ai/prompts';
 import { buildStockPrompt } from '@/lib/ai/insightPrompts';
 import { getOrGenerate, hashInput } from '@/lib/insights';
+import { retrieveInsightGrounding } from '@/lib/rag/insightContext';
 import {
   getCompany,
   getFinancials,
@@ -72,6 +73,14 @@ async function handlePOST(request: Request) {
     if (!shByCat.has(s.category)) shByCat.set(s.category, s.percentage);
   }
 
+  const grounding = await retrieveInsightGrounding({
+    query: `${company.name} ${symbol} results valuation outlook risks recent developments`,
+    userId,
+    symbol,
+    docTypes: ['news', 'filing'],
+    limit: 6,
+  });
+
   const input = {
     symbol,
     company: {
@@ -85,6 +94,7 @@ async function handlePOST(request: Request) {
     financialsSummary,
     shareholdingLatest: [...shByCat].map(([category, percentage]) => ({ category, percentage })),
     news: news.items.map((n) => ({ title: n.title, sentiment: n.sentiment, published_at: n.published_at })),
+    grounding: grounding.passages,
   };
 
   const result = await getOrGenerate({
