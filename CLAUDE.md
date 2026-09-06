@@ -8,13 +8,13 @@ MarketMitra is a financial dashboard (Indian markets: indices, stocks, IPOs, new
 
 ## Current phase
 
-**Phases 0–9 signed off + archived (2026-09-06); Phase 10 scoped (ADR 0020), not started.** Everything through the API-surface layer is live in production. Per-feature build detail lives in `/docs/archive/*.md`; `/docs/architecture.md` has the current-state summaries; `/docs/session-log.md` has the play-by-play.
+**Phases 0–10a signed off + archived; Phase 10b scoped (ADR 0020), not started.** Everything through the retrieval layer is live in production. Per-feature build detail lives in `/docs/archive/*.md`; `/docs/architecture.md` has the current-state summaries; `/docs/session-log.md` has the play-by-play.
 
-**Phase 9 — API surface** ([ADR 0019](./docs/decisions/0019-phase-9-api-surface-mcp-rate-limiting.md)) — done, archived, in prod: MCP server at `/api/mcp` (7 read-only tools, `src/lib/mcp/`), rate limiting (`@upstash/ratelimit` on `/api/*` + `/api/mcp` + the fundamentals-api; Upstash `iad1`, activated + 429-verified; reads `KV_REST_API_*` or `UPSTASH_REDIS_REST_*`; self-host with neither = no-op), API explorer at `/dashboard/api` + `public/openapi.json`. Full detail: [`/docs/archive/api-surface.md`](./docs/archive/api-surface.md).
+**Phase 10a — RAG** ([ADR 0020](./docs/decisions/0020-phase-10-rag-chat.md)) — done, archived, deployed + verified live on hosted 2026-09-07. `chunks` collection + Atlas Vector Search index; **embeddings run on `services/fundamentals-api` `POST /embed`** (`fastembed`, `bge-small-en-v1.5`, 384-dim — NOT in the Next app; `onnxruntime-node` won't load on Vercel), `src/lib/rag/embed.ts` is an HTTP client to it; `POST /api/cron/index-corpus` (`.github/workflows/index-corpus.yml`, every 2 h); agentic tool-calling chat (`search_context` + the 7 MCP tools); retrieval-grounded stock/portfolio/IPO insights; per-user layer (`/api/notes` + `/dashboard/notes`, holdings snapshot, chat history). **Everything degrades to pre-Phase-10 behaviour** when the corpus/embed service is unavailable. Full detail + the onnxruntime saga: [`/docs/archive/rag-chat.md`](./docs/archive/rag-chat.md). `EMBED_DIM = 384` must stay in lockstep across `embed.ts` / `embeddings.py` / the index def in `chunks.ts`.
 
-**Phase 10 — RAG** ([ADR 0020](./docs/decisions/0020-phase-10-rag-chat.md), accepted): scoped, **not started**. Phase 10a build checklist (13 items) is in `ROADMAP.md`. Gist: `chunks` collection + Atlas Vector Search, **local** embeddings (`@xenova/transformers`, no key), cron-driven corpus indexing, agentic tool-calling chat (`streamText` + the MCP tools + a `search_context` tool), retrieval-grounded insights (absorbs DRHP grounding), graceful fallback to today's prompt-stuffing when no vector index. Shared public corpus (`userId:null`) + per-user private layer. Phase 10b = a dedicated `/dashboard/research` surface, later. Phase 11 (multi-agent) still ❓ — needs its own scoping session.
+**Phase 10b** — a dedicated `/dashboard/research` surface — scoped in ADR 0020, **not built**. **Phase 11** (multi-agent) still ❓ — needs its own scoping session.
 
-**Still open** (all user actions, no code): one real alert fire + one real IPO-alert fire in market hours; optional Resend verified domain in `ALERT_EMAIL_FROM` (email delivery is otherwise live — `RESEND_API_KEY` set in prod 2026-09-06); rotate the Resend key (it was pasted in chat).
+**Still open** (non-blocking): one real alert fire + one real IPO-alert fire in market hours; README self-host note for the RAG env; pre-bundle the embedding model (kills a ~18s cold-instance download); a "clear chat history" control in the widget; filings-in-corpus needs an un-blocked PDF host (BSE 403s Vercel's IP). Optional Resend verified domain in `ALERT_EMAIL_FROM`; rotate the Resend + Resend keys pasted in chat.
 
 **`main` = `v2`** — merged 2026-09-06 so the GitHub Actions `schedule:` triggers fire; every commit since is pushed to both. Start new feature work from a fresh branch off `main`.
 
@@ -43,9 +43,11 @@ MarketMitra is a financial dashboard (Indian markets: indices, stocks, IPOs, new
 
 ## Active focus
 
-**Next build = Phase 10a (RAG).** Scoped via [ADR 0020](./docs/decisions/0020-phase-10-rag-chat.md) (accepted); 13-item build checklist in `ROADMAP.md` under "Phase 10a". Not started — no Phase 10 code exists. Start from a fresh branch off `main`; work the checklist top-to-bottom (embed lib → `chunks` store + Atlas index → chunker → fundamentals-api PDF→text → corpus-indexer cron → per-user sync → `userNotes`/`chatMessages` → retrieval lib → agentic chat → grounded insights → fallback → cross-cutting). The `src/lib/mcp/` tool layer is wired into the chat model directly (structured data is tool-called, not embedded).
+**No build in flight.** Phases 0–10a are signed off, archived, and in production. The next feature-level work is **Phase 10b** (a dedicated `/dashboard/research` surface — scoped in [ADR 0020](./docs/decisions/0020-phase-10-rag-chat.md), not built) or **Phase 11** (multi-agent — ❓, needs a scoping session first). Neither should be started from assumptions.
 
-**Post-sign-off follow-ups from Phases 4–9** — mostly closed. Done: Tier 1 filing-URL discovery, "Proactive insight" chat tiles removed, rate limiting activated, both GitHub Actions schedulers activated + validated, Resend email seam wired + `RESEND_API_KEY` live in prod, Phase 9 signed off + archived. DRHP grounding is folded into Phase 10a. Still open (user actions only): one real alert fire + one real IPO-alert fire in market hours; optional `ALERT_EMAIL_FROM` verified domain; rotate the Resend key.
+The `src/lib/rag/` layer + the MCP tools are the foundation for both — Phase 10b builds a UI on `retrieve()`; Phase 11 orchestrates the tool-calling chat that already exists.
+
+**Non-blocking follow-ups** (see ROADMAP.md): README self-host note for the RAG env (`FUNDAMENTALS_API_URL` reachable from the app + `IPO_INGEST_TOKEN` shared between the two services); pre-bundle the `bge-small` embedding model; a "clear chat history" control in `AiWidget`; filings-in-corpus (blocked — BSE 403s Vercel); one real alert fire + one real IPO-alert fire in market hours.
 
 **Standing facts that outlived the phase detail:**
 

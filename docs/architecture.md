@@ -4,12 +4,12 @@ Current system architecture for MarketMitra v2. Kept in sync with reality — wh
 ships and is signed off, its detailed build notes move to `/docs/archive/<feature-name>.md`
 and only a short summary stays here (see the context maintenance protocol in `/CLAUDE.md`).
 
-## Status: Phases 0–9 signed off and in production
+## Status: Phases 0–10a signed off and in production
 
 v2 is a teardown-and-rebuild of the v1 Financial-Dashboard repo ([ADR 0001](./decisions/0001-teardown-and-rebuild.md)).
-Every feature phase through **Phase 9 (API surface)** is built, deployed to production, and
-signed off (2026-09-06). `v2` was merged to `main` so the GitHub Actions cron schedulers can
-fire from the default branch; both branches are kept identical.
+Every feature phase through **Phase 10a (retrieval / RAG)** is built, deployed to production,
+and signed off. `v2` was merged to `main` so the GitHub Actions cron schedulers can fire
+from the default branch; both branches are kept identical.
 
 - **Phase 2–3:** scaffold + deployment-mode gate, landing page, on-brand auth pages,
   dashboard shell. ([archive: landing-page, auth-pages, dashboard-shell](./archive/))
@@ -20,15 +20,16 @@ fire from the default branch; both branches are kept identical.
 - **Phase 7:** IPO tracker + GMP (`/dashboard/ipos`). ([archive](./archive/ipo-tracker.md))
 - **Phase 8:** AI insights + Mitra chat (`/dashboard/settings` + insight cards + chat). ([archive](./archive/ai-insights.md))
 - **Phase 9:** API surface — MCP server (`/api/mcp`), fair-use rate limiting, interactive explorer (`/dashboard/api`). ([archive](./archive/api-surface.md))
+- **Phase 10a:** retrieval (RAG) under chat + insights — `chunks` collection + Atlas Vector Search, embeddings on the fundamentals-api (`/embed`), `/api/cron/index-corpus`, agentic chat, grounded insights, per-user notes/holdings/chat layer. ([archive](./archive/rag-chat.md))
 
 The repo is a small monorepo: the Next.js app at the root (`src/`) plus a standalone Python
 service under `services/fundamentals-api/`.
 
-**Open follow-ups** (tracked in ROADMAP.md, not blockers, each needs a user action):
-activating the two GitHub Actions schedulers (`gh secret set` — they fire from `main`, now
-the default branch); Resend email delivery (needs a from-domain); one real alert fire + one
-real IPO-alert fire in market hours; DRHP grounding for the IPO brief. Phases 10 (RAG) / 11
-(multi-agent) are ❓ — a scoping session, not a build task.
+**Open follow-ups** (tracked in ROADMAP.md, none a blocker): one real alert fire + one real
+IPO-alert fire in market hours; README self-host note for the RAG env; pre-bundle the
+embedding model; a "clear chat history" control; filings-in-corpus needs an un-blocked PDF
+host. **Phase 10b** (a dedicated `/dashboard/research` surface) is scoped in ADR 0020 but
+not built; **Phase 11** (multi-agent) is ❓ — a scoping session, not a build task.
 
 ## Stack
 
@@ -273,48 +274,37 @@ in [`/docs/api-surface.md`](./api-surface.md). All live in production.
 
 ## Retrieval (RAG) — chat + insights (Phase 10a)
 
-Scoping: [ADR 0020](./decisions/0020-phase-10-rag-chat.md). Signed off, merged to `main`/`v2`,
-both projects deployed 2026-09-06. Every piece **degrades to the pre-Phase-10 behaviour**
-when vector search or the embedding service is unavailable (`retrieve()` returns `null`,
-insight grounding is empty, chat falls back to its data tools) — nothing here is
-load-bearing.
+Full detail: [archive/rag-chat.md](./archive/rag-chat.md); scoping in
+[ADR 0020](./decisions/0020-phase-10-rag-chat.md); per-endpoint reference in
+[`/docs/api-surface.md`](./api-surface.md). Signed off, deployed, and **verified live on the
+hosted instance 2026-09-07**.
 
-**Embeddings run on the fundamentals-api, not in the Next app.** `onnxruntime-node` can't
-load `libonnxruntime.so.1` in Vercel's Node serverless runtime, so `src/lib/rag/embed.ts`
-POSTs text to `services/fundamentals-api` `POST /embed` (`fastembed`, `BAAI/bge-small-en-v1.5`,
-384-dim, L2-normalised; `IPO_INGEST_TOKEN` bearer). `embedBatch` / `embedQuery` throw on any
-failure, which the callers already treat as "no retrieval". Self-host runs both services, so
-the path is identical there.
+A retrieval layer under the existing AI surfaces — **nothing load-bearing**: every piece
+degrades to the exact pre-Phase-10 behaviour when vector search or the embedding service is
+unavailable.
 
 - **Store** — one `chunks` collection (`src/lib/rag/chunks.ts`) + an Atlas Vector Search
-  index (`vectorSearch`, `dotProduct`, 384-dim, filter fields `userId`/`docType`/`symbol`),
-  created idempotently by `ensureChunksIndexes()`. Two partitions by `userId`: `null` =
-  shared public corpus (news, filings), a Clerk id = that user's private layer (notes,
-  holdings snapshot, recent questions). `replaceSourceChunks()` upserts by
-  `(source, chunkIndex)` and no-ops on an unchanged content hash.
-- **Embeddings** — `src/lib/rag/embed.ts` POSTs to the fundamentals-api's `POST /embed`
-  (`fastembed`, `BAAI/bge-small-en-v1.5`, 384-dim, `IPO_INGEST_TOKEN` bearer). No LLM/embedding
-  API key; BYO-key stays for *generation* only. See the section note above for why it's not
-  in the Next runtime.
-- **Indexer** — `POST /api/cron/index-corpus` (`CRON_SECRET` bearer, `.github/workflows/
-  index-corpus.yml`, every 2 h). News (chunk → embed → upsert, 45-day retention) + annual
-  report filings (`RAG_FILING_SYMBOLS` set → `getDocuments` → `POST /documents/extract-text`
-  on the fundamentals-api → chunk/embed; skips already-indexed periods). `?indexesOnly=1`
-  for self-host setup.
-- **Retrieval** — `src/lib/rag/retrieve.ts` `retrieve()`: local query embed → `$vectorSearch`
-  over `{ userId ∈ [null, caller] }` (+ `docType`/`symbol` filters) → score + `minScore`.
-  Returns `null` (never throws) when unavailable.
-- **Agentic chat** — `POST /api/ai/chat` is a tool-calling loop (`stopWhen: stepCountIs(5)`):
-  all 7 MCP data tools + `search_context` over `retrieve()`. `CHAT_SYSTEM_AGENTIC` keeps the
-  guardrail. Completed turns persist (`chatMessages`, 100/user rolling cap); the user's
-  recent questions are re-embedded as `chat:<userId>`. `DELETE /api/ai/chat` clears both.
+  index. Two partitions by `userId`: `null` = shared public corpus (news; filings where the
+  host isn't IP-blocked), a Clerk id = that user's private layer (notes, holdings snapshot,
+  recent questions).
+- **Embeddings** — **not in the Next app** (`onnxruntime-node` won't load on Vercel). A new
+  `services/fundamentals-api` `POST /embed` (`fastembed`, `bge-small-en-v1.5`, 384-dim,
+  `IPO_INGEST_TOKEN` bearer); `src/lib/rag/embed.ts` is an HTTP client to it. No
+  LLM/embedding API key — BYO-key stays for *generation* only.
+- **Indexer** — `POST /api/cron/index-corpus` (`CRON_SECRET` bearer,
+  `.github/workflows/index-corpus.yml`, every 2 h): news (chunk → embed → upsert, 45-day
+  retention) + annual-report filings.
+- **Retrieval** — `src/lib/rag/retrieve.ts` `retrieve()`: query embed → `$vectorSearch`
+  over `{ userId ∈ [null, caller] }` (+ `docType`/`symbol` filters). Returns `null`, never
+  throws.
+- **Agentic chat** — `POST /api/ai/chat` is a tool-calling loop: the 7 MCP data tools +
+  `search_context` over `retrieve()`. Guardrail intact. Turns persist (`chatMessages`,
+  100/user cap); `DELETE /api/ai/chat` clears history + the corpus entry.
 - **Grounded insights** — `retrieveInsightGrounding()` folded into the stock / portfolio /
-  IPO insight routes; retrieved passages go into the hashed cache input so a re-index
-  invalidates stale insights. The IPO brief uses grounding as the DRHP stand-in (full-DRHP
-  text still needs a URL source for the indexer).
-- **Per-user sync** — `src/lib/rag/userSync.ts`: notes (`/api/notes` CRUD + `/dashboard/notes`
-  panel), holdings snapshot (`void resyncUserHoldings` on every holdings mutation), recent
-  chat — all fire-and-forget, a sync failure never fails the originating write.
+  IPO insight routes; retrieved passages go into the hashed cache key so a re-index
+  invalidates stale insights.
+- **Per-user sync** — `src/lib/rag/userSync.ts` + `/api/notes` CRUD + `/dashboard/notes`
+  panel + `resyncUserHoldings` on every holdings mutation. All fire-and-forget.
 
 ## Shipped features (see `/docs/archive/` for detail)
 

@@ -119,3 +119,12 @@ Rolling log of work sessions, most recent first is NOT required — append chron
 - **Final index-corpus run:** `{"vectorIndex":"exists","news":{"seen":150,"changed":150,"pruned":0},"filings":{"seen":10,"indexed":0,"skipped":10},"errors":[],"ms":141152}`. **150 news docs chunked, embedded via the fundamentals-api `/embed` (fastembed), and written to the `chunks` collection — `errors: []`. RAG retrieval is live on the hosted instance.**
 - **Filings still `skipped: 10`** — `GET bseindia.com/.../*.pdf` → `403 Forbidden` from Vercel's IP (same edge-blocking as NSE/Tier 1). `fetchPdfText` returns null → skipped, no error. Filings-in-corpus will populate from an un-blocked host (self-host in India, etc.). Not a regression — a known external limitation, documented like Tier 1.
 - **Phase 10a is functionally complete on hosted + self-host.** `index-corpus.yml` runs every 2h on its own (repo secret already set). Remaining: Phase 10a archiving protocol; Phase 10b (research surface) still scoped-not-built.
+
+## 2026-09-07 — Phase 10a archiving/context-maintenance protocol run
+
+- Phase 10a signed off + verified live → ran the context-maintenance protocol (CLAUDE.md).
+- **New archive** [`/docs/archive/rag-chat.md`](./archive/rag-chat.md) — full Phase 10a build detail: store/chunker/retrieval, the **onnxruntime-on-Vercel saga** (lazy import → file-tracing dead end → WASM spike → the `fastembed` `/embed` endpoint pivot), the two prod-only bugs (news `le=50` cap, read-only `$HOME`), agentic chat + history, grounded insights, the per-user layer, test coverage, follow-ups.
+- **`/docs/architecture.md`** — "Retrieval (RAG)" section collapsed to a ~30-line summary + archive link; status header → "Phases 0–10a signed off and in production"; Phase 10a added to the phase list; stale "Open follow-ups" paragraph refreshed.
+- **`CLAUDE.md`** — Current phase → "Phases 0–10a signed off + archived; Phase 10b scoped, not started"; Active focus → "No build in flight" with the `EMBED_DIM=384` lockstep note + non-blocking follow-ups.
+- `session-log.md` at 12 entries — under the ~15-20 rollup threshold, left intact. `decisions/` / `data-sources.md` / `api-surface.md` untouched (living reference).
+- **Next:** Phase 10b (research surface) or Phase 11 (multi-agent) — both need a scoping pass, neither started from assumptions.
