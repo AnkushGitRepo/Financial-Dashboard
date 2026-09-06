@@ -18,6 +18,8 @@
     "@clerk/nextjs": "^7.9.0",
     "@modelcontextprotocol/server": "^2.0.0",
     "@openrouter/ai-sdk-provider": "^3.0.0",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.38.4",
     "ai": "^7.0.93",
     "framer-motion": "^13.2.0",
     "mcp-handler": "^2.1.1",

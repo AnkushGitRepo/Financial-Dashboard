@@ -10,6 +10,7 @@
 
 import { createMcpHandler } from 'mcp-handler';
 import { registerMarketMitraTools, MCP_SERVER_INFO } from '@/lib/mcp/server';
+import { withRateLimit } from '@/lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -20,4 +21,9 @@ const handler = createMcpHandler(registerMarketMitraTools, {
     'MarketMitra exposes read-only Indian-market reference data: NSE symbol search, live quotes, company fundamentals (ratios, financials, shareholding, peers, documents), price history, market news (with rough headline-tone sentiment), IPOs with unofficial grey-market premium, and index levels. All figures are public reference data, not investment advice. Resolve company names to symbols with search_symbols first.',
 });
 
-export { handler as GET, handler as POST };
+// Public (no auth), but fair-use rate limited (ADR 0019 Part 2). No-op when
+// the Upstash env vars are absent — i.e. self-host, and hosted before the
+// integration is provisioned.
+const limited = withRateLimit(handler, 'mcp');
+
+export { limited as GET, limited as POST };

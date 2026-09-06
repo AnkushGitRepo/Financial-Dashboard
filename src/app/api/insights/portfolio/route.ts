@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withRateLimit } from '@/lib/rateLimit';
 import { z } from 'zod';
 import { getCurrentUserId } from '@/lib/currentUserId';
 import { getUserAiConfig } from '@/lib/ai/userAiConfig';
@@ -14,7 +15,7 @@ export const maxDuration = 60;
 const TTL_MS = 6 * 60 * 60 * 1000;
 const bodySchema = z.object({ force: z.boolean().optional() }).optional();
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   const userId = await getCurrentUserId();
   if (!userId) return NextResponse.json({ success: false, error: 'Not authenticated' }, { status: 401 });
 
@@ -61,3 +62,5 @@ export async function POST(request: Request) {
   if (!result.ok) return NextResponse.json({ success: false, error: result.error }, { status: 502 });
   return NextResponse.json({ success: true, data: result.insight, meta: { cached: result.cached } });
 }
+
+export const POST = withRateLimit(handlePOST, 'ai');

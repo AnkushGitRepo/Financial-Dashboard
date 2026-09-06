@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withRateLimit } from '@/lib/rateLimit';
 import { z } from 'zod';
 import type { ModelMessage } from 'ai';
 import { getCurrentUserId } from '@/lib/currentUserId';
@@ -35,7 +36,7 @@ async function buildContext(userId: string): Promise<string> {
   return formatChatContext(holdings, mergeNews(specific.items, broad.items));
 }
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   const userId = await getCurrentUserId();
   if (!userId) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
 
@@ -62,3 +63,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'The AI request failed. Please try again.' }, { status: 502 });
   }
 }
+
+export const POST = withRateLimit(handlePOST, 'ai');

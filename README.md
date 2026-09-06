@@ -91,6 +91,12 @@ Price and portfolio alerts are checked by a scheduled call to `POST /api/cron/ev
 
 A GitHub Actions workflow for this ships at `.github/workflows/evaluate-alerts.yml` (every 10 min during market hours) — activate it by adding the `CRON_SECRET` repo secret and making this the default branch (GitHub only runs `schedule:` from the default branch; the manual "Run workflow" button works from any branch). cron-job.org or a home server's crontab work too. The route only does work during NSE trading hours (it no-ops otherwise); add `?force=1` to run a cycle regardless. In-app notifications work with no extra setup. Set `ALERT_WEBHOOK_URL` (or a per-alert URL) to also forward alerts to a Telegram/Discord/Slack incoming webhook. Email delivery is a config-gated seam that isn't wired to a provider yet — see ROADMAP.md.
 
+### MCP server + API
+
+The public market data (symbol search, quotes, fundamentals, price history, news, IPOs, indices) is exposed as an **MCP server** for AI agents at `/api/mcp` (Streamable HTTP — client config `{ "url": "https://your-host/api/mcp" }`). It wraps the same data the dashboard uses; see [`/docs/api-surface.md`](docs/api-surface.md) for the tool list and [`/llms.txt`](public/llms.txt) for an agent-readable pointer. All tools are read-only public data — no auth. See [ADR 0019](docs/decisions/0019-phase-9-api-surface-mcp-rate-limiting.md).
+
+**Rate limiting** (hosted only): set `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` (provision with `vercel integration add upstash/upstash-kv`) to enforce fair-use limits on `/api/*` and `/api/mcp`. With both unset the limiter is a no-op — **self-host is never throttled**.
+
 ## Two ways to run it
 
 Per [ADR 0008](docs/decisions/0008-hosted-vs-self-hosted-distribution.md): a paid hosted option (7-day free trial) for people who want it running with no setup, or a free, self-hosted option (MIT licensed) where you bring your own MongoDB Atlas cluster and AI provider key. Same codebase either way — self-hosting isn't a stripped-down version.

@@ -246,14 +246,16 @@ Scoped 2026-09-06 — see [ADR 0019](./docs/decisions/0019-phase-9-api-surface-m
 - [x] `src/lib/mcp/tools.test.ts` — 17 cases (registry shape, per-tool schema rejection + `run` behaviour against a mocked data layer). Live smoke-tested against `next dev` + local fundamentals-api: `initialize`, `tools/list` (all 7 with JSON Schema), `tools/call get_market_indices` (real NIFTY/SENSEX), schema rejection → `isError`.
 - [x] `/docs/api-surface.md` — new "MCP server — `/api/mcp`" section + tool table. `/docs/architecture.md` gets its section under Cross-cutting below.
 
-**Part 2 — rate limiting:**
-- [ ] Provision Upstash Redis via `vercel integration add` — **load the `marketplace` skill first** and follow it (`discover` → confirm → install). Injects `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`.
-- [ ] `src/lib/rateLimit.ts` — `@upstash/ratelimit` sliding window, key by Clerk `userId` else client IP. Wrapper applied at the top of every `/api/*` handler + the MCP request path.
-- [ ] Equivalent check in `services/fundamentals-api` for its public endpoints (`fastapi-limiter` or a hand-rolled Upstash REST call — decide at build).
-- [ ] Tiers: authed users generous per-min + per-day; anon/IP tighter; `/api/insights/*` + `/api/ai/chat` much lower. Numbers live in code/config, tuned later.
-- [ ] `429` response = `{ success:false, error, data:null }` + `Retry-After` + `RateLimit-*` headers.
-- [ ] Self-host: absent Upstash env vars → limiter is a no-op pass-through. Document in README + `.env.local.example`.
-- [ ] Cross-reference the ADR 0016 landing-page "fair-use rate limits" line — it becomes true here.
+**Part 2 — rate limiting:** code built 2026-09-06; **Upstash provisioning + prod deploy pending the user.**
+- [~] Provision Upstash Redis: `vercel integration add upstash/upstash-kv` (discovered via the `marketplace` skill — it's `upstash/upstash-kv`, "Upstash for Redis"). **Interactive (plan/name prompts) → left for the user to run**, then `vercel env pull`. Injects `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`.
+- [x] `src/lib/rateLimit.ts` — `@upstash/ratelimit` sliding window, key by Clerk `userId` else first `x-forwarded-for` hop. `checkRateLimit(req, tier, {userId?})` + `withRateLimit(handler, tier)` + `rateLimitResponse` / `rateLimitHeaders`. Fails **open** if the limiter throws.
+- [x] Wired: `src/proxy.ts` middleware rate-limits `/api/(.*)` at tier `default` (hosted only), excluding `/api/mcp*`, `/api/insights*`, `/api/ai*`, `/api/cron*`. `/api/mcp` route → `withRateLimit(handler, 'mcp')`. The 4 AI routes (`insights/{stock,portfolio,ipo}`, `ai/chat`) → `withRateLimit(handlePOST, 'ai')` — each expensive route governed by exactly one limiter.
+- [ ] Equivalent check in `services/fundamentals-api` for its public endpoints — **not yet done** (the Next MCP server + `/api/*` are the front door; fundamentals-api is currently only reached server-to-server). Follow-up.
+- [x] Tiers (starting budgets in `rateLimit.ts`, tuned later): `default` authed 120/min · anon 30/min; `ai` authed 15/min · anon 6/min; `mcp` authed 120/min · anon 60/min.
+- [x] `429` = `{ success:false, data:null, error }` + `Retry-After` + `RateLimit-Limit/Remaining/Reset`.
+- [x] Self-host: absent Upstash env → `rateLimitEnabled=false`, everything passes. `.env.local.example` + README updated.
+- [x] ADR 0016 cross-reference added (see ADR 0019 §2).
+- [x] Tests: `src/lib/rateLimit.test.ts` — 7 cases (disabled pass-through, IP vs user keying, authed budget, 429 + Retry-After, RateLimit-* headers on success, fail-open). Suite **155 passed**.
 
 **Part 3 — interactive API explorer:**
 - [ ] Machine-readable spec: a hand-kept `openapi.json` (or equivalent) generated from / cross-checked against `api-surface.md`; add a CI check that it matches the route handlers.

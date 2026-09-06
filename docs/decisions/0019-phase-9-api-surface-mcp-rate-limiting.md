@@ -92,27 +92,38 @@ Phase 9 delivers three things, buildable largely in parallel:
 
 ### 2. Rate limiting — Upstash Redis (`@upstash/ratelimit`)
 
-- **Provision** the Upstash Redis integration through the Vercel Marketplace
-  (`vercel integration add` — follow the `marketplace` skill at build time).
-  It injects `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`.
+- **Provision** the Upstash Redis integration through the Vercel Marketplace.
+  RESOLVED 2026-09-06 via the `marketplace` skill: the product is
+  **`upstash/upstash-kv`** ("Upstash for Redis"), installed with
+  `vercel integration add upstash/upstash-kv` (interactive — plan/name
+  prompts — so the user runs it), then `vercel env pull`. Injects
+  `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`.
 - **Limiter:** `@upstash/ratelimit` sliding-window. Key by Clerk `userId`
   when authenticated, else by client IP (`x-forwarded-for` first hop).
-- **Where:** a shared helper (`src/lib/rateLimit.ts`) called at the top of
-  every `/api/*` route handler (or via a wrapper), plus the MCP server's
-  request path. The fundamentals-api public endpoints get an equivalent
-  Python check (`fastapi-limiter` or a hand-rolled Upstash REST call — TBD
-  at build).
-- **Tiers (starting point, tune later):** authenticated users a generous
-  per-minute + per-day budget; anonymous/IP a tighter one; the AI insight
-  and chat routes a much lower budget (they cost the user's own tokens, but
-  still protect shared cache + our egress). Exact numbers land in
-  `ROADMAP.md` / the route code, not here.
-- **Response:** `429` with `{ success:false, error:"rate limit exceeded",
-  data:null }` + `Retry-After` and `RateLimit-*` headers.
-- **Self-host:** if the Upstash env vars are absent, the limiter is a no-op
-  pass-through. Documented in the README + `.env.local.example`.
-- **Landing-page claim:** once this ships, the ADR 0016 "fair-use rate
-  limits" line on the landing page is true — cross-reference it.
+  **Fails open** if the store errors.
+- **Where — RESOLVED (build):** `src/lib/rateLimit.ts` exposes
+  `checkRateLimit(req, tier, {userId?})`, `withRateLimit(handler, tier)`,
+  `rateLimitResponse`, `rateLimitHeaders`. Wired in two layers so each
+  expensive route has exactly one limiter:
+  - `src/proxy.ts` middleware rate-limits `/api/(.*)` at tier `default`
+    (hosted mode only), **excluding** `/api/mcp*`, `/api/insights*`,
+    `/api/ai*` (own stricter tiers) and `/api/cron*` (bearer-guarded).
+  - `/api/mcp/route.ts` → `withRateLimit(handler, 'mcp')`.
+  - `insights/{stock,portfolio,ipo}` + `ai/chat` → `withRateLimit(handlePOST, 'ai')`.
+  - `services/fundamentals-api`'s own public endpoints: **deferred** — it's
+    currently reached only server-to-server (via the Next app / MCP tools),
+    so the Next front door covers the real exposure. Tracked as a follow-up.
+- **Tiers (starting budgets in `rateLimit.ts`, tuned later):** `default`
+  authed 120/min · anon 30/min; `ai` authed 15/min · anon 6/min; `mcp`
+  authed 120/min · anon 60/min.
+- **Response:** `429` with `{ success:false, data:null, error }` +
+  `Retry-After` and `RateLimit-Limit/Remaining/Reset` headers.
+- **Self-host:** Upstash env vars absent → `rateLimitEnabled = false`, every
+  check passes. README + `.env.local.example` updated.
+- **Landing-page claim:** [ADR 0016](./0016-landing-page-no-paid-tier-reconciliation.md)'s
+  "the hosted shared instance has fair-use rate limits" line becomes true
+  once this is deployed with the Upstash env vars set. Until then the code
+  ships inert.
 
 ### 3. Interactive API explorer (`/dashboard/api` or `/api-explorer`)
 
