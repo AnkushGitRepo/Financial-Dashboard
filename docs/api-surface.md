@@ -111,6 +111,28 @@ Every endpoint here is a Next.js App Router route handler under `app/api/**/rout
 - **Response:** pass-through of the Python service's shape — `{ items: [{ url, title, summary, source, published_at, sentiment, sentiment_score, symbols[] }], next_cursor: string | null }`. Not the `{success,data,error}` envelope (same rationale as `/api/search`).
 - **Errors:** upstream failure yields `{ items: [], next_cursor: null }`, not a 5xx.
 
+### `GET|PUT|DELETE /api/settings/ai`
+- **Purpose:** Manage the signed-in user's BYO AI provider key (ADR 0018 §2). Key is stored **AES-256-GCM-encrypted** in the `userSettings` Mongo collection, keyed on `SETTINGS_ENC_KEY`; it is decrypted only server-side per request and never returned to the browser.
+- **Auth:** required (Clerk session in hosted mode; the fixed `local` user in self-host).
+- **GET:** `data` = `{ provider, model, keyHint }` (last 4 chars of the key only) or `null` if none stored. `meta.encConfigured` reflects whether `SETTINGS_ENC_KEY` is set.
+- **PUT:** body `{ provider: 'gemini'|'anthropic'|'openrouter', apiKey: string(10–400), model?: string }`. Runs a live `validateAiKey` round-trip before storing — a rejected key is never saved. `503` when `SETTINGS_ENC_KEY` is unset, `400` on a provider-rejected key, `422` on a bad body.
+- **DELETE:** clears the stored key.
+
+### `POST /api/insights/{stock|portfolio|ipo}`
+- **Purpose:** Generate (or return a cached) neutral AI synthesis for one surface (ADR 0018). Guardrailed in `src/lib/ai/prompts.ts` — no buy/sell/hold, no price target, every response ends "This is a synthesis of public data, not investment advice."
+- **Auth:** required. `stock` + `portfolio` use the caller's **own** key (or the `AI_*` env key **only** in self-host — `getUserAiConfig`); `ipo` also allows the deployment's key (ADR 0018 §5). `400 {error:'no_ai_key'}` when none is available.
+- **Request:** `stock` → `{ symbol, force? }`; `portfolio` → `{ force? }`; `ipo` → `{ slug, force? }`. `force: true` bypasses a fresh cache.
+- **Cache (`insights` collection, `{scope,key,userId}`):** `stock` per-user, keyed by symbol, 24h; `portfolio` per-user, key `'portfolio'`, 6h; `ipo` **cross-user shared** (`userId: null`), keyed by slug, 12h. A row is reused only while its input hash still matches and it is within the TTL.
+- **Response:** `data` = `{ content, model, generatedAt }`; `meta.cached` = whether it came from the cache.
+- **Errors:** `400` `no_ai_key` / no holdings / bad symbol-data; `404` unknown IPO slug; `502` on a generation failure (the error text is the provider's, normalised).
+
+### `POST /api/ai/chat`
+- **Purpose:** The "Mitra" widget's streamed chat (ADR 0018 pt.5). Answers **only** from a server-built context block: portfolio summary + per-holding P&L + recent news (holding symbols + broad). Declines advice-seeking questions; same guardrail ending.
+- **Auth:** required. Per-user key rules identical to `/api/insights/stock` (`getUserAiConfig`). `400 {error:'no_ai_key'}` when none.
+- **Request:** `{ messages: [{ role: 'user'|'assistant', content: string(1–2000) }] }`, 1–12 turns.
+- **Response:** a `text/plain` **token stream** (`streamText().toTextStreamResponse()`), not the `{success,data,error}` envelope. Consumed incrementally by `AiWidget.tsx`.
+- **Errors:** `422` bad body, `400` `no_ai_key`, `502` if the stream can't start.
+
 **Note:** the dashboard's stock/ratios/financials/shareholding/price/indices/quote/news data comes from `services/fundamentals-api` (a separate service, documented in its own `README.md` — see ADR 0011), consumed directly by Next.js Server Components rather than proxied through a `/api/*` route, since it's an already-documented service being consumed, not a new one MarketMitra is shipping. `/api/search` above is the one deliberate exception.
 
 <!--

@@ -169,6 +169,43 @@ calendar + subscription + **grey-market premium**, alerts reusing Phase 5.
   Actions refresh workflow is inert until its secret + default branch are
   set; one real IPO alert firing on an actual trigger day; phase sign-off.
 
+## AI Insights (Phase 8 — in progress, not yet approved)
+
+Full rationale: [ADR 0018](./decisions/0018-ai-insights-scope.md). Neutral
+AI synthesis on four surfaces, all **BYO-key** — no MarketMitra-supplied
+model access.
+
+- **Providers:** AI SDK v7 with three adapters — `@ai-sdk/google`,
+  `@ai-sdk/anthropic`, `@openrouter/ai-sdk-provider` (not the AI Gateway —
+  that's shared-key). `src/lib/ai/providers.ts` `resolveModel()` picks one.
+- **Key storage:** `/dashboard/settings` → `GET|PUT|DELETE /api/settings/ai`
+  → `userSettings` Mongo collection, key **AES-256-GCM encrypted at rest**
+  (`src/lib/crypto.ts`, `SETTINGS_ENC_KEY`), decrypted only server-side,
+  never sent to the browser (`getAiSettingsView` returns a last-4 hint).
+  `getUserAiConfig(userId)` = stored key ▸ `AI_PROVIDER`/`AI_API_KEY` env
+  **only when `!isHosted()`** ▸ null. Hosted per-user surfaces never use
+  the operator key; shared IPO briefs may (`getAiConfig(…, {allowEnv:true})`).
+- **Guardrail (every prompt, `src/lib/ai/prompts.ts`):** synthesis only —
+  no buy/sell/hold, no price target, decline advice, always end
+  "This is a synthesis of public data, not investment advice."
+- **Insight cache (`src/lib/insights.ts`, `insights` collection):**
+  `getOrGenerate({scope,key,userId,inputHash,ttlMs,…})` — reuse a row only
+  while its input hash matches and it's within the TTL, else regenerate +
+  upsert; a generation error is never written. `POST /api/insights/stock`
+  (per-user, 24h), `/portfolio` (per-user, 6h), `/ipo` (**cross-user
+  shared**, `userId:null`, 12h). `<InsightCard>` renders all three
+  (`dashboard-charts/`) with SSR-passed initial content + a `hasKey` gate.
+- **Mitra chat:** `POST /api/ai/chat` streams (`streamText` →
+  `toTextStreamResponse()`, plain-text tokens on the Node runtime).
+  Context = `src/lib/ai/chatContext.ts` `formatChatContext` (portfolio
+  summary + per-holding P&L + `mergeNews`). `AiWidget.tsx` streams tokens
+  into the last bubble; shows an "add your key → Settings" hint when none.
+  The scripted "Proactive insight" tiles (`aiWidgetContent.ts` `INSIGHTS`)
+  are still a concept demo.
+- **Deferred:** DRHP grounding for the IPO brief — the wired GMP source
+  has no DRHP links; needs a separate per-IPO scrape (Phase 9+). Deploy
+  needs `SETTINGS_ENC_KEY` on `marketmitra-v2`.
+
 ## Data flow
 
 The dashboard app shell (above) now calls `services/fundamentals-api` directly from Next.js Server Components (`FUNDAMENTALS_API_URL`, server-to-server — not proxied through a `/api/*` route, since it's an existing documented service being consumed, not a new one) for all company/index data, and MongoDB directly (via `src/lib/holdings.ts`, also exposed through `/api/holdings` for client-side mutations) for portfolio holdings. The `DashboardPreview` on the landing page is still static mock data for illustration only — that's marketing-page content, not the logged-in app.
