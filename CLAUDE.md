@@ -10,7 +10,9 @@ MarketMitra is a financial dashboard (Indian markets: indices, stocks, IPOs, new
 
 **Phases 0–8 complete and signed off (2026-09-06).** Everything through the AI insights layer is built, deployed to production, and archived: scaffold + deployment-mode gate, landing page, auth pages, dashboard shell, the fundamentals data service (`services/fundamentals-api/`) + real-data dashboard, alerts engine, news feed, IPO tracker + GMP, and AI insights + Mitra chat. Code is on the `v2` branch (not merged to `main`). Per-feature build detail lives in `/docs/archive/*.md`; `/docs/architecture.md` has the current-state summaries.
 
-**Next: Phase 9 needs a scoping session** — API surface formalization + agent-context docs + the hosted-instance fair-use rate limiting the landing page already claims. Phases 9–11 are all ❓ in ROADMAP.md — do not build from assumptions. A handful of small non-blocking follow-ups from Phases 4–8 (Tier 1 filing discovery, activating the two GitHub Actions schedulers, Resend email, DRHP grounding, replacing scripted chat tiles) are listed under "Post-sign-off follow-ups" in ROADMAP.md.
+**Phase 9 is scoped and ready to build** ([ADR 0019](./docs/decisions/0019-phase-9-api-surface-mcp-rate-limiting.md), checklist in ROADMAP.md, 🔄): (1) a full **MCP server** exposing read-only public data as agent tools, (2) **Upstash Redis** rate limiting on `/api/*` + fundamentals-api + the MCP server, (3) a hosted **interactive API explorer** page. Phases 10–11 stay ❓. A handful of small non-blocking follow-ups from Phases 4–8 (Tier 1 filing discovery, activating the two GitHub Actions schedulers, Resend email, DRHP grounding, replacing scripted chat tiles) are under "Post-sign-off follow-ups" in ROADMAP.md.
+
+**`main` now holds the v2 rebuild** — `v2` was merged to `main` 2026-09-06 (merge commit, fast-forwardable) so the GitHub Actions cron schedulers fire. Both branches are currently identical; start new feature work from a fresh branch off `main`.
 
 ## Stack (non-negotiable constraints)
 
@@ -37,11 +39,12 @@ MarketMitra is a financial dashboard (Indian markets: indices, stocks, IPOs, new
 
 ## Active focus
 
-**No feature build in flight.** Phases 0–8 are done, signed off, and archived (2026-09-06 —
-see the last `/docs/session-log.md` entry). The next move is a **scoping session for Phase 9**
-(API surface formalization + agent-context docs + hosted fair-use rate limiting) — it's ❓ in
-ROADMAP.md and must not be built from assumptions. Phases 10 (RAG) and 11 (multi-agent
-analysis) are also ❓ and gated on a discussion.
+**Phase 9 — scoped 2026-09-06 ([ADR 0019](./docs/decisions/0019-phase-9-api-surface-mcp-rate-limiting.md)), build not started.** Three parallel deliverables, full checklist in ROADMAP.md:
+1. **MCP server** (`services/mcp/` or an `/api/mcp/[transport]` route group — spike first) exposing read-only public data as tools: `search_symbols`, `get_quote`, `get_company_fundamentals`, `get_price_history`, `get_news`, `list_ipos`, `get_market_indices`. Must reuse `src/lib/*`, not re-implement. Per-user tools + API keys are out of v1.
+2. **Rate limiting** — Upstash Redis via the Vercel Marketplace (load the `marketplace` skill first), `@upstash/ratelimit` sliding window keyed by Clerk `userId` else IP, applied to `/api/*` + the MCP path + fundamentals-api's public endpoints. Self-host with no Upstash env = no-op pass-through. Makes the ADR 0016 landing-page "fair-use rate limits" claim true.
+3. **Interactive API explorer** page (`/dashboard/api`) — pick endpoint, fill params, send against the real deployment with the viewer's session, copy-as-curl.
+
+Phases 10 (RAG) and 11 (multi-agent, TradingAgents-pattern in-house) are still ❓ — gated on a discussion, and can build on Phase 9's MCP tool layer.
 
 **Standing facts that outlived the phase detail:**
 

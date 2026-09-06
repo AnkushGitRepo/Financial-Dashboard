@@ -1,0 +1,101 @@
+.wrap {
+  position: relative;
+  margin-top: 14px;
+}
+
+.svg {
+  width: 100%;
+  display: block;
+  overflow: visible;
+}
+
+.area {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .area {
+    animation: chartFade 0.8s ease 0.25s both;
+  }
+
+  .line {
+    stroke-dasharray: 2600;
+    animation: chartDraw 1.15s cubic-bezier(0.3, 0.8, 0.4, 1) both;
+  }
+}
+
+@keyframes chartFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes chartDraw {
+  from {
+    stroke-dashoffset: 2600;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.labelTick {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--app-text-subtle);
+}
+
+.hoverLayer {
+  position: absolute;
+  inset: 0 0 22px 0;
+  display: flex;
+}
+
+.hoverCell {
+  flex: 1;
+  cursor: crosshair;
+}
+
+.tooltip {
+  position: absolute;
+  top: -6px;
+  transform: translate(-50%, -100%);
+  background: var(--app-ink);
+  color: var(--app-cream);
+  border-radius: 14px;
+  padding: 10px 14px;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 10px 26px rgba(22, 25, 28, 0.22);
+}
+
+.tooltipLabel {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.tooltipValue {
+  margin: 4px 0 0;
+  font-size: 14.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.tooltipDelta {
+  margin: 3px 0 0;
+  font-size: 11.5px;
+  color: #7ee3c4;
+}

@@ -4,7 +4,7 @@ This is the entry-point document for building MarketMitra v2 across many session
 
 ## How to use this document
 
-- Find the current phase (marked 🔄 below). Read its checklist. Work through unchecked items in order unless they're explicitly parallel. **As of 2026-09-06 no phase is 🔄 — Phases 0–8 are ✅ (signed off), and the next three (9–11) are ❓ and need a dedicated scoping session before any build.** The small non-blocking leftovers from Phases 4–8 live under "Post-sign-off follow-ups" after Phase 8.
+- Find the current phase (marked 🔄 below). Read its checklist. Work through unchecked items in order unless they're explicitly parallel. **As of 2026-09-06: Phases 0–8 are ✅ (signed off, archived); Phase 9 is 🔄 (scoped via [ADR 0019](./docs/decisions/0019-phase-9-api-surface-mcp-rate-limiting.md), checklist ready, no code yet); Phases 10–11 stay ❓.** The small non-blocking leftovers from Phases 4–8 live under "Post-sign-off follow-ups" after Phase 8.
 - **After completing any single checklist item** — not just at the end of a phase — do all of the following before moving to the next item:
   1. Check the box in this file.
   2. If the item involved a real decision (a library choice, a schema choice, a structural change), add or update an ADR in `/docs/decisions/`.
@@ -234,9 +234,37 @@ Carried past sign-off 2026-09-06. Each is small and independent; none gates Phas
 
 ---
 
-## Phase 9 — API Surface Formalization + Agent-Context Docs ❓
-Needs a dedicated discussion: documentation format (JSON/Markdown response modes as originally requested), testing playground scope, what "agent-context prompts" concretely means as a deliverable. Note: document endpoints incrementally as each phase ships them, not only in this dedicated pass.
-- **Also pull in here (or an infra pass):** the hosted shared instance's fair-use **rate limiting** — the landing page now states it exists (ADR 0016) but nothing enforces it. Needs a mechanism (per-user / per-IP, on the `/api/*` routes and/or the fundamentals-api) before the claim is true.
+## Phase 9 — API Surface: MCP server + rate limiting + API explorer 🔄
+Scoped 2026-09-06 — see [ADR 0019](./docs/decisions/0019-phase-9-api-surface-mcp-rate-limiting.md). Three deliverables, buildable largely in parallel: (1) a **full MCP server** exposing the read-only public data as agent tools (supersedes the original "JSON/Markdown response modes"), (2) **Upstash Redis** (Vercel Marketplace) sliding-window **rate limiting** on `/api/*` + the fundamentals-api public endpoints + the MCP server, (3) a **hosted interactive API explorer** page. Per-user MCP tools, API keys, and monetized tiers are explicitly out of v1.
+
+**Part 1 — MCP server:**
+- [ ] Spike: standalone `services/mcp/` (TS, `@modelcontextprotocol/sdk`, Streamable HTTP) vs. an `/api/mcp/[transport]` route group in the Next app. Pick one; it must reuse `src/lib/*` data-access, not re-implement it.
+- [ ] Tools (v1, all read-only public data): `search_symbols`, `get_quote`, `get_company_fundamentals`, `get_price_history`, `get_news`, `list_ipos`, `get_market_indices`. Zod-validated inputs; typed outputs.
+- [ ] Unauthenticated but rate-limited (see Part 2). Guardrail-framing parity with ADR 0018 for any tool that ever surfaces AI text.
+- [ ] Deploy target on Vercel; connection URL + tool list documented in `/docs/api-surface.md` and the explorer page.
+- [ ] `/.well-known/llms.txt` (or `/llms.txt`) pointing at the MCP server + `api-surface.md`.
+- [ ] Tests: tool input validation, each tool against a mocked data layer, transport smoke.
+
+**Part 2 — rate limiting:**
+- [ ] Provision Upstash Redis via `vercel integration add` — **load the `marketplace` skill first** and follow it (`discover` → confirm → install). Injects `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`.
+- [ ] `src/lib/rateLimit.ts` — `@upstash/ratelimit` sliding window, key by Clerk `userId` else client IP. Wrapper applied at the top of every `/api/*` handler + the MCP request path.
+- [ ] Equivalent check in `services/fundamentals-api` for its public endpoints (`fastapi-limiter` or a hand-rolled Upstash REST call — decide at build).
+- [ ] Tiers: authed users generous per-min + per-day; anon/IP tighter; `/api/insights/*` + `/api/ai/chat` much lower. Numbers live in code/config, tuned later.
+- [ ] `429` response = `{ success:false, error, data:null }` + `Retry-After` + `RateLimit-*` headers.
+- [ ] Self-host: absent Upstash env vars → limiter is a no-op pass-through. Document in README + `.env.local.example`.
+- [ ] Cross-reference the ADR 0016 landing-page "fair-use rate limits" line — it becomes true here.
+
+**Part 3 — interactive API explorer:**
+- [ ] Machine-readable spec: a hand-kept `openapi.json` (or equivalent) generated from / cross-checked against `api-surface.md`; add a CI check that it matches the route handlers.
+- [ ] `/dashboard/api` (or `/api-explorer`) page — endpoint list, params form, "Send" against the real deployment using the viewer's own session, pretty-printed response, copy-as-curl. No secret entry in the UI.
+- [ ] Documents the MCP server for humans (connection URL, tool list).
+- [ ] Built against `/docs/design-system.md` + `--app-*` tokens.
+
+**Cross-cutting:**
+- [ ] Works in both deployment modes (self-host: no Upstash → no limit; MCP + explorer function the same).
+- [ ] `tsc` / `lint` / `next build` / `npm test` green; fundamentals-api `pytest` green.
+- [ ] `/docs/architecture.md` gets an "API surface (MCP + rate limiting + explorer)" section; `/docs/api-surface.md` + `/docs/data-sources.md` updated.
+- [ ] Confirm the phase with the user before archiving.
 
 ## Phase 10 — AI Chat with RAG ❓
 Needs a dedicated discussion: what's actually in the retrieval corpus (news? filings? portfolio data? all three?), which vector store, how it's scoped per-user vs. general market knowledge.
