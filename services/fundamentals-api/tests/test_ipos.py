@@ -133,3 +133,59 @@ def test_ipos_ingest_requires_token(client):
     # ipo_ingest_token is unset in tests -> 503
     res = client.post("/ipos/ingest", json={"rows": []})
     assert res.status_code == 503
+
+
+def test_ipos_ingest_token_matrix(client, monkeypatch):
+    monkeypatch.setattr("app.api.routes.ipos._settings.ipo_ingest_token", "s3cret")
+
+    async def fake_ingest(session, rows):
+        return {"ingested": len(rows), "total": len(rows)}
+
+    monkeypatch.setattr("app.api.routes.ipos.svc.ingest_ipos", fake_ingest)
+
+    assert client.post("/ipos/ingest", json={"rows": []}).status_code == 401
+    assert client.post(
+        "/ipos/ingest", json={"rows": []}, headers={"Authorization": "Bearer nope"}
+    ).status_code == 401
+    ok = client.post(
+        "/ipos/ingest", json={"rows": [{"slug": "x", "name": "X"}]},
+        headers={"Authorization": "Bearer s3cret"},
+    )
+    assert ok.status_code == 200
+    assert ok.json()["ingested"] == 1
+
+
+class TestRowToValues:
+    """The ingest job POSTs JSON — dates arrive as ISO strings and must
+    round-trip back to date/datetime (`_coerce`)."""
+
+    def test_iso_strings_coerced(self):
+        from app.services.ipo_service import _row_to_values
+
+        v = _row_to_values(
+            {
+                "slug": "acme-ipo",
+                "name": "Acme",
+                "open_date": "2026-09-10",
+                "listing_date": "2026-09-18T00:00:00",
+                "updated_on": "2026-09-06T14:30:00+05:30",
+                "gmp": 30.0,
+            }
+        )
+        assert v is not None
+        assert v["open_date"] == date(2026, 9, 10)
+        assert v["listing_date"] == date(2026, 9, 18)
+        assert isinstance(v["gmp_updated_at"], datetime)  # remapped from updated_on
+        assert v["gmp"] == 30.0
+
+    def test_native_types_pass_through(self):
+        from app.services.ipo_service import _row_to_values
+
+        v = _row_to_values({"slug": "a", "name": "A", "open_date": date(2026, 9, 1)})
+        assert v["open_date"] == date(2026, 9, 1)
+
+    def test_drops_rows_without_slug_or_name(self):
+        from app.services.ipo_service import _row_to_values
+
+        assert _row_to_values({"name": "A"}) is None
+        assert _row_to_values({"slug": "a"}) is None

@@ -153,10 +153,13 @@ Scoped 2026-09-06 — see [ADR 0017](./docs/decisions/0017-ipo-tracker-gmp-scope
 - [x] `IpoOpenCard` (`dashboard-charts/`) on `/dashboard` home — compact open-IPO list + "All IPOs →"; `dashboard/page.tsx` fetches `getIpos('open')`.
 - [x] Built against the design system + `--app-*` tokens (card/pill/link patterns from the alerts + news pages).
 
+**Ingestion job (out of band):**
+- [x] `services/fundamentals-api/scripts/refresh_ipos.py` — renders the InvestorGain report with Playwright Chromium, runs `_parse_ipo_rows`, POSTs to `/ipos/ingest` (JSON boundary → `_coerce` turns ISO date strings back to `date`/`datetime`). `--dry-run` for local. `.github/workflows/refresh-ipos.yml` — every ~2h (03:00–15:00 UTC) + `workflow_dispatch`; installs `playwright`+chromium; `FUNDAMENTALS_API_URL` var + `IPO_INGEST_TOKEN` secret. **Activate:** `gh secret set IPO_INGEST_TOKEN` + set the same as `IPO_INGEST_TOKEN` on the fundamentals-api Vercel project + make this the default branch. Ingest path verified locally end-to-end (401 without token, upsert-no-dupes with it, ISO dates round-trip); the Playwright render step still needs one CI run to validate. 4 tests (`_coerce`, token matrix); fundamentals-api suite 67/67.
+
 **Cross-cutting:**
 - [x] No `isHosted()` gating (IPO data is public). Works in both modes.
-- [ ] `tsc` / `lint` / `next build` / `npm test` green; fundamentals-api `pytest` green. Verify live: `/ipos` returns real IPOs + GMP; the page + widget render; one IPO alert fires end-to-end.
-- [ ] Update `/docs/architecture.md`; confirm the phase with the user before archiving.
+- [x] `tsc` / `lint` / `next build` / `npm test` (93) green; fundamentals-api `pytest` (67) green. Live-verified: `/ipos` + status filters return real data, the page + expand + dashboard widget render (selfhost), `ipo`/`ipo_watch` alerts round-trip, cron `?force=1` fetches `/ipos`. Still to prove in prod: one IPO alert firing on an actual trigger day.
+- [ ] Update `/docs/architecture.md`; **prod Neon migration `2796fbd6805c` + deploy both projects + set `IPO_INGEST_TOKEN`**; confirm the phase with the user before archiving.
 
 **Explicitly out of v1 scope** (ADR 0017): GMP history/charts, buybacks/rights issues/NFOs, broker- or category-wise subscription breakdown, "apply via broker" links, email delivery, a second GMP source / cross-checking.
 

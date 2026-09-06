@@ -24,12 +24,30 @@ _STATUS_ORDER = {"open": 0, "upcoming": 1, "closed": 2, "listed": 3}
 
 # scraper dict -> ORM column (identical names except this remap)
 _REMAP = {"updated_on": "gmp_updated_at"}
+_DATE_FIELDS = {"open_date", "close_date", "allotment_date", "listing_date"}
+_DATETIME_FIELDS = {"gmp_updated_at"}
 _ORM_FIELDS = {
     "slug", "name", "source_url", "category", "status", "price", "ipo_size_cr",
     "lot_size", "rating", "subscription_times", "anchor", "gmp", "gmp_pct",
-    "gmp_low", "gmp_high", "gmp_updated_at", "open_date", "close_date",
-    "allotment_date", "listing_date",
+    "gmp_low", "gmp_high", *_DATETIME_FIELDS, *_DATE_FIELDS,
 }
+
+
+def _coerce(col: str, val: object) -> object:
+    """The out-of-band ingest job POSTs JSON, so dates arrive as ISO
+    strings — turn them back into date/datetime for the ORM. Values that
+    are already the right type (the in-process lazy-refresh path) pass
+    through."""
+    if val is None or not isinstance(val, str):
+        return val
+    try:
+        if col in _DATE_FIELDS:
+            return date.fromisoformat(val[:10])
+        if col in _DATETIME_FIELDS:
+            return datetime.fromisoformat(val)
+    except ValueError:
+        return None
+    return val
 
 
 def _row_to_values(row: dict) -> dict | None:
@@ -37,7 +55,7 @@ def _row_to_values(row: dict) -> dict | None:
     for key, val in row.items():
         col = _REMAP.get(key, key)
         if col in _ORM_FIELDS:
-            values[col] = val
+            values[col] = _coerce(col, val)
     if not values.get("slug") or not values.get("name"):
         return None
     values.setdefault("source_tier", "tier3_ipo_aggregator")

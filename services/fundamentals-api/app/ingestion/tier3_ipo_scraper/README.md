@@ -32,12 +32,17 @@ returns the shell, and the table rows load afterward from a private XHR.
 `scrapling`'s browser fetcher would work but drags in Playwright's ~130 MB
 driver, which doesn't fit the Vercel serverless function (ADR 0013).
 
-So live ingestion runs **out of band**: a scheduled headless-browser job
-renders the page, runs `_parse_ipo_rows` (this module), and `POST`s the
-rows to `/ipos/ingest` (guarded by `ipo_ingest_token`). The serverless
-`GET /ipos` only reads Postgres. `fetch_ipo_list()` here is a best-effort
-direct attempt for the fixture / if the page ever server-renders; it
-returns `[]` (never raises) when the rows aren't in the response.
+So live ingestion runs **out of band**: `scripts/refresh_ipos.py`
+(run from `.github/workflows/refresh-ipos.yml`, every ~2h) renders the
+page with Playwright Chromium, runs `_parse_ipo_rows` (this module), and
+`POST`s the rows to `/ipos/ingest` (guarded by `ipo_ingest_token`). The
+serverless `GET /ipos` only reads Postgres. Because that POST crosses a
+JSON boundary, dates arrive as ISO strings and `ipo_service._coerce`
+turns them back into `date`/`datetime`.
+
+`fetch_ipo_list()` here is a best-effort direct attempt for the fixture /
+if the page ever server-renders; it returns `[]` (never raises) when the
+rows aren't in the response.
 
 ## Parsing
 

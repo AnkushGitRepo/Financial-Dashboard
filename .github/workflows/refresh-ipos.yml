@@ -1,0 +1,60 @@
+# Out-of-band IPO / GMP refresh for MarketMitra (ADR 0017).
+#
+# The InvestorGain "Live IPO GMP" report is a client-rendered SPA and the
+# fundamentals-api serverless function can't bundle a headless browser
+# (ADR 0013). This job renders the page with Playwright, parses it with the
+# service's own parser, and POSTs the rows to POST /ipos/ingest.
+#
+# ACTIVATION (one-time):
+#   1. GitHub runs `schedule:` only from the DEFAULT branch — until this
+#      repo's app branch is the default, only the manual "Run workflow"
+#      button fires.
+#   2. Repo secret:  gh secret set IPO_INGEST_TOKEN
+#      (same value as IPO_INGEST_TOKEN on the fundamentals-api Vercel project)
+#   3. Repo variable: FUNDAMENTALS_API_URL
+#      (e.g. https://marketmitra-fundamentals-api.vercel.app) — or the job
+#      falls back to the default below.
+
+name: refresh-ipos
+
+on:
+  schedule:
+    # Every 2 hours, 03:00-15:00 UTC (~08:30-20:30 IST) — IPO calendars and
+    # GMP move through the day but not by the minute.
+    - cron: "0 3-15/2 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: refresh-ipos
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: services/fundamentals-api
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install deps
+        run: |
+          pip install --quiet playwright httpx "scrapling>=0.4.15" "lxml>=5.3"
+          python -m playwright install --with-deps chromium
+
+      - name: Render, parse, ingest
+        env:
+          FUNDAMENTALS_API_URL: ${{ vars.FUNDAMENTALS_API_URL || 'https://marketmitra-fundamentals-api.vercel.app' }}
+          IPO_INGEST_TOKEN: ${{ secrets.IPO_INGEST_TOKEN }}
+        run: |
+          if [ -z "$IPO_INGEST_TOKEN" ]; then
+            echo "::error::IPO_INGEST_TOKEN secret is not set — see this workflow's ACTIVATION notes."
+            exit 1
+          fi
+          python scripts/refresh_ipos.py
