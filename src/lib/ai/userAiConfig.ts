@@ -1,6 +1,29 @@
-import { getAiSettings, type AiProvider } from '@/lib/userSettings';
+import { getAiSettings, type AiProvider, type AiSettings } from '@/lib/userSettings';
 import { isHosted } from '@/lib/deployment-mode';
 import type { AiConfig } from './providers';
+
+/**
+ * Load the user's stored key, tolerating a cold-start database blip.
+ *
+ * `getAiSettings` returns `null` cleanly when the user genuinely has no key
+ * stored — that's a normal "add your key" state. A *thrown* error is a
+ * different thing: on the first (cold) serverless render a Mongo
+ * server-selection / connection-setup step can trip the 5s timeout and
+ * throw. The old blanket `.catch(() => null)` made that indistinguishable
+ * from "no key", so every insight surface SSR'd "Add your AI provider key"
+ * despite a working key (ADR 0018 follow-up, 2026-09-06).
+ *
+ * Retry once — the connection pool is warm by the second attempt — and if it
+ * still throws, let the error bubble rather than silently misreport the
+ * user's config.
+ */
+async function loadStoredSettings(userId: string): Promise<AiSettings | null> {
+  try {
+    return await getAiSettings(userId);
+  } catch {
+    return await getAiSettings(userId);
+  }
+}
 
 /**
  * Resolve the AI config to use for a request (ADR 0018 §2):
@@ -17,7 +40,7 @@ export async function getAiConfig(
   opts: { allowEnv?: boolean } = {}
 ): Promise<AiConfig | null> {
   if (userId) {
-    const stored = await getAiSettings(userId).catch(() => null);
+    const stored = await loadStoredSettings(userId);
     if (stored) {
       return { provider: stored.provider, apiKey: stored.apiKey, model: stored.model };
     }
