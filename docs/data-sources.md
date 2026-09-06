@@ -32,7 +32,7 @@ For each source, record: what it is, the endpoint(s) used, auth/key requirements
 
 ### Yahoo Finance (`yfinance`)
 - **Type:** public API (unofficial, reverse-engineered — no formal support contract from Yahoo)
-- **Used for:** Tier 2 fallback — live/historical price data, and quote-field gap-fill (company name, industry, sector) when Tier 1 doesn't return them
+- **Used for:** Tier 2 fallback — live/historical price data, and quote-field gap-fill (company name, industry, sector) when Tier 1 doesn't return them. Also the sole backing source for `GET /indices` and for `GET /quote` (batched live quote — last price / prev close / intraday % / 52-week range — polled by the Phase 5 alerts engine, see [ADR 0014](./decisions/0014-alerts-engine-scope.md)); NSE/BSE are blocked from this environment and Screener.in is fundamentals-only, so yfinance is the only viable source for index-level and intraday-quote data.
 - **Endpoint(s):** wrapped by the `yfinance` library
 - **Auth:** none
 - **Rate limits:** none officially published; `yfinance` handles its own request pacing

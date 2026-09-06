@@ -38,6 +38,10 @@ class Settings(BaseSettings):
     prices_cache_ttl_hours: int = 4
     ratios_cache_ttl_hours: int = 24
 
+    # Live-quote endpoint (GET /quote) — in-process TTL so the alert cron and
+    # any dashboard caller share one upstream yfinance hit. Seconds, not hours.
+    quote_cache_ttl_seconds: int = 60
+
 
 @lru_cache
 def get_settings() -> Settings:
