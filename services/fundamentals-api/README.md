@@ -73,7 +73,7 @@ per-company fallback chain since it's a lookup table, not company data.
 `app/api/routes/news.py` (ADR 0015). Free RSS only, two sources:
 
 - **Broad Indian-markets RSS** (Economic Times, LiveMint, BusinessLine,
-  Moneycontrol, NDTV Profit) → the global stream. Company tagging is
+  Moneycontrol) → the global stream. Company tagging is
   best-effort: an item is tagged with a symbol only when that company's
   distinctive multi-word name appears whole (word-bounded) in the
   headline/summary — short or single-word names (ITC, MRF, Infosys) are
@@ -137,7 +137,7 @@ Screener.in/NSE/BSE/Yahoo staying reachable or unchanged.
 | Quote / company info | Tier 1 (BSE via `bsedata`; NSE via `nsepython`) | Tier 2 (`yfinance`) | Both wired and tested. NSE itself is frequently blocked at Akamai's edge (see `app/ingestion/tier1_nse_bse.py`) — this is exactly why Tier 2 exists. |
 | Price history | Tier 2 (`yfinance`) | — | Wired and tested. |
 | Live quote (`GET /quote`) | Tier 2 (`yfinance` `fast_info`) | — | Batched, DB-free, 60s in-process cache. Last price / prev close / intraday % / 52-week range. Feeds MarketMitra's alerts engine (ADR 0014). Verified live for RELIANCE, TCS, NIFTY 50; a bad symbol is dropped, not faked. |
-| News feed (`GET /news`) | Free RSS — broad markets feeds + Google News RSS per symbol | — | ADR 0015. Postgres-backed, lazy TTL refresh, 30-day retention. Verified live: 5 broad feeds return real items (Business Standard's RSS 403s and was dropped), Google-News-per-symbol returns real publisher-attributed items. VADER headline-tone label per item (skews optimistic on financial text — labelled as tone, not a signal). Title + summary + link only, no scraped bodies. |
+| News feed (`GET /news`) | Free RSS — broad markets feeds + Google News RSS per symbol | — | ADR 0015. Postgres-backed, lazy TTL refresh, 30-day retention. Verified live: 4 broad feeds return real items (Business Standard 403s; NDTV Profit's feed carries too much non-markets content — both dropped), Google-News-per-symbol returns real publisher-attributed items. VADER headline-tone label per item (skews optimistic on financial text — labelled as tone, not a signal). Title + summary + link only, no scraped bodies. |
 | Ratios | Tier 3 (Screener.in) | — | Tiers 1/2 don't expose comparable named/computed ratios as raw data. |
 | Shareholding pattern | Tier 1 (direct NSE endpoint) | Tier 3 (Screener.in) | Tier 1's response shape is unverified (NSE blocked during development); Tier 3 is verified against two real companies and captures full quarterly history (typically 12 quarters), not just the latest. |
 | Financial statements (P&L/BS/CF) | Tier 3 (Screener.in) | — | Tier 1's XBRL parser and PDF table extractor are both implemented and unit-tested against fixtures, but wiring them into the live service needs a filing-URL discovery step (find the latest quarterly XBRL / annual report PDF for a company) that hasn't been built yet. |

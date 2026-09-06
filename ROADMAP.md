@@ -113,15 +113,15 @@ Scoped 2026-09-06 — see [ADR 0015](./docs/decisions/0015-news-feed-scope.md). 
 - [x] Service README (endpoint list + "News feed" section + coverage-table row, test count 36→50) and `/docs/data-sources.md` (RSS-feeds entry + Google News RSS entry, each with a ToS line) updated.
 
 **Frontend — Next.js:**
-- [ ] `src/lib/dashboard/newsApi.ts` — client for the two endpoints (mirrors `fundamentalsApi.ts`; `[]`/null on failure).
-- [ ] `/dashboard/news` route in the app shell — global feed, newest first, cursor "load more", a "My holdings" toggle (`?filter=holdings` → symbol-filtered query using `getEnrichedHoldings`/holding symbols). "News" added to `AppHeader` nav + `isNavActive`; on mobile it replaces the disabled "Profile" tab in `MobileTabBar`.
-- [ ] "News" card on `/dashboard/stock/[ticker]` (Server Component → `GET /news?symbols=<ticker>`).
-- [ ] Built against `/docs/design-system.md` + `--app-*` tokens; sentiment as a small colour-coded dot/pill (`--app-gain` / muted neutral / `--app-loss`), labelled "headline tone" not a signal. Each item links out to the publisher.
-- [ ] Thin `/api/news` proxy **only if** the global feed goes client-side infinite scroll (otherwise Server-Component reads suffice — note in `/docs/api-surface.md` either way).
+- [x] `src/lib/dashboard/newsApi.ts` — `getNews({symbols?, limit?, cursor?})` → `{ items, next_cursor }`, returns an empty page on failure. `GET /api/news` thin proxy for client-side pagination/toggle (documented in `/docs/api-surface.md`).
+- [x] `/dashboard/news` — server `page.tsx` (fetches first global page + resolves the user's holding symbols), `NewsFeedClient.tsx` (All markets / My holdings toggle, cursor "Load more", honest empty states), `page.module.css`. Shared `NewsList` + `NewsList.module.css` in `dashboard-charts/` (sentiment dot, source, relative time, links out). "News" added to `AppHeader` nav + `isNavActive`; `MobileTabBar`'s disabled "Profile" tab swapped for "News".
+- [x] "Recent news" card on `/dashboard/stock/[ticker]` — `getNews({symbols:[ticker], limit:6})` in the server component, rendered via `NewsList` (only when items exist).
+- [x] Built against the design system + `--app-*` tokens; sentiment dot uses `--app-gain` / `--app-text-subtle` / `--app-loss`, page intro + dot `title` label it "headline tone… not analysis, and not a signal". Verified live in selfhost mode (Playwright): global feed renders real items with dots/sources, TCS stock page shows a real 6-item news card.
+- [x] `/api/news` thin proxy added (the feed does paginate client-side) — documented in `/docs/api-surface.md`.
 
 **Cross-cutting:**
-- [ ] Works in both deployment modes (news is public market data; the holdings filter just uses whatever `getCurrentUserId()` resolves). No `isHosted()` gating.
-- [ ] `tsc` / `lint` / `next build` / `npm test` green; fundamentals-api `pytest` green. Verify live: global feed loads real items, a stock page shows real per-symbol news, sentiment tags render.
+- [x] Works in both deployment modes — no `isHosted()` gating; `/api/news` is public, the holdings filter uses whatever `getCurrentUserId()` resolves.
+- [x] `tsc` / `lint` / `next build` / `npm test` (78) green; fundamentals-api `pytest` 50/50. Live-verified end-to-end against a local Postgres (migration applied) + local fundamentals-api: `/news` global + `?symbols=` + cursor pagination all return real data; the two Next.js surfaces render correctly.
 - [ ] Update `/docs/architecture.md` with the shipped-feature summary; confirm the phase with the user before archiving.
 
 **Explicitly out of v1 scope** (ADR 0015): notifications on news, LLM sentiment/summarisation, near-duplicate-story dedup across outlets, full article text / reader view, non-English news, user-configurable sources or per-source muting, per-user saved/read state.

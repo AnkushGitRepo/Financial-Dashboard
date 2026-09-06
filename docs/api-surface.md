@@ -102,7 +102,14 @@ Every endpoint here is a Next.js App Router route handler under `app/api/**/rout
 - **Errors:** `401` bad/missing token, `503` `CRON_SECRET` unconfigured in production, `500` if the cycle throws.
 - **Note:** the handler degrades gracefully — a symbol with no live quote is skipped (counted in `skippedNoData`), never fired or auto-resolved on stale data.
 
-**Note:** the dashboard's stock/ratios/financials/shareholding/price/indices/quote data comes from `services/fundamentals-api` (a separate service, documented in its own `README.md` — see ADR 0011), consumed directly by Next.js Server Components rather than proxied through a `/api/*` route, since it's an already-documented service being consumed, not a new one MarketMitra is shipping. `/api/search` above is the one deliberate exception.
+### `GET /api/news`
+- **Purpose:** Same-origin thin proxy to `services/fundamentals-api`'s `GET /news` (ADR 0015), so `/dashboard/news` can "load more" and toggle its holdings filter client-side without exposing `FUNDAMENTALS_API_URL` to the browser. Same narrow, deliberate exception as `/api/search`.
+- **Auth:** public — news is public market data. (The holdings filter's symbol list is computed server-side in `/dashboard/news/page.tsx` and passed to the client, which forwards it here as `?symbols=`.)
+- **Request:** `symbols` (optional, comma-separated), `limit` (1–50, default 20), `cursor` (opaque, from a previous response's `next_cursor`).
+- **Response:** pass-through of the Python service's shape — `{ items: [{ url, title, summary, source, published_at, sentiment, sentiment_score, symbols[] }], next_cursor: string | null }`. Not the `{success,data,error}` envelope (same rationale as `/api/search`).
+- **Errors:** upstream failure yields `{ items: [], next_cursor: null }`, not a 5xx.
+
+**Note:** the dashboard's stock/ratios/financials/shareholding/price/indices/quote/news data comes from `services/fundamentals-api` (a separate service, documented in its own `README.md` — see ADR 0011), consumed directly by Next.js Server Components rather than proxied through a `/api/*` route, since it's an already-documented service being consumed, not a new one MarketMitra is shipping. `/api/search` above is the one deliberate exception.
 
 <!--
 Template for a new entry:

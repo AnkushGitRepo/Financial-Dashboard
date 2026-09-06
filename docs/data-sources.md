@@ -51,7 +51,7 @@ For each source, record: what it is, the endpoint(s) used, auth/key requirements
 ### Indian markets RSS feeds (news)
 - **Type:** public RSS feeds (offered for syndication)
 - **Used for:** the global markets news stream (Phase 6, [ADR 0015](./decisions/0015-news-feed-scope.md))
-- **Endpoint(s):** Economic Times Markets, LiveMint Markets, The Hindu BusinessLine Markets, Moneycontrol Business, NDTV Profit — exact URLs in `services/fundamentals-api/app/ingestion/news.py` (`BROAD_FEEDS`). Business Standard's markets RSS was evaluated but 403s to non-browser clients, so it's excluded.
+- **Endpoint(s):** Economic Times Markets, LiveMint Markets, The Hindu BusinessLine Markets, Moneycontrol Business — exact URLs in `services/fundamentals-api/app/ingestion/news.py` (`BROAD_FEEDS`). Business Standard's markets RSS was evaluated but 403s to non-browser clients, so it's excluded (as is NDTV Profit's feedburner feed — too much non-markets content).
 - **Auth:** none
 - **Rate limits:** none published; polled at most every `news_broad_cache_ttl_minutes` (~30 min) via lazy refresh-on-read
 - **Cost:** free

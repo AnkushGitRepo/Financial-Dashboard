@@ -22,15 +22,16 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 logger = logging.getLogger("fundamentals.news")
 
-# (source label, RSS URL). Markets-desk feeds from mainstream Indian
-# outlets — each verified live (entries > 0, HTTP 200) when picked. Business
-# Standard's markets RSS 403s to non-browser clients, so it's not here.
+# (source label, RSS URL). Markets/business-desk feeds from mainstream
+# Indian outlets — each verified live (entries > 0, HTTP 200) when picked.
+# Business Standard's markets RSS 403s to non-browser clients, and NDTV
+# Profit's feedburner "latest" carries too much non-markets content, so
+# neither is here.
 BROAD_FEEDS: list[tuple[str, str]] = [
     ("Economic Times Markets", "https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms"),
     ("LiveMint Markets", "https://www.livemint.com/rss/markets"),
     ("BusinessLine Markets", "https://www.thehindubusinessline.com/markets/feeder/default.rss"),
     ("Moneycontrol Business", "https://www.moneycontrol.com/rss/business.xml"),
-    ("NDTV Profit", "https://feeds.feedburner.com/ndtvprofit-latest"),
 ]
 
 # Corporate suffixes stripped before building a broad-feed name matcher.

@@ -5,9 +5,11 @@ import { useState } from 'react';
 import { LineChart } from '@/components/dashboard-charts/LineChart';
 import { PillTabs } from '@/components/dashboard-charts/PillTabs';
 import { CompanyLogo } from '@/components/dashboard-charts/CompanyLogo';
+import { NewsList } from '@/components/dashboard-charts/NewsList';
 import { useMask } from '@/lib/dashboard/MaskContext';
 import { formatInr } from '@/lib/dashboard/format';
 import type { CompanyOut, DocumentOut, PeerOut, PricePeriod, RatioOut } from '@/lib/dashboard/fundamentalsApi';
+import type { NewsItem } from '@/lib/dashboard/newsApi';
 import type { RangeSeries } from '@/lib/dashboard/chartMath';
 import { formatRatioValue, type FinTable, type ShareholdingSeries } from '@/lib/dashboard/transforms';
 import styles from './page.module.css';
@@ -29,6 +31,7 @@ interface StockPageClientProps {
   ratios: RatioOut[];
   peers: PeerOut[];
   documents: DocumentOut[];
+  news: NewsItem[];
   shareholding: ShareholdingSeries[];
   financials: Record<StatementKey, FinTable>;
   priceSeries: Record<PricePeriod, RangeSeries>;
@@ -56,6 +59,7 @@ export function StockPageClient({
   ratios,
   peers,
   documents,
+  news,
   shareholding,
   financials,
   priceSeries,
@@ -127,6 +131,15 @@ export function StockPageClient({
             About
           </p>
           <p className={styles.aboutText}>{company.about}</p>
+        </div>
+      )}
+
+      {news.length > 0 && (
+        <div className={`${styles.cardPad} ${styles.aboutCard}`}>
+          <p className={styles.cardLabel} style={{ marginBottom: 6 }}>
+            Recent news
+          </p>
+          <NewsList items={news} emptyText="No recent news for this stock." />
         </div>
       )}
 

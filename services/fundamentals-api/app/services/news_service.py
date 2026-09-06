@@ -72,18 +72,19 @@ async def _store(session: AsyncSession, items: list[dict], symbols: list[str]) -
     """Upsert items (dedup on url) and attach `symbols` to each. Broad items
     pass their own matched symbols; per-symbol fetches pass [that symbol]."""
     for item in items:
+        row = {k: v for k, v in item.items() if not k.startswith("_")}
+        tags = item.get("_symbols", symbols)
         result = await session.execute(
             insert(NewsItemORM)
-            .values(**item)
+            .values(**row)
             .on_conflict_do_nothing(index_elements=["url"])
             .returning(NewsItemORM.id)
         )
         item_id = result.scalar_one_or_none()
         if item_id is None:  # already stored — get its id to (re)link symbols
             item_id = await session.scalar(
-                select(NewsItemORM.id).where(NewsItemORM.url == item["url"])
+                select(NewsItemORM.id).where(NewsItemORM.url == row["url"])
             )
-        tags = item.get("_symbols", symbols)
         for sym in tags:
             await session.execute(
                 insert(NewsItemSymbolORM)

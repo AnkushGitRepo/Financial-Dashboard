@@ -49,11 +49,13 @@ function AlertsIcon() {
   );
 }
 
-function ProfileIcon() {
+function NewsIcon() {
   return (
     <svg {...ICON_PROPS}>
-      <circle cx="11" cy="7.6" r="3.6" stroke="currentColor" strokeWidth="1.7" />
-      <path d="M4.2 18.6c.9-3.4 3.6-5.2 6.8-5.2s5.9 1.8 6.8 5.2" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+      <rect x="3" y="4" width="16" height="14" rx="2" stroke="currentColor" strokeWidth="1.7" />
+      <line x1="6.5" y1="8" x2="12" y2="8" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+      <line x1="6.5" y1="11" x2="15.5" y2="11" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+      <line x1="6.5" y1="14" x2="15.5" y2="14" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
     </svg>
   );
 }
@@ -66,6 +68,7 @@ export function MobileTabBar() {
   const isPort = pathname.startsWith('/dashboard/portfolio');
   const isMarkets = pathname.startsWith('/dashboard/markets') || pathname.startsWith('/dashboard/stock');
   const isAlerts = pathname.startsWith('/dashboard/alerts');
+  const isNews = pathname.startsWith('/dashboard/news');
 
   const tabClass = (active: boolean) => `${styles.tabItem} ${active ? styles.tabItemActive : ''}`;
 
@@ -87,9 +90,9 @@ export function MobileTabBar() {
         <AlertsIcon />
         <span className={styles.tabLabel}>Alerts</span>
       </button>
-      <button className={tabClass(false)} type="button" aria-disabled="true">
-        <ProfileIcon />
-        <span className={styles.tabLabel}>Profile</span>
+      <button className={tabClass(isNews)} onClick={() => router.push('/dashboard/news')} type="button">
+        <NewsIcon />
+        <span className={styles.tabLabel}>News</span>
       </button>
     </nav>
   );

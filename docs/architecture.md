@@ -91,6 +91,43 @@ Full rationale: [ADR 0014](./decisions/0014-alerts-engine-scope.md). Price / per
 - **UI:** `/dashboard/alerts` (`AlertsPageClient` + `AlertForm` + `alertText.ts`), a `NotificationBell` in `AppHeader` (desktop + mobile, 60s poll + focus refetch), an "Alerts" nav item + mobile tab, and a "Set alert" button on the stock page that deep-links `?new=1&symbol=`.
 - **Tests:** `vitest` (repo's first for the Next.js side — `npm test`, `vitest.config.mts`). 78 tests: the pure evaluators/market-hours/portfolio-maths, the `evaluateAlerts` loop (mocked quote/delivery/store), and the alerts/notifications/cron route handlers.
 
+## News feed (`/dashboard/news`, Phase 6 — in progress, not yet approved)
+
+Full rationale: [ADR 0015](./decisions/0015-news-feed-scope.md). Free RSS
+only, ingested in `fundamentals-api`, three surfaces.
+
+- **Ingestion (`fundamentals-api`):** `app/ingestion/news.py` — 4 broad
+  Indian-markets RSS feeds (ET / LiveMint / BusinessLine / Moneycontrol;
+  Business Standard 403s, NDTV Profit too noisy — both dropped on
+  evidence) for the global stream, and Google News RSS one-query-per-
+  company-name for stock/portfolio views (exact symbol tag). Broad items
+  are tagged best-effort — only a company's distinctive multi-word name,
+  whole and word-bounded (`matcher_name` rejects short/single-word names).
+  VADER **headline-tone** label per item (stored; labelled everywhere as
+  tone, not a signal — generic-lexicon sentiment skews optimistic on
+  financial text). Title + summary + link only; no article bodies.
+- **Storage / serving (`fundamentals-api`):** Postgres `news_items`
+  (deduped on `url`) + `news_item_symbols` (migration `31f04c1b3507`).
+  `app/services/news_service.py` does lazy TTL refresh-on-read (same
+  pattern as ratios/prices), URL-dedup upsert, 30-day retention prune,
+  keyset cursor pagination. `GET /news?symbols=&limit=&cursor=` →
+  `{ items[], next_cursor }`.
+- **Next.js:** `src/lib/dashboard/newsApi.ts` (client) + `GET /api/news`
+  (thin same-origin proxy for client-side pagination/toggle, like
+  `/api/search`). `/dashboard/news` — server page resolves the user's
+  holding symbols + first global page; `NewsFeedClient` handles the
+  "All markets / My holdings" toggle and "Load more". Shared `NewsList`
+  (`components/dashboard-charts/`) renders items with a sentiment dot;
+  also used for the "Recent news" card on `/dashboard/stock/[ticker]`.
+  "News" is in the app-shell nav (desktop) and replaced the disabled
+  "Profile" tab on mobile.
+- **Deployment mode:** no `isHosted()` gating — news is public; the
+  holdings filter just uses whatever `getCurrentUserId()` resolves.
+- **Tests:** 14 offline (`test_news.py`) in fundamentals-api; the Next.js
+  side verified live against a local Postgres.
+- **Not yet done:** migration applied to prod Neon, fundamentals-api
+  redeployed with `/news`, live prod verification, phase sign-off.
+
 ## Data flow
 
 The dashboard app shell (above) now calls `services/fundamentals-api` directly from Next.js Server Components (`FUNDAMENTALS_API_URL`, server-to-server — not proxied through a `/api/*` route, since it's an existing documented service being consumed, not a new one) for all company/index data, and MongoDB directly (via `src/lib/holdings.ts`, also exposed through `/api/holdings` for client-side mutations) for portfolio holdings. The `DashboardPreview` on the landing page is still static mock data for illustration only — that's marketing-page content, not the logged-in app.
