@@ -225,7 +225,7 @@
       "post": {
         "tags": ["Market data"],
         "summary": "MCP server (JSON-RPC over Streamable HTTP)",
-        "description": "The Model Context Protocol endpoint. Client config: { \"url\": \"https://<host>/api/mcp\" }. Tools: search_symbols, get_quote, get_company_fundamentals, get_price_history, get_news, list_ipos, get_market_indices. Send `initialize`, then `tools/list` / `tools/call`. Public, rate limited (mcp tier).",
+        "description": "The Model Context Protocol endpoint. Client config: { \"url\": \"https://<host>/api/mcp\" }. Requires header `Accept: application/json, text/event-stream`. Tools: search_symbols, get_quote, get_company_fundamentals, get_price_history, get_news, list_ipos, get_market_indices. Send `initialize`, then `tools/list` / `tools/call`. Public, rate limited (mcp tier).",
         "security": [],
         "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object" }, "example": { "jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {} } } } },
         "responses": { "200": { "description": "A JSON-RPC result (as an SSE `message` event or JSON, per the client's Accept header)." }, "429": { "description": "Rate limited." } }

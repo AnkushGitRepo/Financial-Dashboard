@@ -197,9 +197,14 @@ function EndpointPanel({ endpoint }: { endpoint: Endpoint }) {
     return q ? `${p}?${q}` : p;
   };
 
+  // The MCP endpoint (2026-07-28 spec) rejects a request that doesn't accept
+  // both JSON and the SSE stream.
+  const isMcp = path === '/api/mcp';
+
   const curl = useMemo(() => {
     const url = buildUrl();
     const parts = [`curl -X ${method.toUpperCase()} '${url}'`];
+    if (isMcp) parts.push(`-H 'Accept: application/json, text/event-stream'`);
     if (hasBody && body.trim()) {
       parts.push(`-H 'Content-Type: application/json'`);
       parts.push(`-d '${body.replace(/\n\s*/g, ' ')}'`);
@@ -216,6 +221,8 @@ function EndpointPanel({ endpoint }: { endpoint: Endpoint }) {
     // eslint-disable-next-line react-hooks/purity -- inside an async event handler, not render
     const started = Date.now();
     try {
+      const headers: Record<string, string> = {};
+      if (isMcp) headers['Accept'] = 'application/json, text/event-stream';
       const init: RequestInit = { method: method.toUpperCase(), credentials: 'include' };
       if (hasBody && body.trim()) {
         try {
@@ -225,9 +232,10 @@ function EndpointPanel({ endpoint }: { endpoint: Endpoint }) {
           setRunning(false);
           return;
         }
-        init.headers = { 'Content-Type': 'application/json' };
+        headers['Content-Type'] = 'application/json';
         init.body = body;
       }
+      if (Object.keys(headers).length) init.headers = headers;
       const res = await fetch(buildUrl(), init);
       const text = await res.text();
       const rl = res.headers.get('RateLimit-Limit')
