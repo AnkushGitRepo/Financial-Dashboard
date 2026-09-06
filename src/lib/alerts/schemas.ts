@@ -26,6 +26,23 @@ export const portfolioPnlParamsSchema = z.object({
   threshold: z.number(),
 });
 
+export const ipoWatchParamsSchema = z.object({
+  triggers: z.object({
+    opens: z.boolean(),
+    lastDay: z.boolean(),
+    allotmentListing: z.boolean(),
+  }),
+  gmpThresholdPct: z.number().positive().max(500).optional(),
+  ipoType: z.enum(['all', 'mainboard']),
+});
+
+export const ipoAlertParamsSchema = z.object({
+  ipoSlug: z.string().trim().min(1).max(160),
+  trigger: z.enum(['opens', 'last_day', 'allotment_listing', 'gmp_threshold']),
+  gmpThresholdPct: z.number().positive().max(500).optional(),
+  gmpThresholdAbs: z.number().optional(),
+});
+
 /** The params validator for a given alert type — used by POST (via the
  * discriminated union below) and by PATCH (which knows the type only after
  * loading the existing alert). */
@@ -39,6 +56,10 @@ export function paramsSchemaForType(type: AlertType) {
       return week52BreachParamsSchema;
     case 'portfolio_pnl':
       return portfolioPnlParamsSchema;
+    case 'ipo_watch':
+      return ipoWatchParamsSchema;
+    case 'ipo':
+      return ipoAlertParamsSchema;
   }
 }
 
@@ -70,6 +91,16 @@ export const createAlertSchema = z
       // Optional: present = scoped to that one holding's P&L; absent = whole book.
       symbol: symbolSchema.nullish(),
       params: portfolioPnlParamsSchema,
+    }),
+    z.object({
+      type: z.literal('ipo_watch'),
+      symbol: z.null().optional(),
+      params: ipoWatchParamsSchema,
+    }),
+    z.object({
+      type: z.literal('ipo'),
+      symbol: z.null().optional(),
+      params: ipoAlertParamsSchema,
     }),
   ])
   .and(commonCreateFields);

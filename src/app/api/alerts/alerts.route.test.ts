@@ -9,6 +9,7 @@ const { getCurrentUserId, store } = vi.hoisted(() => ({
     getAlertById: vi.fn(),
     updateAlert: vi.fn(),
     deleteAlert: vi.fn(),
+    upsertIpoWatch: vi.fn(),
   },
 }));
 vi.mock('@/lib/currentUserId', () => ({ getCurrentUserId }));
@@ -32,6 +33,7 @@ const sampleAlert = (over: Partial<Alert> = {}): Alert => ({
   lastEvaluatedAt: null,
   triggeredAt: null,
   lastObservedValue: null,
+  sentKeys: null,
   createdAt: new Date(),
   updatedAt: new Date(),
   ...over,

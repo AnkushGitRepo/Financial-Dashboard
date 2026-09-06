@@ -1,6 +1,14 @@
 // Phase 5 alerts — shared types (ADR 0014).
 
-export type AlertType = 'price_threshold' | 'percent_move' | 'week52_breach' | 'portfolio_pnl';
+export type AlertType =
+  | 'price_threshold'
+  | 'percent_move'
+  | 'week52_breach'
+  | 'portfolio_pnl'
+  | 'ipo_watch'
+  | 'ipo';
+
+export type IpoTrigger = 'opens' | 'last_day' | 'allotment_listing' | 'gmp_threshold';
 
 export type AlertStatus = 'active' | 'triggered' | 'paused';
 
@@ -32,11 +40,30 @@ export interface PortfolioPnlParams {
   threshold: number;
 }
 
+/** One per user (ADR 0017). Fires once per (IPO, trigger) pair — idempotency
+ * via the alert doc's `sentKeys`. */
+export interface IpoWatchParams {
+  triggers: { opens: boolean; lastDay: boolean; allotmentListing: boolean };
+  /** Also fire when a matching IPO's GMP% crosses this magnitude. */
+  gmpThresholdPct?: number;
+  ipoType: 'all' | 'mainboard';
+}
+
+/** Per-IPO alert set from a row on the IPO page. */
+export interface IpoAlertParams {
+  ipoSlug: string;
+  trigger: IpoTrigger;
+  gmpThresholdPct?: number;
+  gmpThresholdAbs?: number;
+}
+
 export type AlertParams =
   | ({ type: 'price_threshold' } & PriceThresholdParams)
   | ({ type: 'percent_move' } & PercentMoveParams)
   | ({ type: 'week52_breach' } & Week52BreachParams)
-  | ({ type: 'portfolio_pnl' } & PortfolioPnlParams);
+  | ({ type: 'portfolio_pnl' } & PortfolioPnlParams)
+  | ({ type: 'ipo_watch' } & IpoWatchParams)
+  | ({ type: 'ipo' } & IpoAlertParams);
 
 export interface Alert {
   id: string;
@@ -59,8 +86,25 @@ export interface Alert {
   lastEvaluatedAt: Date | null;
   triggeredAt: Date | null;
   lastObservedValue: number | null;
+  /** `ipo_watch` only: `"<ipoSlug>:<trigger>"` keys already notified, so a
+   * standing watch doesn't re-fire for the same IPO event. */
+  sentKeys: string[] | null;
   createdAt: Date;
   updatedAt: Date;
+}
+
+/** The IPO fields an alert evaluation needs — from fundamentals-api `GET /ipos`. */
+export interface IpoSnapshot {
+  slug: string;
+  name: string;
+  category: 'mainboard' | 'sme';
+  status: 'upcoming' | 'open' | 'closed' | 'listed';
+  gmp: number | null;
+  gmpPct: number | null;
+  openDate: string | null;
+  closeDate: string | null;
+  allotmentDate: string | null;
+  listingDate: string | null;
 }
 
 /** The market data one evaluation needs for a single symbol — shaped from

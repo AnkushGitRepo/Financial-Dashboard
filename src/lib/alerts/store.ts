@@ -17,6 +17,7 @@ interface AlertDocument {
   lastEvaluatedAt: Date | null;
   triggeredAt: Date | null;
   lastObservedValue: number | null;
+  sentKeys: string[] | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -37,6 +38,7 @@ function toAlert(doc: AlertDocument): Alert {
     lastEvaluatedAt: doc.lastEvaluatedAt,
     triggeredAt: doc.triggeredAt,
     lastObservedValue: doc.lastObservedValue,
+    sentKeys: doc.sentKeys ?? null,
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
   };
@@ -95,11 +97,53 @@ export async function createAlert(userId: string, input: CreateAlertInput): Prom
     lastEvaluatedAt: null,
     triggeredAt: null,
     lastObservedValue: null,
+    sentKeys: input.type === 'ipo_watch' ? [] : null,
     createdAt: now,
     updatedAt: now,
   };
   await col.insertOne(doc);
   return toAlert(doc);
+}
+
+/** The user's single IPO-watch subscription, or null. */
+export async function getIpoWatch(userId: string): Promise<Alert | null> {
+  const col = await collection();
+  const doc = await col.findOne({ userId, type: 'ipo_watch' });
+  return doc ? toAlert(doc) : null;
+}
+
+/** Create-or-replace the user's IPO-watch subscription (there is only ever
+ * one). Editing the triggers resets `sentKeys` so re-enabled triggers fire
+ * for currently-relevant IPOs. */
+export async function upsertIpoWatch(
+  userId: string,
+  params: Omit<AlertParams & { type: 'ipo_watch' }, 'type'>
+): Promise<Alert> {
+  const col = await collection();
+  const now = new Date();
+  const result = await col.findOneAndUpdate(
+    { userId, type: 'ipo_watch' },
+    {
+      $set: { params, status: 'active', sentKeys: [], updatedAt: now },
+      $setOnInsert: {
+        _id: new ObjectId(),
+        userId,
+        type: 'ipo_watch',
+        symbol: null,
+        note: null,
+        rearm: false,
+        cooldownMinutes: 60,
+        armed: true,
+        cooldownUntil: null,
+        lastEvaluatedAt: null,
+        triggeredAt: null,
+        lastObservedValue: null,
+        createdAt: now,
+      },
+    },
+    { upsert: true, returnDocument: 'after' }
+  );
+  return toAlert(result!);
 }
 
 export interface UpdateAlertInput {
@@ -150,6 +194,7 @@ export async function applyAlertTransition(
       | 'triggeredAt'
       | 'lastEvaluatedAt'
       | 'lastObservedValue'
+      | 'sentKeys'
       | 'updatedAt'
     >
   >

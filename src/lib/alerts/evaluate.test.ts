@@ -3,18 +3,27 @@ import type { Alert } from './types';
 
 // --- mocks: everything that touches the network or the database ---------
 
-const { listActiveAlerts, applyAlertTransition, getQuotes, listHoldings, deliverNotification, resolveChannels } =
-  vi.hoisted(() => ({
-    listActiveAlerts: vi.fn<() => Promise<Alert[]>>(),
-    applyAlertTransition: vi.fn<(...args: unknown[]) => Promise<void>>(async () => {}),
-    getQuotes: vi.fn<(...args: unknown[]) => Promise<unknown[]>>(),
-    listHoldings: vi.fn<(...args: unknown[]) => Promise<unknown[]>>(),
-    deliverNotification: vi.fn<(...args: unknown[]) => Promise<unknown>>(async () => ({})),
-    resolveChannels: vi.fn<(...args: unknown[]) => Promise<unknown>>(async () => ({ email: false, webhook: false })),
-  }));
+const {
+  listActiveAlerts,
+  applyAlertTransition,
+  getQuotes,
+  getIpos,
+  listHoldings,
+  deliverNotification,
+  resolveChannels,
+} = vi.hoisted(() => ({
+  listActiveAlerts: vi.fn<() => Promise<Alert[]>>(),
+  applyAlertTransition: vi.fn<(...args: unknown[]) => Promise<void>>(async () => {}),
+  getQuotes: vi.fn<(...args: unknown[]) => Promise<unknown[]>>(),
+  getIpos: vi.fn<(...args: unknown[]) => Promise<unknown[]>>(async () => []),
+  listHoldings: vi.fn<(...args: unknown[]) => Promise<unknown[]>>(),
+  deliverNotification: vi.fn<(...args: unknown[]) => Promise<unknown>>(async () => ({})),
+  resolveChannels: vi.fn<(...args: unknown[]) => Promise<unknown>>(async () => ({ email: false, webhook: false })),
+}));
 
 vi.mock('./store', () => ({ listActiveAlerts, applyAlertTransition }));
 vi.mock('@/lib/dashboard/fundamentalsApi', () => ({ getQuotes }));
+vi.mock('@/lib/dashboard/iposApi', () => ({ getIpos }));
 vi.mock('@/lib/holdings', () => ({ listHoldings }));
 vi.mock('@/lib/notifications/deliver', () => ({ deliverNotification, resolveChannels }));
 
@@ -38,6 +47,7 @@ const alert = (over: Partial<Alert>): Alert => ({
   lastEvaluatedAt: null,
   triggeredAt: null,
   lastObservedValue: null,
+  sentKeys: null,
   createdAt: NOW,
   updatedAt: NOW,
   ...over,
@@ -63,7 +73,14 @@ describe('evaluateAlerts', () => {
   it('does nothing (no quote fetch) when there are no active alerts', async () => {
     listActiveAlerts.mockResolvedValue([]);
     const summary = await evaluateAlerts(NOW);
-    expect(summary).toEqual({ activeAlerts: 0, symbolsQuoted: 0, notified: 0, skippedNoData: 0, errors: 0 });
+    expect(summary).toEqual({
+      activeAlerts: 0,
+      symbolsQuoted: 0,
+      iposFetched: 0,
+      notified: 0,
+      skippedNoData: 0,
+      errors: 0,
+    });
     expect(getQuotes).not.toHaveBeenCalled();
   });
 
@@ -127,6 +144,67 @@ describe('evaluateAlerts', () => {
     expect(listHoldings).toHaveBeenCalledWith('u1');
     expect(summary.notified).toBe(1);
     expect(getQuotes.mock.calls[0][0]).toContain('RELIANCE');
+  });
+
+  it('ipo_watch: notifies once per (IPO, trigger) and stores sentKeys', async () => {
+    listActiveAlerts.mockResolvedValue([
+      alert({
+        id: 'w1',
+        type: 'ipo_watch',
+        symbol: null,
+        params: { triggers: { opens: true, lastDay: true, allotmentListing: true }, ipoType: 'all' },
+        sentKeys: [],
+      }),
+    ]);
+    getIpos.mockResolvedValue([
+      { slug: 'a-ipo', name: 'A', category: 'mainboard', status: 'open', gmp: null, gmp_pct: null,
+        open_date: '2026-09-07', close_date: null, allotment_date: null, listing_date: null },
+    ]);
+
+    const summary = await evaluateAlerts(new Date('2026-09-07T06:00:00Z')); // 2026-09-07 IST
+
+    expect(summary.iposFetched).toBe(1);
+    expect(summary.notified).toBe(1);
+    const [, patch] = applyAlertTransition.mock.calls[0] as [string, Record<string, unknown>];
+    expect(patch.sentKeys).toEqual(['a-ipo:opens']);
+  });
+
+  it('ipo_watch: does not re-notify keys already sent', async () => {
+    listActiveAlerts.mockResolvedValue([
+      alert({
+        id: 'w1', type: 'ipo_watch', symbol: null,
+        params: { triggers: { opens: true, lastDay: false, allotmentListing: false }, ipoType: 'all' },
+        sentKeys: ['a-ipo:opens'],
+      }),
+    ]);
+    getIpos.mockResolvedValue([
+      { slug: 'a-ipo', name: 'A', category: 'mainboard', status: 'open', gmp: null, gmp_pct: null,
+        open_date: '2026-09-07', close_date: null, allotment_date: null, listing_date: null },
+    ]);
+    const summary = await evaluateAlerts(new Date('2026-09-07T06:00:00Z'));
+    expect(summary.notified).toBe(0);
+    expect(deliverNotification).not.toHaveBeenCalled();
+  });
+
+  it('per-IPO ipo alert: fires on its trigger day and goes triggered', async () => {
+    listActiveAlerts.mockResolvedValue([
+      alert({ id: 'i1', type: 'ipo', symbol: null, params: { ipoSlug: 'a-ipo', trigger: 'opens' } }),
+    ]);
+    getIpos.mockResolvedValue([
+      { slug: 'a-ipo', name: 'A', category: 'mainboard', status: 'open', gmp: null, gmp_pct: null,
+        open_date: '2026-09-07', close_date: null, allotment_date: null, listing_date: null },
+    ]);
+    const summary = await evaluateAlerts(new Date('2026-09-07T06:00:00Z'));
+    expect(summary.notified).toBe(1);
+    const [, patch] = applyAlertTransition.mock.calls[0] as [string, Record<string, unknown>];
+    expect(patch.status).toBe('triggered');
+  });
+
+  it('does not fetch /ipos when there are no ipo alerts', async () => {
+    listActiveAlerts.mockResolvedValue([alert({ params: { direction: 'above', threshold: 1000 } })]);
+    getQuotes.mockResolvedValue([quote('RELIANCE', 1200)]);
+    await evaluateAlerts(NOW);
+    expect(getIpos).not.toHaveBeenCalled();
   });
 
   it('counts a delivery failure as an error and keeps going', async () => {

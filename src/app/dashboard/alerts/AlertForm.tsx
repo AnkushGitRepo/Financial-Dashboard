@@ -102,6 +102,9 @@ function buildParams(d: Draft): BuiltParams {
       if (Number.isNaN(threshold)) return { ok: false, error: 'Enter a threshold value.' };
       return { ok: true, params: { metric: d.pnlMetric, direction: d.pnlDirection, threshold } };
     }
+    default:
+      // IPO alerts are created from the IPO page, not this form.
+      return { ok: false, error: 'Unsupported alert type.' };
   }
 }
 

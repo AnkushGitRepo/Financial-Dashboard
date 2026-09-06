@@ -141,11 +141,11 @@ Scoped 2026-09-06 — see [ADR 0017](./docs/decisions/0017-ipo-tracker-gmp-scope
 - [x] Docs: service README ("IPO tracker" section + endpoint list + coverage row, test count 50→63), `/docs/data-sources.md` (Chittorgarh/InvestorGain entry with the ToS line), `tier3_ipo_scraper/README.md` (ToS position + out-of-band fetch rationale).
 
 **Backend — main app (alerts reuse):**
-- [ ] Zod variants in `src/lib/alerts/schemas.ts`: `ipo_watch` (`{ triggers:{opens,lastDay,allotmentListing}, gmpThresholdPct?, ipoType }`, one per user) + `ipo` (`{ ipoSlug, trigger, gmpThresholdPct?/Abs? }`, per-IPO).
-- [ ] `src/lib/alerts/store.ts` (or thin `ipoWatch.ts`) — one `ipo_watch` doc per user with a `sentKeys` set (`"<slug>:<trigger>"`), pruned for IPOs listed >30d ago.
-- [ ] `src/lib/alerts/ipoAlerts.ts` — pure `evaluateIpoWatch(watch, ipoList, now)` + `evaluateIpoAlert(alert, ipoList, now)` (date triggers in `Asia/Kolkata`; `gmp_threshold` reuses the crossing logic + skips on missing GMP). Table tests.
-- [ ] `evaluateAlerts()` — new branch: fetch `GET /ipos` once per cycle, evaluate IPO alerts, deliver via `deliverNotification`. Loop-test coverage.
-- [ ] `GET/POST/PATCH/DELETE /api/alerts` already generic — extend where the discriminated union needs it; document the new variants in `/docs/api-surface.md`.
+- [x] Zod variants in `src/lib/alerts/schemas.ts` — `ipo_watch` + `ipo` added to the discriminated union + `paramsSchemaForType`. Types in `types.ts` (`IpoWatchParams`/`IpoAlertParams`/`IpoTrigger`/`IpoSnapshot`, `sentKeys` on `Alert`).
+- [x] `store.ts` — `sentKeys` on the doc; `getIpoWatch(userId)` + `upsertIpoWatch(userId, params)` (one-per-user, resets `sentKeys` on edit); `applyAlertTransition` patch accepts `sentKeys`.
+- [x] `src/lib/alerts/ipoAlerts.ts` — pure `istToday()` (IST), `evaluateIpoAlert(params, ipo, today)` (date triggers + gmp crossing, null on missing data), `evaluateIpoWatch(params, ipos, sentKeys, today)` (per-(slug,subkey) hits, mainboard filter, sentKeys prune). 15 table tests (`ipoAlerts.test.ts`).
+- [x] `evaluateAlerts()` — one `getIpos()` per cycle (only when ipo alerts exist), `ipo_watch` branch (multi-notify + `sentKeys` write) and `ipo` branch (`decideAlertTransition` reused), per-type notification copy (`buildIpoWatchPayload`/`buildIpoAlertPayload`). `iposFetched` in the summary. `src/lib/dashboard/iposApi.ts` client added. Loop tests in `evaluate.test.ts` (+5).
+- [x] `POST /api/alerts` special-cases `ipo_watch` → `upsertIpoWatch` (returns 200). New variants documented in `/docs/api-surface.md`. `tsc`/`lint`/`next build`/`npm test` (93) green.
 
 **Frontend — Next.js:**
 - [ ] `src/lib/dashboard/iposApi.ts` client + `/api/ipos` thin proxy if the list filters client-side.

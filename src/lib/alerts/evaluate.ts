@@ -2,6 +2,7 @@
 // handler so it can be invoked directly (tests, a manual admin trigger).
 
 import { getQuotes } from '@/lib/dashboard/fundamentalsApi';
+import { getIpos, type Ipo } from '@/lib/dashboard/iposApi';
 import { listHoldings, type Holding } from '@/lib/holdings';
 import { formatInr } from '@/lib/dashboard/format';
 import { deliverNotification, resolveChannels } from '@/lib/notifications/deliver';
@@ -14,11 +15,20 @@ import {
   evaluatePriceThreshold,
   snapshotFromQuote,
 } from './evaluators';
+import {
+  IPO_TRIGGER_LABELS,
+  evaluateIpoAlert,
+  evaluateIpoWatch,
+  istToday,
+  type IpoWatchHit,
+} from './ipoAlerts';
 import { computeHoldingMetrics, computePortfolioMetrics, type PriceLookup } from './portfolioMetrics';
 import { applyAlertTransition, listActiveAlerts } from './store';
 import type {
   Alert,
   EvalResult,
+  IpoAlertParams,
+  IpoWatchParams,
   PercentMoveParams,
   PortfolioPnlParams,
   PriceThresholdParams,
@@ -28,6 +38,7 @@ import type {
 export interface EvaluateSummary {
   activeAlerts: number;
   symbolsQuoted: number;
+  iposFetched: number;
   notified: number;
   skippedNoData: number;
   errors: number;
@@ -36,6 +47,7 @@ export interface EvaluateSummary {
 const EMPTY: EvaluateSummary = {
   activeAlerts: 0,
   symbolsQuoted: 0,
+  iposFetched: 0,
   notified: 0,
   skippedNoData: 0,
   errors: 0,
@@ -73,10 +85,39 @@ export async function evaluateAlerts(now: Date = new Date()): Promise<EvaluateSu
   );
   const quoteBySymbol = new Map(quotes.map((q) => [q.symbol.toUpperCase(), q]));
 
-  const summary: EvaluateSummary = { ...EMPTY, activeAlerts: alerts.length, symbolsQuoted: quotes.length };
+  // IPO alerts (ADR 0017) — one shared /ipos fetch per cycle.
+  const hasIpoAlerts = alerts.some((a) => a.type === 'ipo' || a.type === 'ipo_watch');
+  const ipos: Ipo[] = hasIpoAlerts ? await getIpos() : [];
+  const ipoBySlug = new Map(ipos.map((i) => [i.slug, i]));
+  const today = istToday(now);
+
+  const summary: EvaluateSummary = {
+    ...EMPTY,
+    activeAlerts: alerts.length,
+    symbolsQuoted: quotes.length,
+    iposFetched: ipos.length,
+  };
 
   for (const alert of alerts) {
     try {
+      if (alert.type === 'ipo_watch') {
+        summary.notified += await evaluateWatchAlert(alert, ipos, today);
+        continue;
+      }
+      if (alert.type === 'ipo') {
+        const p = alert.params as IpoAlertParams;
+        const result = evaluateIpoAlert(p, ipoBySlug.get(p.ipoSlug), today);
+        if (result === null) summary.skippedNoData += 1;
+        const { notify, patch } = decideAlertTransition(alert, result, now);
+        await applyAlertTransition(alert.id, patch);
+        if (notify && result) {
+          const channels = await resolveChannels(alert.userId);
+          await deliverNotification(alert.userId, buildIpoAlertPayload(p, ipoBySlug.get(p.ipoSlug)), channels);
+          summary.notified += 1;
+        }
+        continue;
+      }
+
       const result = evaluateOne(alert, quoteBySymbol, prices, holdingsByUser);
       if (result === null) summary.skippedNoData += 1;
 
@@ -95,6 +136,61 @@ export async function evaluateAlerts(now: Date = new Date()): Promise<EvaluateSu
   }
 
   return summary;
+}
+
+async function evaluateWatchAlert(alert: Alert, ipos: Ipo[], today: string): Promise<number> {
+  const { hits, keptKeys } = evaluateIpoWatch(
+    alert.params as IpoWatchParams,
+    ipos,
+    alert.sentKeys ?? [],
+    today
+  );
+  const channels = await resolveChannels(alert.userId);
+  for (const hit of hits) {
+    await deliverNotification(alert.userId, buildIpoWatchPayload(hit), channels);
+  }
+  await applyAlertTransition(alert.id, {
+    sentKeys: keptKeys,
+    lastEvaluatedAt: new Date(),
+    updatedAt: new Date(),
+  });
+  return hits.length;
+}
+
+function buildIpoWatchPayload(hit: IpoWatchHit): NotificationPayload {
+  const { ipo, kind } = hit;
+  const gmpNote =
+    ipo.gmp_pct !== null ? ` GMP ${ipo.gmp_pct >= 0 ? '+' : ''}${ipo.gmp_pct}% (unofficial)` : '';
+  const line: Record<IpoWatchHit['kind'], string> = {
+    opens: `${ipo.name} IPO opens for subscription today.`,
+    last_day: `${ipo.name} IPO closes today — last day to apply.`,
+    allotment: `${ipo.name} IPO allotment is today.`,
+    listing: `${ipo.name} IPO lists today.`,
+    gmp: `${ipo.name} IPO grey-market premium crossed your threshold.`,
+  };
+  return {
+    kind: 'ipo',
+    title: line[kind].replace(/\.$/, ''),
+    body: `${line[kind]}${gmpNote}`,
+    href: '/dashboard/ipos',
+    meta: { ipoSlug: ipo.slug, watchKind: kind },
+  };
+}
+
+function buildIpoAlertPayload(params: IpoAlertParams, ipo: Ipo | undefined): NotificationPayload {
+  const name = ipo?.name ?? params.ipoSlug;
+  const what = IPO_TRIGGER_LABELS[params.trigger];
+  const gmpNote =
+    params.trigger === 'gmp_threshold' && ipo?.gmp_pct != null
+      ? ` — now ${ipo.gmp_pct >= 0 ? '+' : ''}${ipo.gmp_pct}% (unofficial grey-market estimate)`
+      : '';
+  return {
+    kind: 'ipo',
+    title: `${name} — ${what}`,
+    body: `Your IPO alert for ${name}: ${what}${gmpNote}.`,
+    href: '/dashboard/ipos',
+    meta: { ipoSlug: params.ipoSlug, trigger: params.trigger },
+  };
 }
 
 function evaluateOne(
@@ -130,6 +226,8 @@ function evaluateOne(
       return evaluatePercentMove(alert.params as PercentMoveParams, snap);
     case 'week52_breach':
       return evaluate52WeekBreach(alert.params as Week52BreachParams, snap);
+    default:
+      return null; // ipo / ipo_watch handled before this function
   }
 }
 
@@ -193,5 +291,8 @@ function buildPayload(alert: Alert, result: EvalResult): NotificationPayload {
         meta,
       };
     }
+    default:
+      // ipo / ipo_watch build their own payloads (buildIpo*Payload)
+      return { kind: 'alert', title: 'Alert triggered', body: '', href, meta };
   }
 }

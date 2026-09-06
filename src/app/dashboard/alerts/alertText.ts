@@ -1,6 +1,8 @@
 import { formatInr } from '@/lib/dashboard/format';
 import type {
   Alert,
+  IpoAlertParams,
+  IpoWatchParams,
   PercentMoveParams,
   PortfolioPnlParams,
   PriceThresholdParams,
@@ -12,6 +14,15 @@ const ALERT_TYPE_LABELS: Record<Alert['type'], string> = {
   percent_move: 'Percent move',
   week52_breach: '52-week',
   portfolio_pnl: 'Portfolio',
+  ipo_watch: 'IPO watch',
+  ipo: 'IPO',
+};
+
+const IPO_TRIGGER_TEXT: Record<IpoAlertParams['trigger'], string> = {
+  opens: 'opens',
+  last_day: 'last day to apply',
+  allotment_listing: 'allotment / listing day',
+  gmp_threshold: 'GMP crosses threshold',
 };
 
 export function alertTypeLabel(type: Alert['type']): string {
@@ -50,6 +61,25 @@ export function describeAlert(alert: Alert): string {
       const value =
         p.metric === 'unrealized_pnl_pct' ? `${p.threshold}%` : formatInr(p.threshold);
       return `${subject} ${p.direction} ${value}`;
+    }
+    case 'ipo_watch': {
+      const p = alert.params as IpoWatchParams;
+      const on = [
+        p.triggers.opens && 'opens',
+        p.triggers.lastDay && 'last day',
+        p.triggers.allotmentListing && 'allotment/listing',
+        p.gmpThresholdPct !== undefined && `GMP ±${p.gmpThresholdPct}%`,
+      ].filter(Boolean);
+      const scope = p.ipoType === 'mainboard' ? 'Mainboard IPOs' : 'All IPOs';
+      return `${scope} — ${on.length ? on.join(', ') : 'no triggers'}`;
+    }
+    case 'ipo': {
+      const p = alert.params as IpoAlertParams;
+      const extra =
+        p.trigger === 'gmp_threshold' && p.gmpThresholdPct !== undefined
+          ? ` (±${p.gmpThresholdPct}%)`
+          : '';
+      return `${p.ipoSlug.replace(/-ipo$/, '').replace(/-/g, ' ')} — ${IPO_TRIGGER_TEXT[p.trigger]}${extra}`;
     }
   }
 }
