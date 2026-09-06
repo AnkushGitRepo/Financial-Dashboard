@@ -93,11 +93,14 @@ Phase 9 delivers three things, buildable largely in parallel:
 ### 2. Rate limiting — Upstash Redis (`@upstash/ratelimit`)
 
 - **Provision** the Upstash Redis integration through the Vercel Marketplace.
-  RESOLVED 2026-09-06 via the `marketplace` skill: the product is
-  **`upstash/upstash-kv`** ("Upstash for Redis"), installed with
-  `vercel integration add upstash/upstash-kv` (interactive — plan/name
-  prompts — so the user runs it), then `vercel env pull`. Injects
-  `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`.
+  RESOLVED 2026-09-06: the product is **"Upstash for Redis"** (Vercel →
+  Storage → Create Database → Upstash), created via the dashboard (the CLI
+  `vercel integration add` is interactive), primary region `us-east-1` to
+  match the `iad1` functions, then connected to **both** Vercel projects.
+  The Vercel integration injects **`KV_REST_API_URL` / `KV_REST_API_TOKEN`**
+  (plus `KV_URL` / `REDIS_URL` aliases); the code reads those, falling back
+  to the Upstash-native `UPSTASH_REDIS_REST_URL` / `_TOKEN` for a manual
+  setup.
 - **Limiter:** `@upstash/ratelimit` sliding-window. Key by Clerk `userId`
   when authenticated, else by client IP (`x-forwarded-for` first hop).
   **Fails open** if the store errors.

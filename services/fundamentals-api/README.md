@@ -159,7 +159,7 @@ but taxonomy-accurate XBRL instance document, a generated PDF with a ruled
 table) rather than live calls, so they're deterministic and don't depend on
 Screener.in/NSE/BSE/Yahoo staying reachable or unchanged.
 
-## Rate limiting (`UPSTASH_REDIS_REST_URL` / `_TOKEN`)
+## Rate limiting (`KV_REST_API_URL` / `_TOKEN`, or `UPSTASH_REDIS_REST_*`)
 
 A fixed-window per-client-IP limiter (`app/rate_limit.py`, ADR 0019),
 applied as HTTP middleware to every route except `/health`. It's a **no-op

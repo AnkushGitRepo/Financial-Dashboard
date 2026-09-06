@@ -104,7 +104,7 @@ A GitHub Actions workflow for this ships at `.github/workflows/evaluate-alerts.y
 
 The public market data (symbol search, quotes, fundamentals, price history, news, IPOs, indices) is exposed as an **MCP server** for AI agents at `/api/mcp` (Streamable HTTP — client config `{ "url": "https://your-host/api/mcp" }`). It wraps the same data the dashboard uses; see [`/docs/api-surface.md`](docs/api-surface.md) for the tool list and [`/llms.txt`](public/llms.txt) for an agent-readable pointer. All tools are read-only public data — no auth. See [ADR 0019](docs/decisions/0019-phase-9-api-surface-mcp-rate-limiting.md).
 
-**Rate limiting** (hosted only): set `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` (provision with `vercel integration add upstash/upstash-kv`) to enforce fair-use limits on `/api/*` and `/api/mcp`. With both unset the limiter is a no-op — **self-host is never throttled**.
+**Rate limiting** (hosted only): provision an Upstash Redis store (Vercel → Storage → Create Database → Upstash for Redis) and connect it to both Vercel projects. It injects `KV_REST_API_URL` / `KV_REST_API_TOKEN` (the Upstash-native `UPSTASH_REDIS_REST_*` names also work), which turns on fair-use limits for `/api/*`, `/api/mcp`, and the fundamentals-api. With them unset the limiter is a no-op — **self-host is never throttled**.
 
 ## Two ways to run it
 

@@ -1,10 +1,14 @@
 // Fair-use rate limiting for the hosted instance (Phase 9 Part 2, ADR 0019).
 //
-// Backed by Upstash Redis (`@upstash/ratelimit` sliding window). If the
-// Upstash env vars are absent — i.e. every self-host deployment, and any
-// hosted deployment before the integration is provisioned — this is a
-// **no-op pass-through**. Self-host stays unthrottled and full-featured
-// (ADR 0010).
+// Backed by Upstash Redis (`@upstash/ratelimit` sliding window). If no
+// Upstash REST credentials are configured — i.e. every self-host
+// deployment, and any hosted deployment before the integration is
+// provisioned — this is a **no-op pass-through**. Self-host stays
+// unthrottled and full-featured (ADR 0010).
+//
+// Env var names: the Vercel Upstash integration injects `KV_REST_API_URL` /
+// `KV_REST_API_TOKEN`; a manual / self-host setup may use the Upstash-native
+// `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`. Either works.
 //
 // Key: the Clerk user id when signed in, else the client IP. Tiers carry
 // different budgets; the numbers here are a starting point, tuned against
@@ -14,8 +18,8 @@ import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 import { getCurrentUserId } from '@/lib/currentUserId';
 
-const REST_URL = process.env.UPSTASH_REDIS_REST_URL;
-const REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+const REST_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+const REST_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
 
 /** True when a limiter store is configured. When false, everything passes. */
 export const rateLimitEnabled = Boolean(REST_URL && REST_TOKEN);

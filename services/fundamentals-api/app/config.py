@@ -1,7 +1,7 @@
 from functools import lru_cache
 from urllib.parse import urlsplit, urlunsplit
 
-from pydantic import field_validator
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -20,7 +20,9 @@ def _normalize_database_url(raw: str) -> str:
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", extra="ignore", populate_by_name=True
+    )
 
     database_url: str = "postgresql+asyncpg://localhost/marketmitra_fundamentals"
 
@@ -62,10 +64,15 @@ class Settings(BaseSettings):
     # via the Upstash Redis REST API (no new dependency — uses httpx). When
     # both URL and token are empty the limiter is a no-op pass-through, so
     # self-host / local dev is never throttled. Provision the same Upstash
-    # instance the main app uses (its REST URL + token), on this Vercel
-    # project too.
-    upstash_redis_rest_url: str = ""
-    upstash_redis_rest_token: str = ""
+    # instance the main app uses, on this Vercel project too. Accepts either
+    # the Vercel-integration names (`KV_REST_API_*`) or the Upstash-native
+    # ones (`UPSTASH_REDIS_REST_*`).
+    upstash_redis_rest_url: str = Field(
+        "", validation_alias=AliasChoices("UPSTASH_REDIS_REST_URL", "KV_REST_API_URL")
+    )
+    upstash_redis_rest_token: str = Field(
+        "", validation_alias=AliasChoices("UPSTASH_REDIS_REST_TOKEN", "KV_REST_API_TOKEN")
+    )
     rate_limit_per_minute: int = 120
 
 
