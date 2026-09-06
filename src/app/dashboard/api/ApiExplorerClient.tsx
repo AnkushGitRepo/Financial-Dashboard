@@ -65,6 +65,18 @@ function fmt(value: unknown): string {
   try {
     return JSON.stringify(JSON.parse(value), null, 2);
   } catch {
+    // SSE (the MCP endpoint): pull the JSON out of the `data:` line(s).
+    const dataLines = value
+      .split('\n')
+      .filter((l) => l.startsWith('data:'))
+      .map((l) => l.slice(5).trim());
+    if (dataLines.length) {
+      try {
+        return dataLines.map((d) => JSON.stringify(JSON.parse(d), null, 2)).join('\n\n');
+      } catch {
+        /* fall through */
+      }
+    }
     return value;
   }
 }
