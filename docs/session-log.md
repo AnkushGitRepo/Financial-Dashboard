@@ -75,3 +75,11 @@ Rolling log of work sessions, most recent first is NOT required — append chron
 - **Caveat still standing:** `ALERT_EMAIL_FROM` is unset, so the sender is Resend's shared `onboarding@resend.dev`, which **only delivers to the Resend account owner's own email**. For the first live test to actually land, the alert-owner's Clerk primary email must be that same address. Arbitrary-recipient sending needs a Resend-verified domain in `ALERT_EMAIL_FROM`.
 - ROADMAP Phase-5 email line → `[x]` (with the sender caveat noted).
 - Next: watch one real alert fire + one real IPO-alert fire during NSE market hours (Sat/Sun now — markets closed; the 10-min `evaluate-alerts` scheduler no-ops outside hours unless `?force=1`).
+
+## 2026-09-06 — Phase 10 (RAG) scoping session → ADR 0020
+
+- User chose to scope Phase 10 next. Ran a 4-question scoping questionnaire (corpus / vector store / scoping / surfaces).
+- **Answers:** corpus = news + filings/fundamentals + per-user portfolio & notes + structured data; store = Atlas Vector Search + **local** embeddings (transformers.js, no key); scoping = per-user; surfaces = chat + insights + a new research surface.
+- **[ADR 0020](./decisions/0020-phase-10-rag-chat.md)** written (status: *proposed*). Key resolutions: one `chunks` collection + Atlas Vector Search (free-tier OK); local embeddings keep BYO-key limited to generation and self-host zero-config; indexing runs as a token-guarded cron (same pattern as `evaluate-alerts`/`refresh-ipos`); PDF→text stays on the fundamentals-api Python side; structured market data is *tool-called via the MCP layer*, not embedded → chat becomes agentic; graceful fallback to today's prompt-stuffing when no vector index (non-Atlas self-host). DRHP grounding folds into Phase 10a.
+- **Two open questions flagged for the user before the build checklist is final:** (A) full per-user duplication vs. a shared-public-corpus + per-user-private reconciliation (the ADR argues per-user copies of public news/PDFs blow the Atlas M0 512 MB free tier); (B) 10a/10b surface phasing vs. all three surfaces at once.
+- ROADMAP Phase 10 section rewritten (🔄 scoped) with the decisions + the two open questions. Not yet a build.

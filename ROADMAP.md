@@ -276,8 +276,16 @@ Scoped 2026-09-06 — see [ADR 0019](./docs/decisions/0019-phase-9-api-surface-m
 - [x] `services/fundamentals-api` own limiter — done 2026-09-06 (see Part 2). Needs the same Upstash env vars set on the `marketmitra-fundamentals-api` Vercel project + a redeploy to go live.
 - [x] Confirmed as done by the user 2026-09-06 ("approved"); archiving protocol run — detail moved to [`/docs/archive/api-surface.md`](./docs/archive/api-surface.md).
 
-## Phase 10 — AI Chat with RAG ❓
-Needs a dedicated discussion: what's actually in the retrieval corpus (news? filings? portfolio data? all three?), which vector store, how it's scoped per-user vs. general market knowledge.
+## Phase 10 — AI chat + insights with retrieval (RAG) 🔄 scoped
+Scoping session done 2026-09-06 → [ADR 0020](./docs/decisions/0020-phase-10-rag-chat.md). Decisions:
+- **Corpus:** news archive + filings/fundamentals text + per-user portfolio & notes. Structured market data is *not* embedded — the chat model tool-calls the MCP layer for it instead (chat becomes agentic).
+- **Store:** a `chunks` collection + Atlas Vector Search index (free-tier compatible). **Local embeddings** via `transformers.js` — no embedding API key, same path hosted + self-host. Indexing runs as a token-guarded cron (news + filings), never inline. PDF→text stays on the fundamentals-api (Python) side.
+- **BYO-key** still required for *generation* only. Graceful fallback to today's prompt-stuffing when no vector index is available (non-Atlas self-host).
+- **DRHP grounding** (deferred Phase 8 follow-up) is absorbed into Phase 10a's IPO-brief surface.
+
+**Two open questions block the build checklist** ([ADR 0020](./docs/decisions/0020-phase-10-rag-chat.md) "Open questions"):
+- A — corpus scoping: shared-public-corpus + per-user-private layer (proposed, stays inside Atlas free tier) vs. full per-user duplication.
+- B — surface phasing: 10a (chat + insight grounding) then 10b (dedicated `/dashboard/research` surface) vs. all three surfaces in one phase.
 
 ## Phase 11 — Advanced Analytical Agents (TradingAgents-pattern, built in-house) ❓
 Needs a dedicated discussion once Phase 8–10 exist to build on. Reminder: this means building our own multi-agent analysis pattern inspired by TauricResearch's architecture — not importing their repo as a dependency.
