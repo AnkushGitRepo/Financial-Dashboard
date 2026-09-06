@@ -247,11 +247,18 @@
     "/api/ai/chat": {
       "post": {
         "tags": ["AI"],
-        "summary": "Mitra chat (streamed)",
-        "description": "Streamed text/plain token response (not the envelope). Answers only from a server-built portfolio + news context. Rate limited (ai tier).",
+        "summary": "Mitra chat (streamed, agentic)",
+        "description": "Streamed text/plain token response (not the envelope). Tool-calling loop: `search_context` over the retrieval corpus plus the read-only market-data tools. Completed turns are persisted; the user's recent questions feed their private retrieval layer. Rate limited (ai tier).",
         "security": [{ "cookieAuth": [] }],
         "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["messages"], "properties": { "messages": { "type": "array", "items": { "type": "object", "properties": { "role": { "type": "string", "enum": ["user", "assistant"] }, "content": { "type": "string" } } } } } }, "example": { "messages": [{ "role": "user", "content": "How is my portfolio doing?" }] } } } },
         "responses": { "200": { "description": "A text token stream." }, "400": { "description": "no_ai_key." }, "401": { "description": "Not authenticated." }, "422": { "description": "Invalid body." }, "429": { "description": "Rate limited." } }
+      },
+      "delete": {
+        "tags": ["AI"],
+        "summary": "Clear Mitra chat history",
+        "description": "Deletes the caller's stored chat turns and drops their 'recent questions' entry from the retrieval corpus.",
+        "security": [{ "cookieAuth": [] }],
+        "responses": { "200": { "description": "{ removed: <count> }" }, "401": { "description": "Not authenticated." } }
       }
     },
     "/api/mcp": {

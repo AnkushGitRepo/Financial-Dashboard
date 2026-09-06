@@ -82,6 +82,25 @@ export async function syncUserHoldings(
   );
 }
 
+/** Embed the user's recent chat questions as one `chat:<userId>` source
+ *  ("saved questions" — ADR 0020). Best-effort. */
+export async function syncRecentChat(userId: string, questions: string[]): Promise<boolean> {
+  const trimmed = questions.map((q) => q.trim()).filter(Boolean);
+  if (trimmed.length === 0) {
+    try {
+      await deleteSourceChunks(`chat:${userId}`);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  return embedAndReplace(
+    `chat:${userId}`,
+    { docType: 'chat', userId, title: 'My recent questions', publishedAt: new Date() },
+    `Questions this user has recently asked Mitra:\n${trimmed.map((q) => `- ${q}`).join('\n')}`
+  );
+}
+
 /** Fire-and-forget helper for the holdings mutation routes: fetch the
  *  user's enriched holdings and re-embed the snapshot. Swallows everything. */
 export async function resyncUserHoldings(userId: string): Promise<void> {

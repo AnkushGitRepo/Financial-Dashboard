@@ -56,6 +56,9 @@ export interface StreamChatOptions {
    *  (Phase 10 / ADR 0020). `maxSteps` bounds the loop. */
   tools?: ToolSet;
   maxSteps?: number;
+  /** Called once the full assistant reply is known (after any tool
+   *  steps) — used to persist the turn. Must not throw. */
+  onFinish?: (result: { text: string }) => void | Promise<void>;
 }
 
 /**
@@ -84,6 +87,9 @@ export function streamChat(
     maxOutputTokens: MAX_OUTPUT_TOKENS,
     ...(hasTools
       ? { tools: opts.tools, stopWhen: stepCountIs(opts.maxSteps ?? 5) }
+      : {}),
+    ...(opts.onFinish
+      ? { onFinish: ({ text }: { text: string }) => opts.onFinish?.({ text }) }
       : {}),
   });
 }

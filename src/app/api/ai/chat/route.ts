@@ -8,6 +8,8 @@ import { streamChat } from '@/lib/ai/generate';
 import { CHAT_SYSTEM_AGENTIC } from '@/lib/ai/prompts';
 import { buildChatTools } from '@/lib/ai/chatTools';
 import { formatChatContext, mergeNews } from '@/lib/ai/chatContext';
+import { appendTurn, clearHistory, recentUserQuestions } from '@/lib/chat/chatHistory';
+import { syncRecentChat } from '@/lib/rag/userSync';
 import { getEnrichedHoldings } from '@/lib/dashboard/enrichedHoldings';
 import { getNews } from '@/lib/dashboard/newsApi';
 
@@ -65,11 +67,17 @@ async function handlePOST(request: Request) {
   const context = await buildContext(userId);
   const system = `${CHAT_SYSTEM_AGENTIC}\n\n--- PORTFOLIO CONTEXT ---\n${context}`;
   const tools = buildChatTools(userId);
+  const lastUserMessage = parsed.data.messages.at(-1)?.content ?? '';
 
   try {
     const result = streamChat(aiConfig, system, parsed.data.messages as ModelMessage[], {
       tools,
       maxSteps: MAX_TOOL_STEPS,
+      onFinish: async ({ text }) => {
+        if (!text.trim() || !lastUserMessage) return;
+        await appendTurn(userId, lastUserMessage, text);
+        void syncRecentChat(userId, await recentUserQuestions(userId));
+      },
     });
     return result.toTextStreamResponse();
   } catch {
@@ -77,4 +85,13 @@ async function handlePOST(request: Request) {
   }
 }
 
+async function handleDELETE() {
+  const userId = await getCurrentUserId();
+  if (!userId) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+  const removed = await clearHistory(userId);
+  void syncRecentChat(userId, []);
+  return NextResponse.json({ success: true, data: { removed } });
+}
+
 export const POST = withRateLimit(handlePOST, 'ai');
+export const DELETE = handleDELETE;
