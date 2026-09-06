@@ -148,6 +148,19 @@ function AiPanelBody({ section, onClose }: { section: Section; onClose: () => vo
     }
   };
 
+  // Wipe the visible transcript and the server-side history (which also
+  // feeds the per-user retrieval corpus). Best-effort — a failed DELETE
+  // still clears the panel.
+  const clearChat = async () => {
+    setMessages([]);
+    setDraft('');
+    try {
+      await fetch('/api/ai/chat', { method: 'DELETE' });
+    } catch {
+      /* the panel is already cleared */
+    }
+  };
+
   return (
     <div className={styles.panel}>
       <div className={styles.panelBg} />
@@ -163,9 +176,21 @@ function AiPanelBody({ section, onClose }: { section: Section; onClose: () => vo
             <span className={styles.mitraDot} />
             <span className={styles.mitraName}>Mitra</span>
           </div>
-          <button onClick={onClose} className={styles.closeButton} type="button" aria-label="Close">
-            ×
-          </button>
+          <div className={styles.headerActions}>
+            {messages.length > 0 && (
+              <button
+                onClick={clearChat}
+                className={styles.clearButton}
+                type="button"
+                disabled={busy}
+              >
+                Clear
+              </button>
+            )}
+            <button onClick={onClose} className={styles.closeButton} type="button" aria-label="Close">
+              ×
+            </button>
+          </div>
         </div>
 
         {messages.length === 0 && (

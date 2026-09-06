@@ -106,6 +106,24 @@ The public market data (symbol search, quotes, fundamentals, price history, news
 
 **Rate limiting** (hosted only): provision an Upstash Redis store (Vercel → Storage → Create Database → Upstash for Redis) and connect it to both Vercel projects. It injects `KV_REST_API_URL` / `KV_REST_API_TOKEN` (the Upstash-native `UPSTASH_REDIS_REST_*` names also work), which turns on fair-use limits for `/api/*`, `/api/mcp`, and the fundamentals-api. With them unset the limiter is a no-op — **self-host is never throttled**.
 
+### Retrieval / RAG (chat + insights)
+
+The Mitra chat and the AI insight cards search an indexed corpus of news and company filings (plus your own notes). It needs two things:
+
+1. **The companion Python service reachable from the app.** Set `FUNDAMENTALS_API_URL` to wherever `services/fundamentals-api/` is running, and set the **same** `IPO_INGEST_TOKEN` on both — the app calls the service's `POST /embed` (local `fastembed` embeddings, no API key) and `POST /documents/extract-text`. On first use the service downloads a ~64 MB embedding model to a cache dir (`/tmp` by default; override with `FASTEMBED_CACHE_DIR`).
+2. **A MongoDB Atlas cluster** (any tier, including free M0) so [Atlas Vector Search](https://www.mongodb.com/products/platform/atlas-vector-search) is available. Run the indexer once to create the index and populate the corpus:
+
+   ```bash
+   curl -X POST -H "Authorization: Bearer $CRON_SECRET" \
+     "https://your-host/api/cron/index-corpus?indexesOnly=1"      # create the vector index
+   curl -X POST -H "Authorization: Bearer $CRON_SECRET" \
+     https://your-host/api/cron/index-corpus                       # first full pass
+   ```
+
+   A GitHub Actions workflow (`.github/workflows/index-corpus.yml`) keeps it fresh every 2 h — add the `CRON_SECRET` repo secret to activate it.
+
+If any of this is missing — a non-Atlas MongoDB, the service unreachable, no index yet — retrieval is skipped and chat/insights fall back to a portfolio-and-headlines summary. Nothing errors.
+
 ## Two ways to run it
 
 MarketMitra is **free and open-source with no paid tier, no billing, and no trial limits** ([ADR 0011](docs/decisions/0011-three-tier-fundamentals-data-sourcing.md), [ADR 0016](docs/decisions/0016-landing-page-no-paid-tier-reconciliation.md)). There are two ways to use it, and they run the same codebase:
