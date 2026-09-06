@@ -237,16 +237,16 @@ Carried past sign-off 2026-09-06. Each is small and independent; none gates Phas
 ## Phase 9 — API Surface: MCP server + rate limiting + API explorer 🔄
 Scoped 2026-09-06 — see [ADR 0019](./docs/decisions/0019-phase-9-api-surface-mcp-rate-limiting.md). Three deliverables, buildable largely in parallel: (1) a **full MCP server** exposing the read-only public data as agent tools (supersedes the original "JSON/Markdown response modes"), (2) **Upstash Redis** (Vercel Marketplace) sliding-window **rate limiting** on `/api/*` + the fundamentals-api public endpoints + the MCP server, (3) a **hosted interactive API explorer** page. Per-user MCP tools, API keys, and monetized tiers are explicitly out of v1.
 
-**Part 1 — MCP server:** ✅ built 2026-09-06 (not yet prod-deployed).
+**Part 1 — MCP server:** ✅ built + deployed 2026-09-06.
 - [x] Spike resolved → a route in the Next app, `src/app/api/mcp/route.ts` via `mcp-handler`@2 (+ `@modelcontextprotocol/server`@2). Not a standalone service — the tools wrap `src/lib/dashboard/*` which already calls fundamentals-api, so standalone would just add a hop. ADR 0019 §1 updated.
 - [x] 7 tools in `src/lib/mcp/tools.ts` (`search_symbols`, `get_quote`, `get_company_fundamentals` w/ optional `sections`, `get_price_history`, `get_news`, `list_ipos`, `get_market_indices`) — zod input schemas, plain-object `run()` results wrapped by `src/lib/mcp/server.ts` into `CallToolResult` (JSON text + `structuredContent`).
 - [x] Unauthenticated (public data only). Every data-touching result carries a "not investment advice" / "headline tone not a signal" / "unofficial GMP estimate" note. Rate limiting is Part 2.
-- [x] `/api/mcp` route registered in the build. **Deploy pending** (ships with Part 2).
+- [x] `/api/mcp` **live in prod** (deploy `hqgdf1gal`, 2026-09-06) — `initialize` / `tools/list` / `tools/call get_market_indices` verified against prod fundamentals-api.
 - [x] `public/llms.txt` — points agents at `/api/mcp` + `docs/api-surface.md`, lists the tools.
 - [x] `src/lib/mcp/tools.test.ts` — 17 cases (registry shape, per-tool schema rejection + `run` behaviour against a mocked data layer). Live smoke-tested against `next dev` + local fundamentals-api: `initialize`, `tools/list` (all 7 with JSON Schema), `tools/call get_market_indices` (real NIFTY/SENSEX), schema rejection → `isError`.
 - [x] `/docs/api-surface.md` — new "MCP server — `/api/mcp`" section + tool table. `/docs/architecture.md` gets its section under Cross-cutting below.
 
-**Part 2 — rate limiting:** code built 2026-09-06; **Upstash provisioning + prod deploy pending the user.**
+**Part 2 — rate limiting:** code built + **deployed inert** 2026-09-06 (no Upstash env → `rateLimitEnabled=false`); **Upstash provisioning + a redeploy pending the user** to activate it.
 - [~] Provision Upstash Redis: `vercel integration add upstash/upstash-kv` (discovered via the `marketplace` skill — it's `upstash/upstash-kv`, "Upstash for Redis"). **Interactive (plan/name prompts) → left for the user to run**, then `vercel env pull`. Injects `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`.
 - [x] `src/lib/rateLimit.ts` — `@upstash/ratelimit` sliding window, key by Clerk `userId` else first `x-forwarded-for` hop. `checkRateLimit(req, tier, {userId?})` + `withRateLimit(handler, tier)` + `rateLimitResponse` / `rateLimitHeaders`. Fails **open** if the limiter throws.
 - [x] Wired: `src/proxy.ts` middleware rate-limits `/api/(.*)` at tier `default` (hosted only), excluding `/api/mcp*`, `/api/insights*`, `/api/ai*`, `/api/cron*`. `/api/mcp` route → `withRateLimit(handler, 'mcp')`. The 4 AI routes (`insights/{stock,portfolio,ipo}`, `ai/chat`) → `withRateLimit(handlePOST, 'ai')` — each expensive route governed by exactly one limiter.
@@ -257,7 +257,7 @@ Scoped 2026-09-06 — see [ADR 0019](./docs/decisions/0019-phase-9-api-surface-m
 - [x] ADR 0016 cross-reference added (see ADR 0019 §2).
 - [x] Tests: `src/lib/rateLimit.test.ts` — 7 cases (disabled pass-through, IP vs user keying, authed budget, 429 + Retry-After, RateLimit-* headers on success, fail-open). Suite **155 passed**.
 
-**Part 3 — interactive API explorer:** ✅ built 2026-09-06 (not yet prod-deployed).
+**Part 3 — interactive API explorer:** ✅ built + deployed 2026-09-06.
 - [x] `public/openapi.json` — hand-kept OpenAPI 3.1 covering all 15 `/api/*` operations (+ tags, security schemes, request-body examples). Served at `/openapi.json`. `src/app/dashboard/api/openapi.test.ts` (3 cases) is the CI check: every documented path ↔ a `route.ts`, every documented method exported, no undocumented route.
 - [x] `/dashboard/api` — `page.tsx` (server, reads `openapi.json` + the MCP tool list) + `ApiExplorerClient.tsx` (endpoint list grouped by tag, method chips, per-endpoint panel: path/query param inputs, JSON request-body textarea prefilled from the spec example, "Send" against the real deployment with `credentials: 'include'`, pretty response + status + timing + `RateLimit-*` readout, "Copy as curl") + `page.module.css`. No secret entry.
 - [x] MCP server card at the top — connection URL (absolute, set after mount to avoid a hydration mismatch), the `{ "url": … }` config block, and the 7-tool list.
@@ -267,7 +267,9 @@ Scoped 2026-09-06 — see [ADR 0019](./docs/decisions/0019-phase-9-api-surface-m
 - [x] Both deployment modes — self-host: no Upstash → `rateLimitEnabled=false`, MCP + explorer unaffected; the explorer's authed endpoints just resolve to the `local` user.
 - [x] `tsc` / `lint` / `next build` / `npm test` (158) green. fundamentals-api `pytest` unaffected (no Python changed).
 - [x] `/docs/architecture.md` "MCP server" section added; `/docs/api-surface.md` MCP section + `public/openapi.json`. `/docs/data-sources.md` — no new external source (Upstash is infra, not a data source).
-- [ ] **Prod deploy** — pending (deploy the whole phase together once Upstash is provisioned, or deploy MCP + explorer now with the limiter inert).
+- [x] **Prod deploy** — done 2026-09-06 (deploy `hqgdf1gal`). MCP + explorer + `/openapi.json` + `/llms.txt` live and verified. Rate limiting inert until the Upstash env vars are set (needs `vercel integration add upstash/upstash-kv` + a redeploy).
+- [ ] Activate rate limiting: user provisions Upstash → `vercel env pull` → `vercel deploy --prod` → verify a `429` under load.
+- [ ] `services/fundamentals-api` own limiter (follow-up — currently only reached server-to-server).
 - [ ] Confirm the phase with the user before archiving.
 
 ## Phase 10 — AI Chat with RAG ❓
