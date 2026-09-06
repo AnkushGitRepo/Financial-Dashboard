@@ -46,6 +46,9 @@ def _row_to_values(row: dict) -> dict | None:
 
 
 async def _upsert(session: AsyncSession, rows: list[dict]) -> int:
+    """Update-first: `ON CONFLICT (slug) DO UPDATE` refreshes the existing
+    row in place (dates, GMP, subscription, status all move), and only
+    inserts a new row when that slug has never been seen."""
     count = 0
     for row in rows:
         values = _row_to_values(row)

@@ -199,3 +199,17 @@ This does bend `ROADMAP.md`'s "scraping never enters production" standing
 rule a second time (Phase 4 bent it for Screener). That rule is now
 effectively "scraping is Tier-3 last-resort, isolated, and honestly
 labelled" in practice — noted here rather than silently.
+
+## Amendment (2026-09-06): retention 10 days; update-first ingest
+
+Two clarifications from the user, applied:
+
+- **Retention:** an `ipos` row is deleted once its listing date is more
+  than **10 days** in the past (`ipo_listed_retention_days`, was sketched
+  as 30). `sentKeys` on an `ipo_watch` are pruned to slugs still present
+  in the IPO list, so they age out with the rows — effectively ~10 days
+  after listing.
+- **Ingest is update-first:** each scraped row upserts on `slug` via
+  `ON CONFLICT (slug) DO UPDATE` — an existing IPO is refreshed in place
+  (dates, GMP, subscription, status all move), and a new row is created
+  only for a slug never seen before.

@@ -117,8 +117,11 @@ failure.
 The aggregator page is a client-rendered SPA, so live ingestion runs out
 of band: a scheduled headless-browser job renders the page, parses it with
 this module, and `POST`s the rows to `/ipos/ingest` (guarded by
-`ipo_ingest_token`). `GET /ipos` only reads Postgres (`ipos` table, deduped
-on slug, listed IPOs pruned after `ipo_listed_retention_days`).
+`ipo_ingest_token`). Ingest is **update-first**: each row upserts on
+`slug` (`ON CONFLICT DO UPDATE`), so an existing IPO is refreshed in place
+and a new row is only created for a slug never seen before. `GET /ipos`
+only reads Postgres; an IPO row is deleted once its listing date is more
+than `ipo_listed_retention_days` (10) in the past.
 
 `GET /ipos?status=upcoming|open|closed|listed` (omit for all) → rows with
 `{ slug, name, source_url, category (mainboard|sme), status, price,

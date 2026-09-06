@@ -134,9 +134,9 @@ Scoped 2026-09-06 — see [ADR 0017](./docs/decisions/0017-ipo-tracker-gmp-scope
 - [x] **GATE — ToS review:** Chittorgarh reviewed 2026-09-06 (terms prohibit content reuse without permission; site 403s bots). **User decision: accept the trade-off** on the same terms as Screener.in — isolated swappable module, GMP caveated + degrades to "unavailable", polite pacing. Recorded in `/docs/data-sources.md` + ADR 0017 amendment.
 
 **Backend — fundamentals-api:**
-- [x] Migration `2796fbd6805c` — `ipos` table (slug dedup, `status` indexed, category, 4 dates, price, `ipo_size_cr`, lot, rating, `subscription_times`, anchor, `gmp`/`gmp_pct`/`gmp_low`/`gmp_high`/`gmp_updated_at`, `source_tier`). `ipo_cache_ttl_minutes` (60) / `ipo_listed_retention_days` (30) / `ipo_ingest_token` in `config.py`. Applied locally.
+- [x] Migration `2796fbd6805c` — `ipos` table (slug dedup, `status` indexed, category, 4 dates, price, `ipo_size_cr`, lot, rating, `subscription_times`, anchor, `gmp`/`gmp_pct`/`gmp_low`/`gmp_high`/`gmp_updated_at`, `source_tier`). `ipo_cache_ttl_minutes` (60) / `ipo_listed_retention_days` (10) / `ipo_ingest_token` in `config.py`. Applied locally.
 - [x] `app/ingestion/tier3_ipo_scraper/` (scraper + README) — `_parse_ipo_rows(html, ref)` pure parser for InvestorGain's Live-IPO-GMP report table (`<td data-label>`), deriving slug / category / status / GMP+range / rating / sub / price / size / lot / 4 dates (IST year-inference) / anchor. **Verified against a maintainer-saved page: 23 real IPOs, all fields.** `nsepython` has no IPO helpers → Tier 1 is a future direct-call attempt; Tier 3 is the primary. `fetch_ipo_list()` is best-effort (the live page is a SPA — see the live-ingestion job item).
-- [x] `app/services/ipo_service.py` — `get_ipos(session, status?)` reads Postgres (ordered open→upcoming→closed→listed) with lazy TTL refresh; `ingest_ipos(session, rows)` upserts on slug + prunes old listings. IST-aware dates.
+- [x] `app/services/ipo_service.py` — `get_ipos(session, status?)` reads Postgres (ordered open→upcoming→closed→listed) with lazy TTL refresh; `ingest_ipos(session, rows)` update-first upsert on slug (only creates a new row for an unseen slug) + prunes IPOs whose listing date is >10 days past. IST-aware dates.
 - [x] `GET /ipos?status=` + `POST /ipos/ingest` (`ipo_ingest_token` bearer, 503 when unset) — registered in `main.py`. 13 offline tests (`tests/test_ipos.py`: parser field-by-field, `_parse_dmon` year-rollover, route shape, 422 on bad status, ingest 503). fundamentals-api suite 63/63, ruff clean. Verified live end-to-end against a local Postgres: ingest 23 → `get_ipos` status filters return correct sets.
 - [x] Docs: service README ("IPO tracker" section + endpoint list + coverage row, test count 50→63), `/docs/data-sources.md` (Chittorgarh/InvestorGain entry with the ToS line), `tier3_ipo_scraper/README.md` (ToS position + out-of-band fetch rationale).
 
@@ -148,13 +148,13 @@ Scoped 2026-09-06 — see [ADR 0017](./docs/decisions/0017-ipo-tracker-gmp-scope
 - [x] `POST /api/alerts` special-cases `ipo_watch` → `upsertIpoWatch` (returns 200). New variants documented in `/docs/api-surface.md`. `tsc`/`lint`/`next build`/`npm test` (93) green.
 
 **Frontend — Next.js:**
-- [ ] `src/lib/dashboard/iposApi.ts` client + `/api/ipos` thin proxy if the list filters client-side.
-- [ ] `/dashboard/ipos` — Open now / Upcoming / Recently listed sections; each row shows dates, price band, lot size, issue size, subscription ×, and **GMP with its "unofficial grey-market estimate, not from any exchange" caveat inline**. Page-header "Notify me about IPOs" control → the `ipo_watch` subscription (trigger checkboxes + mainboard-only). "Set alert" per row → a per-IPO `ipo` alert. "IPOs" added to `AppHeader` nav (not the mobile tab bar — already at 5).
-- [ ] "IPOs open now" compact card on `/dashboard` home, linking to the page.
-- [ ] Built against the design system + `--app-*` tokens.
+- [x] `src/lib/dashboard/iposApi.ts` client (pt.2). No `/api/ipos` proxy — the page is a Server-Component read; expand/alert actions hit `/api/alerts` directly.
+- [x] `/dashboard/ipos` — `page.tsx` (server; reads the user's `ipo_watch`), `IposPageClient` (Open now / Upcoming / Recently closed-listed sections + "Notify me about IPOs" panel → `ipo_watch` upsert), `IpoRow` (collapsed = name + Mainboard/SME + status + GMP + dates; expand = price/lot/size/sub/allotment/listing/anchor/GMP-range + the "unofficial grey-market estimate" caveat + Source link + inline "Set alert" → per-IPO `ipo`), `page.module.css`. "IPOs" in `AppHeader` nav; not in `MobileTabBar`. **Verified live** (selfhost).
+- [x] `IpoOpenCard` (`dashboard-charts/`) on `/dashboard` home — compact open-IPO list + "All IPOs →"; `dashboard/page.tsx` fetches `getIpos('open')`.
+- [x] Built against the design system + `--app-*` tokens (card/pill/link patterns from the alerts + news pages).
 
 **Cross-cutting:**
-- [ ] No `isHosted()` gating (IPO data is public). Works in both modes.
+- [x] No `isHosted()` gating (IPO data is public). Works in both modes.
 - [ ] `tsc` / `lint` / `next build` / `npm test` green; fundamentals-api `pytest` green. Verify live: `/ipos` returns real IPOs + GMP; the page + widget render; one IPO alert fires end-to-end.
 - [ ] Update `/docs/architecture.md`; confirm the phase with the user before archiving.
 
