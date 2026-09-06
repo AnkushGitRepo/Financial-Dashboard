@@ -107,6 +107,39 @@
         "responses": { "200": { "description": "Deleted." }, "401": { "description": "Not authenticated." }, "404": { "description": "Not found / not owned." } }
       }
     },
+    "/api/notes": {
+      "get": {
+        "tags": ["Portfolio"],
+        "summary": "List notes",
+        "description": "The user's saved notes (Phase 10 / ADR 0020), newest-updated first. Notes also feed the user's private retrieval corpus.",
+        "security": [{ "cookieAuth": [] }],
+        "responses": { "200": { "description": "The user's notes.", "content": { "application/json": { "schema": { "type": "array", "items": { "type": "object" } } } } }, "401": { "description": "Not authenticated." } }
+      },
+      "post": {
+        "tags": ["Portfolio"],
+        "summary": "Create a note",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["title", "body"], "properties": { "title": { "type": "string", "maxLength": 140 }, "body": { "type": "string", "maxLength": 4000 }, "symbol": { "type": "string", "nullable": true } } }, "example": { "title": "Why I hold TCS", "body": "Steady dividend, strong order book.", "symbol": "TCS" } } } },
+        "responses": { "201": { "description": "Created." }, "401": { "description": "Not authenticated." }, "409": { "description": "Per-user note limit (200) reached." }, "422": { "description": "Invalid input." } }
+      }
+    },
+    "/api/notes/{id}": {
+      "patch": {
+        "tags": ["Portfolio"],
+        "summary": "Update a note",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["title", "body"], "properties": { "title": { "type": "string" }, "body": { "type": "string" }, "symbol": { "type": "string", "nullable": true } } } } } },
+        "responses": { "200": { "description": "Updated." }, "401": { "description": "Not authenticated." }, "404": { "description": "Not found / not owned." } }
+      },
+      "delete": {
+        "tags": ["Portfolio"],
+        "summary": "Delete a note",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Deleted." }, "401": { "description": "Not authenticated." }, "404": { "description": "Not found / not owned." } }
+      }
+    },
     "/api/alerts": {
       "get": {
         "tags": ["Alerts"],
