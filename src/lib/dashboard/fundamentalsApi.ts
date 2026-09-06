@@ -131,6 +131,36 @@ export function getIndices(): Promise<IndexQuoteOut[] | null> {
   return getJson<IndexQuoteOut[]>('/indices', 300);
 }
 
+export interface QuoteOut {
+  symbol: string;
+  price: string | null;
+  prev_close: string | null;
+  change_pct: string | null;
+  week52_high: string | null;
+  week52_low: string | null;
+  as_of: string;
+  source_tier: string;
+}
+
+/** Batched live quote for the alerts engine (ADR 0014). `cache: 'no-store'`
+ * — the whole point is a fresh price each evaluation cycle; the Python
+ * service already holds its own short in-process cache so this doesn't
+ * hammer the upstream. Returns [] (never a fabricated price) on failure. */
+export async function getQuotes(symbols: string[]): Promise<QuoteOut[]> {
+  const wanted = symbols.map((s) => s.trim()).filter(Boolean);
+  if (wanted.length === 0) return [];
+  try {
+    const response = await fetch(
+      `${BASE_URL}/quote?symbols=${encodeURIComponent(wanted.join(','))}`,
+      { cache: 'no-store' }
+    );
+    if (!response.ok) return [];
+    return (await response.json()) as QuoteOut[];
+  } catch {
+    return [];
+  }
+}
+
 export interface SearchResultOut {
   type: 'company' | 'index';
   symbol: string;
