@@ -58,3 +58,12 @@ Rolling log of work sessions, most recent first is NOT required — append chron
   - `gh workflow run refresh-ipos.yml` → **success** (37s): Playwright rendered the InvestorGain SPA, **parsed 40 IPO rows, ingested 40** (`ingest ok: {'ingested': 40, 'total': 39}`) — this is the first time that render step has run in CI, and it worked.
 - Both `schedule:` triggers now fire from `main` (the default branch): `evaluate-alerts` every 10 min during ~market hours, `refresh-ipos` every ~2 h.
 - **Still open:** Phase 5 email (Resend — needs a from-domain decision); one real alert fire + one real IPO-alert fire on an actual trigger during market hours (the plumbing is proven; just needs a live trigger to watch a notification land); DRHP grounding. Phases 10/11 need a scoping session.
+
+## 2026-09-06 — Alert email seam wired against Resend (ships inert)
+
+- `npm install resend`. `sendEmail()` in `src/lib/notifications/channels.ts` now builds a plain transactional email via new `renderEmail()` (subject `[MarketMitra] <title>`, HTML-escaped body + text alt, deep link to `NEXT_PUBLIC_APP_URL + payload.href`, "not investment advice" footer) and calls `resend.emails.send(...)`.
+- **Still config-gated and non-throwing** — no behaviour change without a key: no `RESEND_API_KEY` → `{status:'skipped'}` (in-app + webhook only, unchanged); provider error → `{status:'error', detail}`; success → `{status:'sent'}`. `ALERT_EMAIL_FROM` overrides the sender (default `onboarding@resend.dev`, which only reaches the Resend account owner — hosted multi-recipient sending needs a Resend-verified domain).
+- 6 new tests (`channels.test.ts`, `vi.mock('resend')`): skipped w/o key, sent, honours `ALERT_EMAIL_FROM`, maps provider error, catches SDK throw, escapes HTML. Full suite **164 passed**; tsc / lint / `next build` clean.
+- `.env.local.example` + README alerts-cron paragraph updated; ADR 0014 amendment appended; ROADMAP Phase-5 follow-up → `[~]` (code done, needs a Resend account).
+- Committed `52cbea1`, pushed `v2` + `main`, deployed `marketmitra-v2` to prod (`marketmitra-v2-ffk1v3edn`, READY). Smoke: `/` 200, `/api/mcp` `tools/list` returns the 7 tools. Ships **inert** — no `RESEND_API_KEY` in prod yet.
+- **To activate:** user creates a Resend account, sets `RESEND_API_KEY` (+ `ALERT_EMAIL_FROM` with a verified domain for hosted), redeploys; then watch one real send.
