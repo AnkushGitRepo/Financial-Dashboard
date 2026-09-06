@@ -159,7 +159,10 @@ Scoped 2026-09-06 — see [ADR 0017](./docs/decisions/0017-ipo-tracker-gmp-scope
 **Cross-cutting:**
 - [x] No `isHosted()` gating (IPO data is public). Works in both modes.
 - [x] `tsc` / `lint` / `next build` / `npm test` (93) green; fundamentals-api `pytest` (67) green. Live-verified: `/ipos` + status filters return real data, the page + expand + dashboard widget render (selfhost), `ipo`/`ipo_watch` alerts round-trip, cron `?force=1` fetches `/ipos`. Still to prove in prod: one IPO alert firing on an actual trigger day.
-- [ ] Update `/docs/architecture.md`; **prod Neon migration `2796fbd6805c` + deploy both projects + set `IPO_INGEST_TOKEN`**; confirm the phase with the user before archiving.
+- [x] `/docs/architecture.md` "IPO tracker + GMP" section added.
+- [x] **Deployed 2026-09-06:** prod Neon migrated (`2796fbd6805c`); `IPO_INGEST_TOKEN` set on `marketmitra-fundamentals-api`; both projects redeployed; `scripts/refresh_ipos.py` run once against prod (Playwright render validated) → seeded **39 real IPOs** (1 open, 17 upcoming, 8 closed, 13 listed). Prod `/ipos` + `/ipos?status=` serve live data; `/ipos/ingest` 401s without the token. Regression-clean (landing 200, `/api/search`).
+- [ ] Activate the GH Actions refresh (secret `IPO_INGEST_TOKEN` + default branch) for ongoing updates — until then prod data is only as fresh as the last manual `refresh_ipos.py` run.
+- [ ] Watch one real IPO alert fire on an actual trigger day, then confirm the phase with the user before archiving.
 
 **Explicitly out of v1 scope** (ADR 0017): GMP history/charts, buybacks/rights issues/NFOs, broker- or category-wise subscription breakdown, "apply via broker" links, email delivery, a second GMP source / cross-checking.
 

@@ -128,6 +128,47 @@ only, ingested in `fundamentals-api`, three surfaces.
 - **Not yet done:** migration applied to prod Neon, fundamentals-api
   redeployed with `/news`, live prod verification, phase sign-off.
 
+## IPO tracker + GMP (`/dashboard/ipos`, Phase 7 — deployed, not yet approved)
+
+Full rationale: [ADR 0017](./decisions/0017-ipo-tracker-gmp-scope.md). IPO
+calendar + subscription + **grey-market premium**, alerts reusing Phase 5.
+
+- **Ingestion (`fundamentals-api`):** `app/ingestion/tier3_ipo_scraper/` —
+  an isolated, swappable scraper of InvestorGain's "Live IPO GMP" report.
+  GMP has no official/free-API source; it's an **unofficial grey-market
+  estimate** and every surface labels it so. ToS accepted as a known risk
+  on the same terms as the Screener scraper (ADR 0011 / ADR 0017
+  amendment; `/docs/data-sources.md`). `_parse_ipo_rows` (pure, tested
+  against a maintainer-saved page) reads the `<td data-label>` report
+  table → slug / name / category / status / GMP+range / rating / sub /
+  price / size / lot / 4 dates / anchor.
+- **Fetch is out of band:** the report is a client-rendered SPA and
+  Chromium can't ride in the Vercel function (ADR 0013). `scripts/refresh_
+  ipos.py` (run from `.github/workflows/refresh-ipos.yml`, ~every 2h)
+  renders it with Playwright, parses, and `POST`s to `/ipos/ingest`
+  (`IPO_INGEST_TOKEN` bearer). The serverless `GET /ipos` only reads
+  Postgres. Ingest is **update-first** (`ON CONFLICT (slug) DO UPDATE`);
+  rows are deleted 10 days after their listing date.
+- **Storage / serving:** Postgres `ipos` table (migration `2796fbd6805c`),
+  `app/services/ipo_service.py`. `GET /ipos?status=upcoming|open|closed|
+  listed` (omit for all).
+- **Alerts (reuse Phase 5):** two discriminated-union variants in the same
+  `alerts` collection / `evaluateAlerts()` loop — `ipo_watch` (one per
+  user, upserted; `sentKeys` idempotency) and per-IPO `ipo`. Four
+  triggers: opens / last day / allotment+listing / GMP threshold. Pure
+  logic in `src/lib/alerts/ipoAlerts.ts`; `evaluate.ts` does one
+  `getIpos()` per cycle when any IPO alert exists.
+- **Next.js:** `/dashboard/ipos` (`IposPageClient` + `IpoRow` — Open now /
+  Upcoming / Recently closed-listed, expandable rows with a "Set alert"
+  affordance, a "Notify me about IPOs" panel driving `ipo_watch`);
+  `IpoOpenCard` widget on the dashboard home; "IPOs" in the `AppHeader`
+  nav (not `MobileTabBar`). `src/lib/dashboard/iposApi.ts` client.
+- **Deployed 2026-09-06:** prod Neon migrated; `IPO_INGEST_TOKEN` set on
+  `marketmitra-fundamentals-api`; both projects redeployed; `refresh_
+  ipos.py` run once to seed prod (39 real IPOs). **Not yet done:** the GH
+  Actions refresh workflow is inert until its secret + default branch are
+  set; one real IPO alert firing on an actual trigger day; phase sign-off.
+
 ## Data flow
 
 The dashboard app shell (above) now calls `services/fundamentals-api` directly from Next.js Server Components (`FUNDAMENTALS_API_URL`, server-to-server — not proxied through a `/api/*` route, since it's an existing documented service being consumed, not a new one) for all company/index data, and MongoDB directly (via `src/lib/holdings.ts`, also exposed through `/api/holdings` for client-side mutations) for portfolio holdings. The `DashboardPreview` on the landing page is still static mock data for illustration only — that's marketing-page content, not the logged-in app.
