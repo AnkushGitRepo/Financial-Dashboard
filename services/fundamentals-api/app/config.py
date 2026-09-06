@@ -69,7 +69,9 @@ class Settings(BaseSettings):
     # from POST /embed via fastembed. Dimension MUST stay 384 (matches
     # EMBED_DIM on the Next side and the Atlas Vector Search index).
     embed_model: str = "BAAI/bge-small-en-v1.5"
-    fastembed_cache_dir: str = "/tmp/fastembed_cache"
+    # All HF/fastembed caches go here — $HOME is read-only on Vercel. Keep in
+    # step with the fallback in app/ingestion/embeddings.py.
+    fastembed_cache_dir: str = "/tmp/mm-embed-cache"
 
     # Fair-use rate limiting (Phase 9, ADR 0019). Fixed-window per client IP,
     # via the Upstash Redis REST API (no new dependency — uses httpx). When

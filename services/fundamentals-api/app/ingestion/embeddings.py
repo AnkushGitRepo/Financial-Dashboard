@@ -17,11 +17,21 @@ clear error instead of failing app startup.
 from __future__ import annotations
 
 import logging
+import os
 from functools import lru_cache
 
 from app.config import get_settings
 
 logger = logging.getLogger("fundamentals.embeddings")
+
+# On Vercel, $HOME is read-only, so huggingface_hub's default caches
+# (~/.cache/huggingface) blow up with "Read-only file system (os error 30)"
+# during the model download. Point every HF cache at /tmp *before*
+# huggingface_hub / fastembed are imported (they read these at import).
+_HF_TMP = os.environ.get("FASTEMBED_CACHE_DIR") or "/tmp/mm-embed-cache"
+os.environ.setdefault("HF_HOME", f"{_HF_TMP}/hf")
+os.environ.setdefault("HF_HUB_CACHE", f"{_HF_TMP}/hf/hub")
+os.environ.setdefault("XDG_CACHE_HOME", f"{_HF_TMP}/xdg")
 
 EMBED_DIM = 384
 
