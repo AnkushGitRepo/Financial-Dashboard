@@ -47,3 +47,10 @@ next-env.d.ts
 
 # ad-hoc browser page-saves (the parseable copy lives in services/fundamentals-api/tests/fixtures/)
 Live IPO GMP Today *
+
+# IDE file-sync tool (Antigravity) creates "<name> 2.ext" / "<name> 3" duplicates
+# on branch switches — never commit those. Real files never carry a " <digit>" suffix here.
+* [2-9].*
+* [2-9]
+*\ copy
+*\ copy.*
