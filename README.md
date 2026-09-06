@@ -15,11 +15,20 @@ v2 consolidates all of that into a single Next.js (App Router, TypeScript) appli
 - **Built for two consumers from day one: a human dashboard and an AI agent.** Every feature ships a UI path and a documented, stable API endpoint together (see `/docs/api-surface.md`) — not a UI with an API bolted on afterward, and not an API with no UI.
 - **One deploy target.** Vercel + MongoDB Atlas, nothing else — see [ADR 0006](docs/decisions/0006-vercel-mongodb-atlas-deployment.md).
 
-This is a fresh rebuild. No code, features, or data carried over automatically from v1 — anything from the old app (IPO calendar, market indices, news sentiment) has to be rebuilt deliberately if and when it's re-added. v1's code is still reachable in this repo's git history if an old implementation detail is worth referencing.
+This is a fresh rebuild. No code, features, or data carried over automatically from v1 — everything (IPO calendar, market indices, news sentiment, and more) was rebuilt deliberately. v1's code is still reachable in this repo's git history if an old implementation detail is worth referencing.
 
 ## Status
 
-Landing page and the post-auth dashboard shell (empty state — no data features wired up yet) are built. No financial-data features have shipped yet in v2. This is a real, current snapshot, not a roadmap — check `/docs/session-log.md` for what's actually landed most recently.
+Phases 0–9 have shipped to production (see `ROADMAP.md` for the phase list, `/docs/session-log.md` for what landed most recently):
+
+- **Dashboard** — real Indian indices, watchlist movers, holdings/portfolio (MongoDB-backed CRUD), and a full stock detail page (ratios, historical financials, shareholding, peer comparison, About, annual-report PDFs, price history).
+- **Alerts** — price / %-move / 52-week / portfolio-P&L / IPO triggers, in-app + webhook delivery.
+- **News feed** — free-RSS Indian-markets stream with a VADER headline-tone tag, per-stock and per-portfolio.
+- **IPO tracker** — calendar, subscription, and grey-market premium (a heavily-caveated third-party estimate).
+- **AI insights + Mitra chat** — BYO-key (Gemini / Anthropic / OpenRouter), neutral synthesis only, key AES-256-GCM encrypted at rest.
+- **API surface** — an MCP server at `/api/mcp` plus an interactive API explorer at `/dashboard/api`; fair-use rate limiting (hosted only).
+
+Market data is sourced by a companion Python service, `services/fundamentals-api/`, from free sources only (no paid vendors). This is a real snapshot, not a roadmap.
 
 ## Stack
 
@@ -38,8 +47,8 @@ Landing page and the post-auth dashboard shell (empty state — no data features
 
 - Node.js 20+
 - A [MongoDB Atlas](https://www.mongodb.com/atlas) cluster (or any MongoDB instance)
-- **Self-hosting (the default):** that's it. No Clerk account, no billing keys.
-- **Running in hosted mode:** also requires a [Clerk](https://clerk.com) application — only relevant to MarketMitra's own paid deployment, not to self-hosting.
+- **Self-hosting (the default):** that's it. No Clerk account needed.
+- **Running in hosted mode:** also requires a [Clerk](https://clerk.com) application — only relevant to MarketMitra's own deployment, not to self-hosting.
 
 ### Local setup
 
@@ -55,7 +64,7 @@ MONGODB_URI=          # MongoDB Atlas connection string
 MONGODB_DB=marketmitra
 ```
 
-`NEXT_PUBLIC_DEPLOYMENT_MODE` defaults to `selfhost` when left unset — the app runs with no login screen and no billing UI, straight into the dashboard as a single local user. Self-hosted users don't need to configure Clerk or any billing keys at all; those variables in `.env.local.example` only matter when `NEXT_PUBLIC_DEPLOYMENT_MODE=hosted`. See [ADR 0010](docs/decisions/0010-deployment-mode-gate.md).
+`NEXT_PUBLIC_DEPLOYMENT_MODE` defaults to `selfhost` when left unset — the app runs with no login screen, straight into the dashboard as a single local user. Self-hosted users don't need to configure Clerk at all; those variables in `.env.local.example` only matter when `NEXT_PUBLIC_DEPLOYMENT_MODE=hosted`. See [ADR 0010](docs/decisions/0010-deployment-mode-gate.md).
 
 (`.env.local` is gitignored — never commit real credentials. `.env.local.example` documents every required variable with no values.)
 
@@ -99,9 +108,12 @@ The public market data (symbol search, quotes, fundamentals, price history, news
 
 ## Two ways to run it
 
-Per [ADR 0008](docs/decisions/0008-hosted-vs-self-hosted-distribution.md): a paid hosted option (7-day free trial) for people who want it running with no setup, or a free, self-hosted option (MIT licensed) where you bring your own MongoDB Atlas cluster and AI provider key. Same codebase either way — self-hosting isn't a stripped-down version.
+MarketMitra is **free and open-source with no paid tier, no billing, and no trial limits** ([ADR 0011](docs/decisions/0011-three-tier-fundamentals-data-sourcing.md), [ADR 0016](docs/decisions/0016-landing-page-no-paid-tier-reconciliation.md)). There are two ways to use it, and they run the same codebase:
 
-A single `DEPLOYMENT_MODE` environment variable gates which one you get at runtime ([ADR 0010](docs/decisions/0010-deployment-mode-gate.md)): unset or `selfhost` skips auth and billing UI entirely (single local user, no login); `hosted` — MarketMitra's own deployment only — turns both on via Clerk. Self-host login is intentionally left as a future decision, not a finished feature.
+- **Hosted** — MarketMitra's own deployment, for people who'd rather not run infrastructure. Sign-in is via Clerk; AI insights are still bring-your-own-key; the shared instance has fair-use rate limits.
+- **Self-hosted** (MIT licensed) — you bring your own MongoDB Atlas cluster and AI provider key. Not a stripped-down version; unthrottled.
+
+A single `DEPLOYMENT_MODE` environment variable gates which one you get at runtime ([ADR 0010](docs/decisions/0010-deployment-mode-gate.md)): unset or `selfhost` skips the auth layer entirely (single local user, no login), straight into the dashboard; `hosted` — MarketMitra's own deployment only — turns Clerk on. Self-host login is intentionally left as a future decision, not a finished feature. ([ADR 0008](docs/decisions/0008-hosted-vs-self-hosted-distribution.md) captured the original distribution thinking; the "no paid tier" line above supersedes its billing/trial framing.)
 
 ## Project context, for humans and agents
 

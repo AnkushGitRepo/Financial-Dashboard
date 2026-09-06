@@ -141,3 +141,13 @@ Two of the small items from the Phase 4–8 verification pass (user picked these
   - *Local note:* this machine's fundamentals-api returns sparse ~monthly data for every `period`, so the charts look similar across 1M/6M/1Y/5Y locally — a local-data artifact, not the range param (it's sent). Prod has dense daily data.
 - `npm test` 158 passed, `tsc` / `eslint` / `next build` green.
 - Next: deploy the chart chronological-order fix. Still open: Upstash provisioning + rate-limit activation (user); scheduler secrets; one real alert fire + one real IPO-alert fire; Resend email; Phase 4 Tier 1 filing-URL discovery.
+
+## 2026-09-06 — README correctness sweep
+
+The top-level `README.md` had drifted badly from reality:
+
+- **"## Status"** still said *"no data features have shipped yet in v2"* — frozen at Phase 3. Rewritten to a bullet summary of Phases 0–9 (dashboard / alerts / news / IPO / AI / API surface) with the free-sources note.
+- **"a paid hosted option (7-day free trial)"** and scattered *"paid deployment"* / *"billing UI"* / *"billing keys"* phrasing — contradicts the hard `CLAUDE.md` constraint and ADR 0011/0016 ("no paid tier, no billing, no trial limits, full stop"). "Two ways to run it" rewritten: both free, hosted = zero-setup convenience with fair-use limits, self-host = BYO infra + unthrottled; ADR 0008 noted as superseded on the billing/trial framing.
+- The v1-teardown line *"has to be rebuilt deliberately if and when it's re-added"* → *"was rebuilt deliberately"*.
+
+Docs only — no code, no deploy. `ADR 0008` itself left as-is (ADRs are never edited; ADR 0016 already records the reconciliation).
