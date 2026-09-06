@@ -10,6 +10,7 @@ from app.api.routes import (
     indices,
     ipos,
     news,
+    pdf_text,
     prices,
     quote,
     search,
@@ -36,6 +37,7 @@ app.include_router(prices.router)
 app.include_router(documents.router)
 app.include_router(indices.router)
 app.include_router(news.router)
+app.include_router(pdf_text.router)
 app.include_router(ipos.router)
 app.include_router(quote.router)
 app.include_router(search.router)

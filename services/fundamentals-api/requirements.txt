@@ -2,14 +2,19 @@
 #
 # This is a deliberately trimmed subset of pyproject.toml's dependencies —
 # see docs/decisions/0013-fundamentals-api-vercel-hosting.md. Excluded on
-# purpose because nothing on the live request path imports them (only
-# app/ingestion/pdf_financials.py does, which app/main.py never imports):
+# purpose because nothing on the live request path imports them:
 #   - polars (declared, never actually imported anywhere)
-#   - camelot-py / opencv-python-headless / pdfplumber (PDF table
-#     extraction — not wired into any live route yet, see ROADMAP.md
-#     Phase 4's open "Tier 1 filing-URL discovery" item)
+#   - camelot-py / opencv-python-headless (PDF *table* extraction — only
+#     app/ingestion/pdf_financials.py uses them, and app/main.py never
+#     imports that module; camelot also needs a system Ghostscript)
 #   - alembic — migrations are run out-of-band against the production
 #     database, not from the deployed function itself.
+#
+# pdfplumber IS included: app/ingestion/pdf_text.py (plain-text extraction
+# for the Phase 10 corpus indexer, POST /documents/extract-text) is on a
+# live route. It is pure Python (pdfminer.six + Pillow), no system deps. It
+# is still imported lazily inside that module so trimming it degrades to a
+# 422, not an app-startup crash.
 #
 # Tier 3 (app/ingestion/tier3_screener_scrapling/scraper.py) fetches via
 # httpx and parses with scrapling.parser.Selector directly — NOT
@@ -38,3 +43,4 @@ feedparser>=6.0
 vaderSentiment>=3.3
 scrapling>=0.4.15
 lxml>=5.3
+pdfplumber>=0.11

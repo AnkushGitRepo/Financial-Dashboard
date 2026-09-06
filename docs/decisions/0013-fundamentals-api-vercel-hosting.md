@@ -92,3 +92,20 @@ changes.
   starts, not now.
 - Vercel Python functions have a cold-start cost; acceptable for this
   service's request volume today.
+
+## Amendment (2026-09-06): pdfplumber added to the prod set for pdf_text.py
+
+Phase 10a (ADR 0020) needs plain-text extraction from annual-report / DRHP
+PDFs, served to the main app's corpus indexer at `POST /documents/extract-text`.
+That route is on the live request path, so `pdfplumber>=0.11` is now in
+`requirements.txt`. It is pure Python (`pdfminer.six` + `Pillow`), no system
+dependency — unlike `camelot-py` / `opencv-python-headless`, which stay
+**out** (Ghostscript, large wheels; only `pdf_financials.py`'s table
+extraction uses them and `main.py` still never imports that module).
+
+`app/ingestion/pdf_text.py` still imports `pdfplumber` lazily inside the
+extract function, so a self-host that trims it degrades to a 422, not an
+app-startup crash. Side effect: `filing_discovery.py`'s lazy
+`pdf_financials` import (the Tier 1 PDF branch, previously inert in prod
+per the 2026-09-06 regression fix) now resolves in prod too — a latent
+capability unlock, still graceful on failure, no regression.
