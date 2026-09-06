@@ -1,7 +1,7 @@
 import { getCurrentUserId } from '@/lib/currentUserId';
 import { getIpoWatch } from '@/lib/alerts/store';
 import { getIpos } from '@/lib/dashboard/iposApi';
-import { getAiConfig } from '@/lib/ai/userAiConfig';
+import { getAiConfig, resolveHasAiKey } from '@/lib/ai/userAiConfig';
 import type { IpoWatchParams } from '@/lib/alerts/types';
 import { IposPageClient } from './IposPageClient';
 import styles from './page.module.css';
@@ -21,9 +21,9 @@ export default async function IposPage() {
     }
   }
 
-  const [ipos, aiConfig] = await Promise.all([
+  const [ipos, aiKeyAvailable] = await Promise.all([
     getIpos(),
-    userId ? getAiConfig(userId, { allowEnv: true }) : null,
+    userId ? resolveHasAiKey(getAiConfig(userId, { allowEnv: true })) : Promise.resolve(false),
   ]);
 
   return (
@@ -35,7 +35,7 @@ export default async function IposPage() {
         <em>unofficial grey-market estimate</em> compiled by a third-party tracker — not from any
         exchange, and not a prediction.
       </p>
-      <IposPageClient ipos={ipos} initialWatch={watch} aiKeyAvailable={aiConfig !== null} />
+      <IposPageClient ipos={ipos} initialWatch={watch} aiKeyAvailable={aiKeyAvailable} />
     </div>
   );
 }

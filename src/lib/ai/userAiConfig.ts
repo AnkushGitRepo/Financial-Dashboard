@@ -76,3 +76,27 @@ export async function getAiConfig(
 export function getUserAiConfig(userId: string | null): Promise<AiConfig | null> {
   return getAiConfig(userId, { allowEnv: !isHosted() });
 }
+
+/**
+ * "Does this user have a usable AI key?" as a boolean, for SSR surfaces
+ * (stock / portfolio / IPO pages) that must still render if the check
+ * itself fails.
+ *
+ *   - real config  → true
+ *   - no key       → false  (the honest "Add your AI key" state)
+ *   - check threw  → true  (optimistic)
+ *
+ * The optimistic branch is the ADR 0018 follow-up fix: a cold-start Mongo
+ * error must never render as "Add your AI key". `getAiConfig` already
+ * retries with backoff; if it still throws we assume the key is there and
+ * show the "Generate" affordance. The real generate call runs client-side
+ * against a by-then-warm function, so a genuine "no key" still surfaces
+ * there — just not as a misleading SSR state.
+ */
+export async function resolveHasAiKey(configPromise: Promise<AiConfig | null>): Promise<boolean> {
+  try {
+    return (await configPromise) !== null;
+  } catch {
+    return true;
+  }
+}

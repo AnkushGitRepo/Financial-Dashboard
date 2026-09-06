@@ -7,7 +7,7 @@ const isHosted = vi.fn<() => boolean>();
 vi.mock('@/lib/userSettings', () => ({ getAiSettings }));
 vi.mock('@/lib/deployment-mode', () => ({ isHosted }));
 
-const { getAiConfig, getUserAiConfig } = await import('./userAiConfig');
+const { getAiConfig, getUserAiConfig, resolveHasAiKey } = await import('./userAiConfig');
 
 const stored: AiSettings = {
   provider: 'gemini',
@@ -84,6 +84,20 @@ describe('getAiConfig', () => {
       model: null,
     });
     expect(getAiSettings).not.toHaveBeenCalled();
+  });
+});
+
+describe('resolveHasAiKey', () => {
+  it('true when a config resolves', async () => {
+    expect(await resolveHasAiKey(Promise.resolve(stored))).toBe(true);
+  });
+
+  it('false when the config is null (genuine no-key)', async () => {
+    expect(await resolveHasAiKey(Promise.resolve(null))).toBe(false);
+  });
+
+  it('true (optimistic) when the config check throws — never a false SSR "add your key"', async () => {
+    expect(await resolveHasAiKey(Promise.reject(new Error('db down')))).toBe(true);
   });
 });
 

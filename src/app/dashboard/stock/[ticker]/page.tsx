@@ -10,7 +10,7 @@ import {
 } from '@/lib/dashboard/fundamentalsApi';
 import { getNews } from '@/lib/dashboard/newsApi';
 import { getCurrentUserId } from '@/lib/currentUserId';
-import { getUserAiConfig } from '@/lib/ai/userAiConfig';
+import { getUserAiConfig, resolveHasAiKey } from '@/lib/ai/userAiConfig';
 import { getCachedInsight } from '@/lib/insights';
 import { pivotFinancials, toRangeSeries, groupShareholding } from '@/lib/dashboard/transforms';
 import { StockPageClient } from './StockPageClient';
@@ -50,12 +50,12 @@ export default async function StockPage({ params }: { params: Promise<{ ticker: 
   }
 
   const userId = await getCurrentUserId();
-  const [aiConfig, cachedInsight] = await Promise.all([
-    userId ? getUserAiConfig(userId) : null,
+  const [hasKey, cachedInsight] = await Promise.all([
+    userId ? resolveHasAiKey(getUserAiConfig(userId)) : Promise.resolve(false),
     userId ? getCachedInsight('stock', symbol, userId).catch(() => null) : null,
   ]);
   const aiInsight = {
-    hasKey: aiConfig !== null,
+    hasKey,
     initial: cachedInsight
       ? { content: cachedInsight.content, generatedAt: cachedInsight.generatedAt.toISOString() }
       : null,
