@@ -249,3 +249,17 @@ Also on this deploy: bumped `@types/node` `^20 → ^24` (Vercel builds on
 Node 24 anyway) so `npm install` resolves without `--legacy-peer-deps` —
 the `vitest`/`vite` devDeps added for the alert tests need `@types/node`
 `>=24` as an optional peer, and Vercel's install is strict.
+
+## Amendment (2026-09-06): the email seam is now wired against Resend
+
+`npm install resend`; `sendEmail()` in `src/lib/notifications/channels.ts`
+now builds a plain transactional email (`renderEmail()` — subject
+`[MarketMitra] <title>`, escaped HTML + text, a deep link, "not investment
+advice" footer) and calls `resend.emails.send(...)`. Still **config-gated
+and non-throwing**: no `RESEND_API_KEY` → `status: 'skipped'` (in-app +
+webhook only, unchanged); a provider failure → `status: 'error'`; success →
+`'sent'`. `ALERT_EMAIL_FROM` overrides the sender (default
+`onboarding@resend.dev`, which only reaches the Resend account owner — real
+multi-recipient sending on the hosted instance needs a Resend-verified
+domain). 6 tests (`channels.test.ts`). To activate: create a Resend account,
+set `RESEND_API_KEY` (+ `ALERT_EMAIL_FROM` for hosted), redeploy.

@@ -1,6 +1,16 @@
+import { Resend } from 'resend';
 import type { ChannelResult, NotificationPayload } from './types';
 
 const WEBHOOK_TIMEOUT_MS = 5_000;
+
+// Resend's shared onboarding sender works with no domain verification, but
+// only delivers to the Resend account owner's own address — fine for the
+// self-host operator and for a first live test. Real multi-recipient
+// sending (the hosted instance) needs a verified custom domain in
+// `ALERT_EMAIL_FROM` (ADR 0014 amendment).
+const DEFAULT_FROM = 'MarketMitra <onboarding@resend.dev>';
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://marketmitra-v2.vercel.app';
 
 /** POST the notification to a user-supplied URL. Covers Telegram/Discord/
  * Slack incoming webhooks and is the zero-provider delivery path for
@@ -41,28 +51,72 @@ export function emailConfigured(): boolean {
   return Boolean(process.env.RESEND_API_KEY);
 }
 
+/** Plain, transactional email body for one notification — no marketing. */
+function renderEmail(payload: NotificationPayload): { subject: string; html: string; text: string } {
+  const subject = `[MarketMitra] ${payload.title}`;
+  const link = payload.href ? `${APP_URL}${payload.href}` : APP_URL;
+  const kindLabel =
+    { alert: 'Alert', ipo: 'IPO', insight: 'Insight', system: 'Notice' }[payload.kind] ?? 'Notice';
+
+  const text = [
+    `${kindLabel}: ${payload.title}`,
+    '',
+    payload.body,
+    '',
+    `Open: ${link}`,
+    '',
+    '— MarketMitra. Not investment advice. You get this because you set up an alert.',
+  ].join('\n');
+
+  const esc = (s: string) =>
+    s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+  const html = `<div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:520px;margin:0 auto;color:#16191c">
+  <p style="font:600 11px/1 ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:#8a9299;margin:0 0 6px">${esc(kindLabel)}</p>
+  <h1 style="font-size:19px;font-weight:600;margin:0 0 10px">${esc(payload.title)}</h1>
+  <p style="font-size:14px;line-height:1.55;color:#4a5158;margin:0 0 18px">${esc(payload.body)}</p>
+  <p style="margin:0 0 24px"><a href="${esc(link)}" style="display:inline-block;background:#16191c;color:#fff;text-decoration:none;border-radius:999px;padding:9px 20px;font-size:13px">Open MarketMitra</a></p>
+  <p style="font-size:11.5px;color:#8a9299;margin:0">Not investment advice. You&rsquo;re receiving this because you set up an alert in MarketMitra.</p>
+</div>`;
+
+  return { subject, html, text };
+}
+
 /**
- * Send one notification as an email.
+ * Send one notification as an email via Resend (ADR 0014 §2). Never throws:
+ * returns `skipped` when no `RESEND_API_KEY` is set (degrades to in-app +
+ * webhook), `error` on a provider failure, `sent` otherwise.
  *
- * The provider SDK is deliberately NOT wired yet: ADR 0014 makes email
- * provisioning a user-in-the-loop step (pick + provision via the Vercel
- * Marketplace, decide a from-domain). Until then this is a clean seam —
- * it never throws, and reports `skipped` so a missing provider degrades to
- * "in-app only" rather than breaking the delivery path.
+ * `ALERT_EMAIL_FROM` overrides the default sender — required for the hosted
+ * instance (a verified domain); `onboarding@resend.dev` is fine for
+ * self-host / a first test.
  */
 export async function sendEmail(
   to: string,
   payload: NotificationPayload
 ): Promise<ChannelResult> {
-  if (!emailConfigured()) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
     return { channel: 'email', status: 'skipped', detail: 'no email provider configured' };
   }
-  // TODO(phase-5): wire the provisioned provider here (see ADR 0014). The
-  // subject/body are already shaped so that step is just the transport.
-  const subject = `[MarketMitra] ${payload.title}`;
-  return {
-    channel: 'email',
-    status: 'skipped',
-    detail: `provider key present but SDK not wired yet (would send "${subject}" to ${to})`,
-  };
+
+  const { subject, html, text } = renderEmail(payload);
+  try {
+    const { error } = await new Resend(apiKey).emails.send({
+      from: process.env.ALERT_EMAIL_FROM || DEFAULT_FROM,
+      to,
+      subject,
+      html,
+      text,
+    });
+    if (error) {
+      return { channel: 'email', status: 'error', detail: error.message || 'resend error' };
+    }
+    return { channel: 'email', status: 'sent' };
+  } catch (err) {
+    return {
+      channel: 'email',
+      status: 'error',
+      detail: err instanceof Error ? err.message : 'unknown error',
+    };
+  }
 }
