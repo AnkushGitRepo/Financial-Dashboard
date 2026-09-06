@@ -115,6 +115,21 @@ function newsMeta(item: NewsItem): ChunkMeta {
   };
 }
 
+/** The fundamentals-api `/news` route caps `limit` at 50, so pull in
+ *  pages and follow `next_cursor` up to `total`. */
+async function fetchRecentNews(total: number): Promise<NewsItem[]> {
+  const PAGE = 50;
+  const items: NewsItem[] = [];
+  let cursor: string | null | undefined;
+  while (items.length < total) {
+    const page = await getNews({ limit: Math.min(PAGE, total - items.length), cursor });
+    items.push(...page.items);
+    cursor = page.next_cursor;
+    if (!cursor || page.items.length === 0) break;
+  }
+  return items;
+}
+
 async function pruneOldNews(now: Date, retentionDays: number): Promise<number> {
   const cutoff = new Date(now.getTime() - retentionDays * 24 * 60 * 60 * 1000);
   const col = await chunksCollection();
@@ -210,9 +225,9 @@ export async function indexCorpus(options: IndexCorpusOptions = {}): Promise<Ind
     errors.push(`vector index unavailable: ${indexes.detail}`);
   }
 
-  const page = await getNews({ limit: newsLimit });
+  const newsItems = await fetchRecentNews(newsLimit);
   let changed = 0;
-  for (const item of page.items) {
+  for (const item of newsItems) {
     if (!item.url || !newsText(item)) continue;
     try {
       const res = await indexTextDocument(item.url, newsMeta(item), newsText(item));
@@ -238,7 +253,7 @@ export async function indexCorpus(options: IndexCorpusOptions = {}): Promise<Ind
 
   return {
     vectorIndex: indexes.vectorIndex,
-    news: { seen: page.items.length, changed, pruned },
+    news: { seen: newsItems.length, changed, pruned },
     filings: { seen: filings.seen, indexed: filings.indexed, skipped: filings.skipped },
     errors,
   };

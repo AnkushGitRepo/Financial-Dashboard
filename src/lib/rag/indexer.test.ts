@@ -102,6 +102,15 @@ describe('indexCorpus', () => {
     expect(firstMeta.publishedAt).toBeInstanceOf(Date);
   });
 
+  it('pages through news past the 50-item /news cap, following next_cursor', async () => {
+    getNews
+      .mockResolvedValueOnce({ items: [item(), item({ url: 'https://ex.com/b' })], next_cursor: 'c1' })
+      .mockResolvedValueOnce({ items: [item({ url: 'https://ex.com/c' })], next_cursor: null });
+    const res = await indexCorpus({ newsLimit: 120 });
+    expect(getNews).toHaveBeenCalledTimes(2);
+    expect(res.news.seen).toBe(3);
+  });
+
   it('skips items with no url or no text, without counting them as changed', async () => {
     getNews.mockResolvedValue({
       items: [item({ url: '' }), item({ title: '', summary: null })],
