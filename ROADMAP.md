@@ -122,7 +122,9 @@ Scoped 2026-09-06 — see [ADR 0015](./docs/decisions/0015-news-feed-scope.md). 
 **Cross-cutting:**
 - [x] Works in both deployment modes — no `isHosted()` gating; `/api/news` is public, the holdings filter uses whatever `getCurrentUserId()` resolves.
 - [x] `tsc` / `lint` / `next build` / `npm test` (78) green; fundamentals-api `pytest` 50/50. Live-verified end-to-end against a local Postgres (migration applied) + local fundamentals-api: `/news` global + `?symbols=` + cursor pagination all return real data; the two Next.js surfaces render correctly.
-- [ ] Update `/docs/architecture.md` with the shipped-feature summary; confirm the phase with the user before archiving.
+- [x] `/docs/architecture.md` "News feed" section added; `/docs/api-surface.md` gets a `GET /api/news` entry.
+- [x] Deployed 2026-09-06: migration `31f04c1b3507` applied to prod Neon (`alembic current` → head); fundamentals-api redeployed — prod `/news` verified serving real data (global + `?symbols=RELIANCE` + cursor). marketmitra-v2 redeployed — prod `/api/news` proxy verified; landing/`/api/search`/`/sign-in` regression-clean. `/dashboard/news` (and every `/dashboard/*`) returns 404 to bare `curl` — that's Clerk's dev-instance `protect-rewrite` for non-browser clients, identical to `/dashboard/portfolio`, not a regression; a real signed-in browser is needed to see the page render in prod.
+- [ ] Confirm the phase with the user (ideally after eyeballing `/dashboard/news` signed-in in prod) before archiving.
 
 **Explicitly out of v1 scope** (ADR 0015): notifications on news, LLM sentiment/summarisation, near-duplicate-story dedup across outlets, full article text / reader view, non-English news, user-configurable sources or per-source muting, per-user saved/read state.
 
