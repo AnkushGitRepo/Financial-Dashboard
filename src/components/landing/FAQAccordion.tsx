@@ -6,20 +6,20 @@ import styles from './FAQAccordion.module.css';
 
 const FAQS = [
   {
-    q: 'What happens after my 7-day trial ends?',
-    a: 'Nothing disappears. You can move to the hosted plan to carry on as you were, or switch to the free self-hosted version and keep the same dashboard with your own API keys.',
+    q: 'Is there a paid version?',
+    a: 'No. MarketMitra is free and open source (MIT licensed). Both ways of running it — hosted by us or self-hosted — are free. There is no paid plan, no trial, and no card to enter.',
   },
   {
-    q: 'Can I use my own API keys?',
-    a: 'Yes, that is how the self-hosted version works: you add a market data key and an AI provider key, and there are no usage limits on top. On the hosted plan we supply the keys for you.',
+    q: 'What is the difference between hosted and self-hosted?',
+    a: 'Same product. On the hosted version we run the servers and cover the market-data access, so there is nothing to set up — it just has fair-use rate limits so one person cannot exhaust the shared instance. Self-hosted runs on your own machine with your own keys and no rate limits.',
   },
   {
-    q: 'Is the self-hosted version really free?',
-    a: 'Yes. It is MIT licensed and includes every feature, with no caps. The only costs are whatever your own data and AI providers charge you.',
+    q: 'Do I need my own API keys?',
+    a: 'For AI insights, yes — you add your own AI provider key (Gemini, Anthropic or OpenRouter) whether you use the hosted or self-hosted version. Self-hosting also needs your own market-data key; the hosted version supplies that for you.',
   },
   {
-    q: 'What AI providers can I use?',
-    a: 'When you self-host you can point the AI features at Gemini, Anthropic or OpenRouter, whichever you already have a key for.',
+    q: 'Is the self-hosted version really the full thing?',
+    a: 'Yes. Every feature, no rate limits, MIT licensed. The only costs are whatever your own data and AI providers charge you.',
   },
   {
     q: 'Where does my data live?',

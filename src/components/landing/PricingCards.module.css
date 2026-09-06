@@ -138,10 +138,6 @@
   line-height: 1;
 }
 
-.priceMuted {
-  color: var(--color-text-subtle);
-}
-
 .pricePeriod {
   font-size: var(--text-sm);
   font-weight: 700;
@@ -225,36 +221,6 @@
 
 .selfHosted .featureText {
   color: #dfe3e7;
-}
-
-.trialBox {
-  margin-top: var(--space-5);
-  background: rgba(255, 255, 255, 0.75);
-  border: 1px dashed var(--border-hairline-strong);
-  border-radius: var(--radius-md);
-  padding: var(--space-3) var(--space-4);
-}
-
-.trialLabel {
-  font-family: var(--font-mono);
-  font-size: var(--text-2xs);
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: var(--color-text-subtle);
-}
-
-.trialValue {
-  margin-top: 6px;
-  font-size: var(--text-base);
-  font-weight: 700;
-  color: #3c4148;
-}
-
-.trialNote {
-  margin-top: 4px;
-  font-size: var(--text-sm);
-  line-height: 1.5;
-  color: var(--color-text-faint);
 }
 
 .wireBox {

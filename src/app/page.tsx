@@ -25,6 +25,9 @@ export default function Home() {
       <div className={hosted ? undefined : styles.openSourceLast}>
         <OpenSourceSection />
       </div>
+      {/* Hosted-only, per ADR 0010 — the self-hosted landing page is leaner
+          (the visitor already made their choice). Both sections are free
+          content now, not billing UI (ADR 0016). */}
       {hosted && <PricingCards />}
       {hosted && <FAQAccordion />}
       <Footer />

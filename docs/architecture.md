@@ -17,7 +17,7 @@ The repo is now a small monorepo: the Next.js app at the root (`src/`) plus a st
 - **Database:** MongoDB Atlas via native driver, cached connection helper at `src/lib/mongodb.ts` ([ADR 0007](./decisions/0007-mongodb-native-driver.md))
 - **Hosting:** Vercel ([ADR 0006](./decisions/0006-vercel-mongodb-atlas-deployment.md))
 - **License:** MIT ([ADR 0009](./decisions/0009-mit-license.md))
-- **Deployment mode:** `NEXT_PUBLIC_DEPLOYMENT_MODE` (`hosted` | `selfhost`, defaults to `selfhost`) gates Clerk auth and billing UI ([ADR 0010](./decisions/0010-deployment-mode-gate.md))
+- **Deployment mode:** `NEXT_PUBLIC_DEPLOYMENT_MODE` (`hosted` | `selfhost`, defaults to `selfhost`) gates Clerk auth, and renders the leaner self-hosted landing page (no "two ways to run it" / FAQ sections) ([ADR 0010](./decisions/0010-deployment-mode-gate.md)). It is **not** a billing switch — MarketMitra has no paid tier ([ADR 0011](./decisions/0011-three-tier-fundamentals-data-sourcing.md), [ADR 0016](./decisions/0016-landing-page-no-paid-tier-reconciliation.md))
 
 > **Note (Next.js 16):** the middleware file convention is renamed to `proxy.ts` (`src/proxy.ts` here) — same API, new filename. Clerk v7 ("Core 3") removed `<SignedIn>`/`<SignedOut>`/`<Protect>` in favor of a single `<Show when="signed-in" | "signed-out">` component. Both surprised the scaffold build — noted here so a future session doesn't relitigate them from stale training data.
 

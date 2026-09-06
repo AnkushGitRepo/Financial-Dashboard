@@ -16,7 +16,7 @@ const COLUMNS = [
     links: [
       { href: '#dashboard', label: 'Dashboard' },
       { href: '#features', label: 'Features' },
-      { href: '#pricing', label: 'Pricing' },
+      { href: '#pricing', label: 'Hosted or self-host' },
       { href: '#', label: 'Alerts' },
       { href: '#', label: 'Changelog' },
     ],
