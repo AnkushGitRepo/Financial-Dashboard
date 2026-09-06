@@ -1,0 +1,95 @@
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--app-border-soft);
+  border-radius: var(--radius-xl);
+  padding: 20px 22px;
+  box-shadow: 0 6px 20px rgba(22, 25, 28, 0.04);
+  margin-top: 16px;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.label {
+  margin: 0;
+  font-size: 14px;
+  color: var(--app-text-muted);
+}
+
+.link {
+  font-size: 12.5px;
+  color: var(--app-teal-strong);
+  text-decoration: none;
+}
+
+.empty {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--app-text-subtle);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--app-border-softer);
+  font-size: 13px;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 500;
+  color: var(--app-ink);
+  text-decoration: none;
+}
+
+.tag {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.05em;
+  color: var(--app-text-subtle);
+  border: 1px solid var(--app-border);
+  border-radius: var(--radius-pill);
+  padding: 1px 6px;
+}
+
+.gmp {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--app-gain);
+}
+
+.gmpNeg {
+  color: var(--app-loss);
+}
+
+.close {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--app-text-subtle);
+  white-space: nowrap;
+  width: 92px;
+  text-align: right;
+}

@@ -16,6 +16,7 @@ const NAV_ITEMS = [
   { href: '/dashboard/markets', label: 'Markets' },
   { href: '/dashboard/alerts', label: 'Alerts' },
   { href: '/dashboard/news', label: 'News' },
+  { href: '/dashboard/ipos', label: 'IPOs' },
 ] as const;
 
 interface AppHeaderProps {

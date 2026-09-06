@@ -2,6 +2,7 @@ import { getCurrentUserId } from '@/lib/currentUserId';
 import { getEnrichedHoldings } from '@/lib/dashboard/enrichedHoldings';
 import { getPortfolioValueHistory } from '@/lib/dashboard/portfolioHistory';
 import { getIndices, type PricePeriod } from '@/lib/dashboard/fundamentalsApi';
+import { getIpos } from '@/lib/dashboard/iposApi';
 import { getTopMovers } from '@/lib/dashboard/quotes';
 import { DashboardPageClient } from './DashboardPageClient';
 
@@ -14,10 +15,11 @@ export default async function DashboardPage() {
   const holdings = userId ? await getEnrichedHoldings(userId) : [];
   const positions = holdings.map((h) => ({ symbol: h.symbol, quantity: h.quantity }));
 
-  const [historyEntries, indices, movers] = await Promise.all([
+  const [historyEntries, indices, movers, openIpos] = await Promise.all([
     Promise.all(PERIODS.map(async (p) => [p, await getPortfolioValueHistory(positions, p)] as const)),
     getIndices(),
     getTopMovers(),
+    getIpos('open'),
   ]);
   const history = Object.fromEntries(historyEntries) as Record<
     PricePeriod,
@@ -31,6 +33,7 @@ export default async function DashboardPage() {
       indices={indices ?? []}
       gainers={movers.gainers}
       losers={movers.losers}
+      openIpos={openIpos}
     />
   );
 }

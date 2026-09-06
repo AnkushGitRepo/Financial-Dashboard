@@ -6,9 +6,11 @@ import { LineChart } from '@/components/dashboard-charts/LineChart';
 import { PillTabs } from '@/components/dashboard-charts/PillTabs';
 import { IndexCard } from '@/components/dashboard-charts/IndexCard';
 import { MoverPanel } from '@/components/dashboard-charts/MoverPanel';
+import { IpoOpenCard } from '@/components/dashboard-charts/IpoOpenCard';
 import { useMask } from '@/lib/dashboard/MaskContext';
 import { formatInr } from '@/lib/dashboard/format';
 import type { IndexQuoteOut, PricePeriod } from '@/lib/dashboard/fundamentalsApi';
+import type { Ipo } from '@/lib/dashboard/iposApi';
 import type { Quote } from '@/lib/dashboard/quotes';
 import type { EnrichedHolding } from '@/lib/dashboard/enrichedHoldings';
 import type { RangeSeries } from '@/lib/dashboard/chartMath';
@@ -23,9 +25,17 @@ interface DashboardPageClientProps {
   indices: IndexQuoteOut[];
   gainers: Quote[];
   losers: Quote[];
+  openIpos: Ipo[];
 }
 
-export function DashboardPageClient({ holdings, history, indices, gainers, losers }: DashboardPageClientProps) {
+export function DashboardPageClient({
+  holdings,
+  history,
+  indices,
+  gainers,
+  losers,
+  openIpos,
+}: DashboardPageClientProps) {
   const router = useRouter();
   const { masked } = useMask();
   const [range, setRange] = useState<PricePeriod>('1y');
@@ -131,6 +141,8 @@ export function DashboardPageClient({ holdings, history, indices, gainers, loser
         <MoverPanel title="Top gainers (watchlist)" rows={gainers} />
         <MoverPanel title="Top losers (watchlist)" rows={losers} />
       </div>
+
+      <IpoOpenCard openIpos={openIpos} />
     </div>
   );
 }
