@@ -12,12 +12,13 @@ and persist whatever the fallback chain returns with its source_tier intact.
 - Shareholding pattern: Tier 1 (direct NSE endpoint) falling back to
   Tier 3 (Screener.in). Tier 1's parsing is defensive/unverified end-to-end
   (see tier1_nse_bse.py); Tier 3's is verified working.
-- Financial statements (P&L/balance sheet/cash flow): Tier 3 (Screener.in)
-  only, for now. Tier 1's XBRL/PDF path is implemented and unit-tested
-  against fixtures, but wiring it into this service needs a filing-URL
-  discovery step (find the latest quarterly XBRL / annual report PDF for a
-  given company) that hasn't been built yet — a real, tracked gap, not an
-  oversight. See ROADMAP.md Phase 4.
+- Financial statements (P&L/balance sheet/cash flow): Tier 1 for the latest
+  period, Tier 3 (Screener.in) for the history. `filing_discovery.py` finds
+  the most recent NSE/BSE results filing (XBRL preferred, PDF fallback),
+  `xbrl_parser`/`pdf_financials` extract it; if that yields nothing the
+  Screener scrape serves as before. The NSE fetch is unverified live from
+  a blocked environment (ADR 0011) — parsers are fixture-tested and every
+  failure collapses to "Tier 1 had nothing", so there's no regression.
 - About (business description) and peer comparison: Tier 3 (Screener.in)
   only — neither has a Tier 1/2 equivalent.
 - Documents: Tier 3 only, and only annual reports specifically — Screener's
@@ -45,7 +46,7 @@ from app.db.models import (
     RatioORM,
     ShareholdingEntryORM,
 )
-from app.ingestion import tier1_nse_bse, tier2_yfinance
+from app.ingestion import filing_discovery, tier1_nse_bse, tier2_yfinance
 from app.ingestion.orchestrator import TieredResolver, resolve_with_fallback
 from app.ingestion.tier3_screener_scrapling import scraper as tier3
 from app.schemas import DocumentType, SourceTier, StatementType
@@ -227,6 +228,41 @@ async def _screener_shareholding_as_field_dict(nse_symbol: str) -> dict:
     return {"entries": entries} if entries else {}
 
 
+async def _upsert_financial_items(
+    session: AsyncSession,
+    company: CompanyORM,
+    statement_type: StatementType,
+    items: list[dict],
+    source_tier: SourceTier,
+) -> None:
+    for item in items:
+        period_end = item.get("period_end")
+        if period_end is None:
+            continue
+        period_type = item["period_type"]
+        stmt = (
+            insert(FinancialLineItemORM)
+            .values(
+                company_id=company.id,
+                statement_type=statement_type.value,
+                period_type=period_type.value if hasattr(period_type, "value") else str(period_type),
+                period_end=period_end,
+                label=item["label"],
+                value=item["value"],
+                source_tier=source_tier.value,
+            )
+            .on_conflict_do_update(
+                index_elements=["company_id", "statement_type", "period_type", "period_end", "label"],
+                set_={
+                    "value": item["value"],
+                    "source_tier": source_tier.value,
+                    "fetched_at": func.now(),
+                },
+            )
+        )
+        await session.execute(stmt)
+
+
 async def get_financial_statement(
     session: AsyncSession, company: CompanyORM, statement_type: StatementType
 ) -> list[FinancialLineItemORM]:
@@ -245,27 +281,24 @@ async def get_financial_statement(
     if not company.nse_symbol:
         return existing
 
-    scraped = await tier3.fetch_financial_statement(company.nse_symbol, statement_type)
-    for item in scraped:
-        if item["period_end"] is None:
-            continue
-        stmt = (
-            insert(FinancialLineItemORM)
-            .values(
-                company_id=company.id,
-                statement_type=statement_type.value,
-                period_type=item["period_type"].value,
-                period_end=item["period_end"],
-                label=item["label"],
-                value=item["value"],
-                source_tier=SourceTier.TIER3_SCREENER.value,
-            )
-            .on_conflict_do_update(
-                index_elements=["company_id", "statement_type", "period_type", "period_end", "label"],
-                set_={"value": item["value"], "fetched_at": func.now()},
-            )
+    # Tier 1: the actual NSE/BSE results filing for the latest period. If it
+    # yields anything, store it and skip the Screener scrape for this call —
+    # older periods still come from Tier 3 on a later refresh.
+    filing = await filing_discovery.discover_latest_financial_filing(
+        company.nse_symbol, company.bse_code
+    )
+    tier1_items = (
+        await filing_discovery.extract_tier1_line_items(filing, statement_type) if filing else []
+    )
+    if tier1_items:
+        await _upsert_financial_items(
+            session, company, statement_type, tier1_items, SourceTier.TIER1_NSE_BSE
         )
-        await session.execute(stmt)
+    else:
+        scraped = await tier3.fetch_financial_statement(company.nse_symbol, statement_type)
+        await _upsert_financial_items(
+            session, company, statement_type, scraped, SourceTier.TIER3_SCREENER
+        )
     await session.commit()
 
     stmt = (

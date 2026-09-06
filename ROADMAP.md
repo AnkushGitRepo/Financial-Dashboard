@@ -49,7 +49,7 @@ Superseded plan: no paid vendor (EODHD dropped), no hosted/self-host split for d
 - [x] Tier 2 fallback built — `yfinance` (price history + quote gap-fill), replacing the dropped paid-vendor (EODHD) plan entirely
 - [x] Tier 3 fallback built — Scrapling against Screener.in, isolated module, verified against two real companies (Reliance live fetch, Newgen Software saved-page fixture)
 - [x] Serving layer built — FastAPI endpoints for company/ratios/shareholding/financials/prices/documents, `source_tier` visible on every response; 25 tests pass offline (no network/DB)
-- [→] Tier 1 filing-URL discovery step (find a company's latest quarterly XBRL / annual report PDF) — financial-statement serving currently runs through Tier 3 only in practice. **Moved to "Post-sign-off follow-ups" below** — didn't block Phase 4 sign-off.
+- [x] Tier 1 filing-URL discovery step — done 2026-09-06 (after sign-off). `app/ingestion/filing_discovery.py`: NSE `/api/corporates-financial-results` (primary) + BSE `AnnGetData` (fallback) → most-recent results filing → `xbrl_parser` / `pdf_financials` extract it as the latest period; Screener fills the history + is the fallback. Fixture-tested (13 cases), fails safe. See "Post-sign-off follow-ups".
 - [x] Dashboard/Portfolio/Markets/Stock UI built — `/dashboard`, `/dashboard/portfolio`, `/dashboard/markets`, `/dashboard/stock/[ticker]`, from an approved Claude Design import, fonts swapped to project standard (Manrope/JetBrains Mono).
 - [x] UI wired to real data, mock data removed entirely (`src/lib/dashboard/mockData.ts` deleted) — see [ADR 0012](./docs/decisions/0012-portfolio-holdings-and-real-data-wiring.md):
   - Stock detail page: fully real (ratios, financials, shareholding, price history) via fundamentals-api, for any real NSE symbol.
@@ -207,9 +207,14 @@ Scoped 2026-09-06 — see [ADR 0018](./docs/decisions/0018-ai-insights-scope.md)
 
 Carried past sign-off 2026-09-06. Each is small and independent; none gates Phase 9.
 
-- [ ] **Phase 4 — Tier 1 filing-URL discovery.** Find a company's latest quarterly XBRL /
-  annual-report PDF so financial-statement serving isn't Tier 3 (Screener) only. Tier 1's
-  XBRL/PDF extraction is built + fixture-tested; it just has no URL-discovery step feeding it.
+- [x] **Phase 4 — Tier 1 filing-URL discovery.** Done 2026-09-06. `app/ingestion/filing_discovery.py`
+  discovers the latest NSE/BSE results filing (NSE financial-results API → BSE announcements
+  fallback), `xbrl_parser` / `pdf_financials` extract it as the newest period, and it's wired
+  into `fundamentals_service.get_financial_statement` ahead of the Screener scrape (Screener
+  still fills history + is the fallback). `financials_tier1_enabled` flag. `tests/test_filing_discovery.py`
+  (13). fundamentals-api suite **86 passed**, ruff clean. NSE fetch unverified from a blocked
+  env — fails safe to Tier 3, no regression. *Follow-up: verify the NSE/BSE parsers against
+  real live responses and correct the field maps; multi-period XBRL context extraction.*
 - [~] **Phase 5 — activate the ~10-min alert scheduler.** `.github/workflows/evaluate-alerts.yml`
   exists. Activate: `gh secret set CRON_SECRET` + make `v2` the repo default branch (GitHub
   runs `schedule:` only from the default branch). Or cron-job.org / a home crontab.

@@ -1,0 +1,36 @@
+{
+  "Table": [
+    {
+      "SCRIP_CD": "500325",
+      "NEWSSUB": "Financial Results for the quarter ended June 30, 2026 (Consolidated)",
+      "NEWS_DT": "2026-07-18T00:00:00",
+      "DT_TM": "2026-07-18T18:32:00",
+      "CATEGORYNAME": "Result",
+      "SUBCATNAME": "Financial Results",
+      "ATTACHMENTNAME": "3f2a1b0c-9d8e-4a7b-b6c5-1234567890ab.pdf"
+    },
+    {
+      "SCRIP_CD": "500325",
+      "NEWSSUB": "Board Meeting Intimation for considering Financial Results",
+      "NEWS_DT": "2026-07-10T00:00:00",
+      "CATEGORYNAME": "Board Meeting",
+      "ATTACHMENTNAME": "board-meeting.pdf"
+    },
+    {
+      "SCRIP_CD": "500325",
+      "NEWSSUB": "Outcome of Board Meeting - Results (no period stated here)",
+      "NEWS_DT": "2026-07-18T00:00:00",
+      "CATEGORYNAME": "Result",
+      "ATTACHMENTNAME": "no-period.pdf"
+    },
+    {
+      "SCRIP_CD": "500325",
+      "NEWSSUB": "Audited Financial Results for the year ended March 31, 2026",
+      "NEWS_DT": "2026-04-22T00:00:00",
+      "CATEGORYNAME": "Result",
+      "SUBCATNAME": "Financial Results",
+      "ATTACHMENTNAME": "reliance-fy26-results.pdf"
+    }
+  ],
+  "Table1": [{ "ROWCNT": 4 }]
+}

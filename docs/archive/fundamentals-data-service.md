@@ -100,12 +100,18 @@ whose import chain pulls in a ~130 MB Playwright driver the function never uses.
 (`vercel deploy --prod --yes`), not the old per-file MCP upload — much cheaper for a
 ~95-file Next.js app. CLI session authenticated as the user, persists locally.
 
-## Known gap carried forward (tracked in ROADMAP, not hidden)
+## Known gap — closed 2026-09-06 (post-sign-off)
 
-**Tier 1 filing-URL discovery** — finding a company's latest quarterly XBRL / annual-report
-PDF — was never built. Financial-statement serving runs through Tier 3 (Screener) only in
-practice. Tier 1's XBRL/PDF extraction is implemented and fixture-tested but has no
-URL-discovery step feeding it. Remains a ROADMAP Phase 4 checklist item.
+**Tier 1 filing-URL discovery** — the step that finds a company's latest quarterly XBRL /
+annual-report PDF so financial statements aren't a Screener scrape — was built after Phase 4
+sign-off. `app/ingestion/filing_discovery.py`: NSE `/api/corporates-financial-results`
+(primary) → BSE `AnnGetData` (fallback) → most-recent results filing → the existing
+`xbrl_parser` / `pdf_financials` extract it as the latest period; Screener still fills the
+history and is the fallback when discovery returns nothing. The NSE fetch is unverified from
+a blocked environment (parsers fixture-tested, `tests/test_filing_discovery.py`); every
+failure collapses to "Tier 1 had nothing" so there's no regression. `financials_tier1_enabled`
+config flag. Remaining: verify the NSE/BSE parsers against real live responses and correct
+the field maps; multi-period XBRL context extraction.
 
 ## Testing
 

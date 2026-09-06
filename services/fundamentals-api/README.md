@@ -153,10 +153,11 @@ dashboard caller share one upstream hit. Capped at 100 symbols/request.
 pytest
 ```
 
-All 79 tests run offline — no network, no database. They use saved
+All 86 tests run offline — no network, no database. They use saved
 fixtures (a real Screener.in page a maintainer saved to disk, a synthetic
 but taxonomy-accurate XBRL instance document, a generated PDF with a ruled
-table) rather than live calls, so they're deterministic and don't depend on
+table, and JSON shapes for the NSE/BSE filing-list responses) rather than
+live calls, so they're deterministic and don't depend on
 Screener.in/NSE/BSE/Yahoo staying reachable or unchanged.
 
 ## Rate limiting (`KV_REST_API_URL` / `_TOKEN`, or `UPSTASH_REDIS_REST_*`)
@@ -182,10 +183,10 @@ package.
 | News feed (`GET /news`) | Free RSS — broad markets feeds + Google News RSS per symbol | — | ADR 0015. Postgres-backed, lazy TTL refresh, 30-day retention. Verified live: 4 broad feeds return real items (Business Standard 403s; NDTV Profit's feed carries too much non-markets content — both dropped), Google-News-per-symbol returns real publisher-attributed items. VADER headline-tone label per item (skews optimistic on financial text — labelled as tone, not a signal). Title + summary + link only, no scraped bodies. |
 | Ratios | Tier 3 (Screener.in) | — | Tiers 1/2 don't expose comparable named/computed ratios as raw data. |
 | Shareholding pattern | Tier 1 (direct NSE endpoint) | Tier 3 (Screener.in) | Tier 1's response shape is unverified (NSE blocked during development); Tier 3 is verified against two real companies and captures full quarterly history (typically 12 quarters), not just the latest. |
-| Financial statements (P&L/BS/CF) | Tier 3 (Screener.in) | — | Tier 1's XBRL parser and PDF table extractor are both implemented and unit-tested against fixtures, but wiring them into the live service needs a filing-URL discovery step (find the latest quarterly XBRL / annual report PDF for a company) that hasn't been built yet. |
+| Financial statements (P&L/BS/CF) | Tier 1 (NSE/BSE results filing) for the latest period | Tier 3 (Screener.in) for the history, and the fallback | `filing_discovery.py` finds the most recent NSE `/api/corporates-financial-results` filing (BSE `AnnGetData` fallback), then `xbrl_parser` / `pdf_financials` extract it. NSE fetch is unverified from a blocked environment (parsers are fixture-tested); every failure collapses to "Tier 1 had nothing", so Tier 3 still serves and there's no regression. `financials_tier1_enabled` flag. |
 | About (business description) | Tier 3 (Screener.in) | — | Backfilled once per company and cached indefinitely (not TTL-refreshed) — the text rarely changes. |
 | Peer comparison | Tier 3 (Screener.in) | — | Screener lazy-loads this table via AJAX far more often than server-rendering it inline (confirmed for large caps and mid-caps alike). Reads Screener's own JS to find the real endpoint (`/api/company/{warehouse_id}/peers/`, keyed by a different internal id than the one shown in the page's own HTML attributes at first glance) rather than guessing — verified working for Reliance, TCS, and Newgen. |
-| Documents (annual reports) | Tier 3 (Screener.in) | — | Screener's Documents section links directly to BSE-hosted PDFs, so this didn't need the Tier 1 filing-discovery step below — only annual reports are populated; other document types (XBRL filings, credit ratings, etc.) still need it. |
+| Documents (annual reports) | Tier 3 (Screener.in) | — | Screener's Documents section links directly to BSE-hosted PDFs — only annual reports are populated. Other document types (credit ratings, etc.) aren't wired; the `filing_discovery` module could be extended to cover them. |
 
 See `app/services/fundamentals_service.py`'s module docstring for the same
 detail in code, and ROADMAP.md's Phase 4 checklist for what's tracked as

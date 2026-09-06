@@ -27,11 +27,11 @@ The repo is a small monorepo: the Next.js app at the root (`src/`) plus a standa
 service under `services/fundamentals-api/`.
 
 **Open follow-ups carried past sign-off** (tracked in ROADMAP.md, not blockers):
-Tier 1 filing-URL discovery for financial statements; activating the two GitHub Actions
-schedulers (alert eval, IPO refresh); Resend email delivery; one real alert fire + one real
-IPO-alert fire in market hours; DRHP grounding for IPO briefs; replacing the scripted
-"Proactive insight" chat tiles; the hosted-instance fair-use rate limiting the landing page
-claims (Phase 9).
+activating the two GitHub Actions schedulers (alert eval, IPO refresh); Resend email
+delivery; one real alert fire + one real IPO-alert fire in market hours; DRHP grounding for
+IPO briefs. (Done since sign-off: Tier 1 filing-URL discovery for financial statements;
+scripted "Proactive insight" chat tiles replaced; hosted fair-use rate limiting shipped,
+activated, and verified.)
 
 ## Stack
 
@@ -161,9 +161,13 @@ plain-language coverage table in [`services/fundamentals-api/README.md`](../serv
   `https://marketmitra-fundamentals-api.vercel.app`; the deployed function uses a trimmed
   `requirements.txt` and avoids `scrapling.fetchers.Fetcher` (pulls a ~130 MB Playwright
   driver it never uses).
-- **Known gap (tracked):** financial-statement serving runs through Tier 3 only in practice —
-  Tier 1's XBRL/PDF extraction is built and fixture-tested but has no filing-URL discovery
-  step feeding it.
+- **Financial statements — Tier 1 + Tier 3** (2026-09-06): `app/ingestion/filing_discovery.py`
+  finds the most recent NSE/BSE results filing (NSE `/api/corporates-financial-results`
+  primary, BSE `AnnGetData` fallback), and `xbrl_parser` / `pdf_financials` extract it as the
+  latest period; the Screener scrape fills the history and serves as the fallback when
+  discovery comes up empty. The NSE fetch is unverified from a blocked environment (ADR 0011)
+  — parsers are fixture-tested and every failure collapses to "Tier 1 had nothing", so no
+  regression. `financials_tier1_enabled` config flag turns it off.
 
 ## Alerts engine (`/dashboard/alerts`)
 

@@ -32,6 +32,10 @@ class Settings(BaseSettings):
         return _normalize_database_url(value)
     nse_requests_per_second: float = 3.0
     tier3_enabled: bool = True
+    # Tier 1 filing-URL discovery for financial statements (ADR 0011, Phase 4
+    # follow-up): try the actual NSE/BSE results filing before the Screener
+    # scrape. Off → financials come straight from Tier 3 as before.
+    financials_tier1_enabled: bool = True
     log_level: str = "INFO"
 
     # Cache freshness: how old stored data can be before a request triggers

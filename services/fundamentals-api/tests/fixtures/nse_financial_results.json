@@ -1,0 +1,49 @@
+[
+  {
+    "symbol": "RELIANCE",
+    "companyName": "Reliance Industries Limited",
+    "fromDate": "01-Apr-2026",
+    "toDate": "30-Jun-2026",
+    "relatingTo": "Quarterly",
+    "consolidated": "Consolidated",
+    "audited": "Un-Audited",
+    "xbrl": "https://nsearchives.nseindia.com/corporate/xbrl/INDAS_2026_Q1_RELIANCE.xml",
+    "attachmentFile": "https://nsearchives.nseindia.com/corporate/RELIANCE_Q1FY27.pdf",
+    "filingDate": "18-Jul-2026"
+  },
+  {
+    "symbol": "RELIANCE",
+    "companyName": "Reliance Industries Limited",
+    "fromDate": "01-Apr-2026",
+    "toDate": "30-Jun-2026",
+    "relatingTo": "Quarterly",
+    "consolidated": "Non-Consolidated",
+    "audited": "Un-Audited",
+    "xbrl": "https://nsearchives.nseindia.com/corporate/xbrl/INDAS_2026_Q1_RELIANCE_STANDALONE.xml",
+    "attachmentFile": "",
+    "filingDate": "18-Jul-2026"
+  },
+  {
+    "symbol": "RELIANCE",
+    "companyName": "Reliance Industries Limited",
+    "fromDate": "01-Jan-2026",
+    "toDate": "31-Mar-2026",
+    "relatingTo": "Annual",
+    "consolidated": "Consolidated",
+    "audited": "Audited",
+    "xbrl": "https://nsearchives.nseindia.com/corporate/xbrl/INDAS_2026_FY_RELIANCE.xml",
+    "attachmentFile": "https://nsearchives.nseindia.com/corporate/RELIANCE_FY26.pdf",
+    "filingDate": "22-Apr-2026"
+  },
+  {
+    "symbol": "RELIANCE",
+    "companyName": "Reliance Industries Limited",
+    "fromDate": "01-Oct-2025",
+    "toDate": "31-Dec-2025",
+    "relatingTo": "Quarterly",
+    "consolidated": "Consolidated",
+    "xbrl": "",
+    "attachmentFile": "",
+    "filingDate": "16-Jan-2026"
+  }
+]
