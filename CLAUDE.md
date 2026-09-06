@@ -8,14 +8,13 @@ MarketMitra is a financial dashboard (Indian markets: indices, stocks, IPOs, new
 
 ## Current phase
 
-**Phases 0–8 signed off + archived (2026-09-06); Phase 9 built, deployed, and prod-verified (awaiting sign-off).** Everything through the API-surface layer is live in production. Per-feature build detail lives in `/docs/archive/*.md`; `/docs/architecture.md` has the current-state summaries; `/docs/session-log.md` has the play-by-play.
+**Phases 0–9 signed off + archived (2026-09-06); Phase 10 scoped (ADR 0020), not started.** Everything through the API-surface layer is live in production. Per-feature build detail lives in `/docs/archive/*.md`; `/docs/architecture.md` has the current-state summaries; `/docs/session-log.md` has the play-by-play.
 
-**Phase 9 — API surface** ([ADR 0019](./docs/decisions/0019-phase-9-api-surface-mcp-rate-limiting.md)), all three parts done and in prod:
-1. **MCP server** at `/api/mcp` — 7 read-only tools (`src/lib/mcp/`), `mcp-handler`@2, `public/llms.txt`.
-2. **Rate limiting** — `@upstash/ratelimit` on `/api/*` + `/api/mcp` (`src/lib/rateLimit.ts`, `src/proxy.ts`) and the fundamentals-api (`app/ingestion/rate_limit.py` + middleware). Upstash store provisioned (`iad1`), connected to both Vercel projects, **activated and verified** (429-under-load). Reads `KV_REST_API_*` (Vercel integration names) or `UPSTASH_REDIS_REST_*`. Self-host with neither = no-op.
-3. **API explorer** at `/dashboard/api` + `public/openapi.json` (CI-checked against the route handlers).
+**Phase 9 — API surface** ([ADR 0019](./docs/decisions/0019-phase-9-api-surface-mcp-rate-limiting.md)) — done, archived, in prod: MCP server at `/api/mcp` (7 read-only tools, `src/lib/mcp/`), rate limiting (`@upstash/ratelimit` on `/api/*` + `/api/mcp` + the fundamentals-api; Upstash `iad1`, activated + 429-verified; reads `KV_REST_API_*` or `UPSTASH_REDIS_REST_*`; self-host with neither = no-op), API explorer at `/dashboard/api` + `public/openapi.json`. Full detail: [`/docs/archive/api-surface.md`](./docs/archive/api-surface.md).
 
-**Still open** (all need a user action, none is a code task): explicit Phase 9 sign-off → run the archiving protocol; `gh auth login` + `gh secret set CRON_SECRET` / `IPO_INGEST_TOKEN` to activate the two GitHub Actions schedulers; one real alert fire + one real IPO-alert fire in market hours; Resend email (needs a from-domain decision); DRHP grounding for IPO briefs (deferred). Phases 10 (RAG) / 11 (multi-agent) stay ❓ — need a scoping session, do not build from assumptions.
+**Phase 10 — RAG** ([ADR 0020](./docs/decisions/0020-phase-10-rag-chat.md), accepted): scoped, **not started**. Phase 10a build checklist (13 items) is in `ROADMAP.md`. Gist: `chunks` collection + Atlas Vector Search, **local** embeddings (`@xenova/transformers`, no key), cron-driven corpus indexing, agentic tool-calling chat (`streamText` + the MCP tools + a `search_context` tool), retrieval-grounded insights (absorbs DRHP grounding), graceful fallback to today's prompt-stuffing when no vector index. Shared public corpus (`userId:null`) + per-user private layer. Phase 10b = a dedicated `/dashboard/research` surface, later. Phase 11 (multi-agent) still ❓ — needs its own scoping session.
+
+**Still open** (all user actions, no code): one real alert fire + one real IPO-alert fire in market hours; optional Resend verified domain in `ALERT_EMAIL_FROM` (email delivery is otherwise live — `RESEND_API_KEY` set in prod 2026-09-06); rotate the Resend key (it was pasted in chat).
 
 **`main` = `v2`** — merged 2026-09-06 so the GitHub Actions `schedule:` triggers fire; every commit since is pushed to both. Start new feature work from a fresh branch off `main`.
 
@@ -44,11 +43,9 @@ MarketMitra is a financial dashboard (Indian markets: indices, stocks, IPOs, new
 
 ## Active focus
 
-**No build in flight.** Phases 0–9 are signed off, archived, and in production (Phase 9 signed off + archived 2026-09-06). The only feature-level work left is Phases 10 (RAG) / 11 (multi-agent) — both ❓, both need a scoping session first (like the Phase 5–9 questionnaires), do not build from assumptions.
+**Next build = Phase 10a (RAG).** Scoped via [ADR 0020](./docs/decisions/0020-phase-10-rag-chat.md) (accepted); 13-item build checklist in `ROADMAP.md` under "Phase 10a". Not started — no Phase 10 code exists. Start from a fresh branch off `main`; work the checklist top-to-bottom (embed lib → `chunks` store + Atlas index → chunker → fundamentals-api PDF→text → corpus-indexer cron → per-user sync → `userNotes`/`chatMessages` → retrieval lib → agentic chat → grounded insights → fallback → cross-cutting). The `src/lib/mcp/` tool layer is wired into the chat model directly (structured data is tool-called, not embedded).
 
-The [ADR 0019](./docs/decisions/0019-phase-9-api-surface-mcp-rate-limiting.md) MCP tool layer (`src/lib/mcp/`) is the natural foundation for Phase 10/11 — those can call the tools rather than re-plumb data access.
-
-**Post-sign-off follow-ups from Phases 4–9** — see ROADMAP.md's "Post-sign-off follow-ups" section for the live list. Done since sign-off: Tier 1 filing-URL discovery (`app/ingestion/filing_discovery.py` — degrades to Tier 3 where NSE/BSE are unreachable), scripted "Proactive insight" chat tiles removed, rate limiting shipped + activated. Still open: activate the two GitHub Actions schedulers (`gh secret set` + they only fire from the default branch, which `main` now is), Resend email, one real alert fire + one real IPO-alert fire in market hours.
+**Post-sign-off follow-ups from Phases 4–9** — mostly closed. Done: Tier 1 filing-URL discovery, "Proactive insight" chat tiles removed, rate limiting activated, both GitHub Actions schedulers activated + validated, Resend email seam wired + `RESEND_API_KEY` live in prod, Phase 9 signed off + archived. DRHP grounding is folded into Phase 10a. Still open (user actions only): one real alert fire + one real IPO-alert fire in market hours; optional `ALERT_EMAIL_FROM` verified domain; rotate the Resend key.
 
 **Standing facts that outlived the phase detail:**
 
