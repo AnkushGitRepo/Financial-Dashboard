@@ -33,7 +33,7 @@ per-user BYO). A small factory maps the user's stored
 
 | provider | adapter | default model |
 | --- | --- | --- |
-| `gemini` | `@ai-sdk/google` | `gemini-2.5-flash` (cheap, generous free tier) |
+| `gemini` | `@ai-sdk/google` | `gemini-3.6-flash` (cheap, generous free tier — `2.5-flash` was retired for new keys 2026-09) |
 | `anthropic` | `@ai-sdk/anthropic` | `claude-haiku-4-5` |
 | `openrouter` | `@openrouter/ai-sdk-provider` | a small default, user-overridable |
 
