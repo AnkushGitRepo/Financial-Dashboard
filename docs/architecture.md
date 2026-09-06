@@ -128,7 +128,9 @@ sidebar-based empty-state shell entirely (`Sidebar.tsx` deleted).
   `MoverPanel`, `CompanyLogo`, `NewsList`, `InsightCard`, `IpoOpenCard`) and
   `src/lib/dashboard/` (`fundamentalsApi.ts`, `newsApi.ts`, `iposApi.ts`, `transforms.ts`,
   `quotes.ts`, `portfolioHistory.ts`, `enrichedHoldings.ts`, `watchlist.ts`, `chartMath.ts`,
-  `format.ts`, `MaskContext.tsx`, `aiWidgetContent.ts`).
+  `format.ts`, `MaskContext.tsx`). The "Mitra" widget (`src/components/appshell/AiWidget.tsx`)
+  is a real streamed chat against `/api/ai/chat` (ADR 0018) with section-aware starter prompts —
+  no scripted content.
 - **Real data, end to end** ([ADR 0012](./decisions/0012-portfolio-holdings-and-real-data-wiring.md))
   — no mock data anywhere in this surface. Stock detail, markets/indices, portfolio holdings
   (a genuinely new feature — `holdings` collection + `/api/holdings` CRUD), NSE-universe

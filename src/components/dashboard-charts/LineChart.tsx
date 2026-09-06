@@ -17,6 +17,18 @@ export function LineChart({ series, height, formatValue, deltaLabel }: LineChart
   const chart = buildChart(series, height);
   const hoverPoint = hoverIndex === null ? null : chart.pts[Math.min(hoverIndex, chart.pts.length - 1)];
 
+  // Axis ticks: many downsampled points fall in the same month/year, which
+  // would repeat the label ("Sept Sept Aug Aug…"). Show each label only on
+  // the first point where it changes; blank the rest (flex keeps positions).
+  const tickLabels = chart.pts.map((p, i) => {
+    const prevShown = chart.pts
+      .slice(0, i)
+      .map((x) => x.label)
+      .filter(Boolean)
+      .at(-1);
+    return p.label && p.label !== prevShown ? p.label : '';
+  });
+
   return (
     <div className={styles.wrap}>
       <svg viewBox={`0 0 720 ${height}`} preserveAspectRatio="none" className={styles.svg} style={{ height }}>
@@ -37,9 +49,9 @@ export function LineChart({ series, height, formatValue, deltaLabel }: LineChart
       </svg>
 
       <div className={styles.labels}>
-        {chart.pts.map((p, i) => (
+        {tickLabels.map((label, i) => (
           <span key={i} className={styles.labelTick}>
-            {p.label}
+            {label}
           </span>
         ))}
       </div>

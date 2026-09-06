@@ -2,8 +2,33 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { INSIGHTS } from '@/lib/dashboard/aiWidgetContent';
 import styles from './AiWidget.module.css';
+
+// Starter prompts per section. These are questions, not claims — Mitra
+// answers them from the real server-built context (portfolio + news), so
+// nothing here fabricates data.
+const SUGGESTIONS: Record<Section, string[]> = {
+  dashboard: [
+    'How did my portfolio do today?',
+    'What moved my holdings?',
+    'Any recent news on my stocks?',
+  ],
+  portfolio: [
+    'How is my portfolio doing?',
+    "What's my largest position?",
+    'Is any holding a concentration risk?',
+  ],
+  markets: [
+    'How are the markets today?',
+    'Which of my holdings are up or down?',
+    "What's the latest market news?",
+  ],
+  stock: [
+    "Summarise this company's fundamentals",
+    'How has its margin trend looked?',
+    "What's the shareholding pattern?",
+  ],
+};
 
 export type Section = 'dashboard' | 'portfolio' | 'markets' | 'stock';
 
@@ -51,14 +76,10 @@ export function AiWidget({ section }: { section: Section }) {
 }
 
 function AiPanelBody({ section, onClose }: { section: Section; onClose: () => void }) {
-  const [insightIndex, setInsightIndex] = useState(0);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
   const [keyState, setKeyState] = useState<KeyState>('unknown');
-
-  const insights = INSIGHTS[section];
-  const insight = insights[insightIndex % insights.length];
 
   // Whether an AI provider key is configured — controls the composer hint.
   useEffect(() => {
@@ -76,8 +97,8 @@ function AiPanelBody({ section, onClose }: { section: Section; onClose: () => vo
     };
   }, []);
 
-  const send = async () => {
-    const text = draft.trim();
+  const send = async (explicitText?: string) => {
+    const text = (explicitText ?? draft).trim();
     if (!text || busy) return;
 
     const history: ChatMessage[] = [...messages, { from: 'user', text }];
@@ -147,17 +168,24 @@ function AiPanelBody({ section, onClose }: { section: Section; onClose: () => vo
           </button>
         </div>
 
-        <div className={styles.insightCard}>
-          <p className={styles.insightEyebrow}>Proactive insight</p>
-          <p className={styles.insightTitle}>{insight.title}</p>
-          <p className={styles.insightBody}>{insight.body}</p>
-          <div className={styles.insightFooter}>
-            <span className={styles.insightLink}>View details ›</span>
-            <button onClick={() => setInsightIndex((i) => i + 1)} className={styles.nextButton} type="button">
-              Next {(insightIndex % insights.length) + 1}/{insights.length}
-            </button>
+        {messages.length === 0 && (
+          <div className={styles.starters}>
+            <p className={styles.startersEyebrow}>Ask Mitra</p>
+            <div className={styles.starterChips}>
+              {SUGGESTIONS[section].map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  className={styles.starterChip}
+                  onClick={() => send(s)}
+                  disabled={busy}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {messages.length > 0 && (
           <div className={styles.messages}>
@@ -195,7 +223,7 @@ function AiPanelBody({ section, onClose }: { section: Section; onClose: () => vo
             placeholder={section === 'stock' ? 'Ask about these fundamentals' : 'Ask Mitra about your portfolio'}
             className={styles.composerInput}
           />
-          <button onClick={send} disabled={busy} className={styles.sendButton} type="button" aria-label="Send">
+          <button onClick={() => send()} disabled={busy} className={styles.sendButton} type="button" aria-label="Send">
             ↑
           </button>
         </div>
