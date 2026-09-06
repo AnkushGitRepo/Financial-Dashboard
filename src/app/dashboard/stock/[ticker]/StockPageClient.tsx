@@ -6,6 +6,7 @@ import { LineChart } from '@/components/dashboard-charts/LineChart';
 import { PillTabs } from '@/components/dashboard-charts/PillTabs';
 import { CompanyLogo } from '@/components/dashboard-charts/CompanyLogo';
 import { NewsList } from '@/components/dashboard-charts/NewsList';
+import { InsightCard } from '@/components/dashboard-charts/InsightCard';
 import { useMask } from '@/lib/dashboard/MaskContext';
 import { formatInr } from '@/lib/dashboard/format';
 import type { CompanyOut, DocumentOut, PeerOut, PricePeriod, RatioOut } from '@/lib/dashboard/fundamentalsApi';
@@ -32,6 +33,7 @@ interface StockPageClientProps {
   peers: PeerOut[];
   documents: DocumentOut[];
   news: NewsItem[];
+  aiInsight: { hasKey: boolean; initial: { content: string; generatedAt: string } | null };
   shareholding: ShareholdingSeries[];
   financials: Record<StatementKey, FinTable>;
   priceSeries: Record<PricePeriod, RangeSeries>;
@@ -60,6 +62,7 @@ export function StockPageClient({
   peers,
   documents,
   news,
+  aiInsight,
   shareholding,
   financials,
   priceSeries,
@@ -133,6 +136,16 @@ export function StockPageClient({
           <p className={styles.aboutText}>{company.about}</p>
         </div>
       )}
+
+      <div className={styles.aboutCard}>
+        <InsightCard
+          label="AI read"
+          endpoint="/api/insights/stock"
+          body={{ symbol }}
+          initial={aiInsight.initial}
+          hasKey={aiInsight.hasKey}
+        />
+      </div>
 
       {news.length > 0 && (
         <div className={`${styles.cardPad} ${styles.aboutCard}`}>

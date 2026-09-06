@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import type { Ipo } from '@/lib/dashboard/iposApi';
 import type { IpoTrigger } from '@/lib/alerts/types';
+import { InsightCard } from '@/components/dashboard-charts/InsightCard';
 import styles from './page.module.css';
 
 const TRIGGER_LABELS: Record<IpoTrigger, string> = {
@@ -38,7 +39,7 @@ const STATUS_LABEL: Record<Ipo['status'], string> = {
   listed: 'Listed',
 };
 
-export function IpoRow({ ipo }: { ipo: Ipo }) {
+export function IpoRow({ ipo, aiKeyAvailable }: { ipo: Ipo; aiKeyAvailable: boolean }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [trigger, setTrigger] = useState<IpoTrigger>('opens');
@@ -115,6 +116,16 @@ export function IpoRow({ ipo }: { ipo: Ipo }) {
               </>
             )}
           </p>
+
+          <div style={{ margin: '4px 0 14px' }}>
+            <InsightCard
+              label="IPO brief"
+              endpoint="/api/insights/ipo"
+              body={{ slug: ipo.slug }}
+              initial={null}
+              hasKey={aiKeyAvailable}
+            />
+          </div>
 
           <div className={styles.setAlertRow}>
             <span className={styles.dLabel}>Alert me</span>

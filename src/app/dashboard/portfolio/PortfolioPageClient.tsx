@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { LineChart } from '@/components/dashboard-charts/LineChart';
 import { PillTabs } from '@/components/dashboard-charts/PillTabs';
+import { InsightCard } from '@/components/dashboard-charts/InsightCard';
 import { useMask } from '@/lib/dashboard/MaskContext';
 import { formatInr } from '@/lib/dashboard/format';
 import type { EnrichedHolding } from '@/lib/dashboard/enrichedHoldings';
@@ -23,6 +24,7 @@ const SECTOR_COLORS = [
 interface PortfolioPageClientProps {
   holdings: EnrichedHolding[];
   history: Record<PricePeriod, RangeSeries>;
+  aiInsight: { hasKey: boolean; initial: { content: string; generatedAt: string } | null };
 }
 
 function exportCsv(holdings: EnrichedHolding[]) {
@@ -42,7 +44,7 @@ function exportCsv(holdings: EnrichedHolding[]) {
   URL.revokeObjectURL(url);
 }
 
-export function PortfolioPageClient({ holdings, history }: PortfolioPageClientProps) {
+export function PortfolioPageClient({ holdings, history, aiInsight }: PortfolioPageClientProps) {
   const router = useRouter();
   const { masked } = useMask();
   const [range, setRange] = useState<PricePeriod>('1y');
@@ -178,6 +180,18 @@ export function PortfolioPageClient({ holdings, history }: PortfolioPageClientPr
       <div className={styles.sectionHeadRow}>
         <h2 className={styles.h2}>Portfolio analysis</h2>
       </div>
+
+      {holdings.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <InsightCard
+            label="Portfolio insight"
+            endpoint="/api/insights/portfolio"
+            body={{}}
+            initial={aiInsight.initial}
+            hasKey={aiInsight.hasKey}
+          />
+        </div>
+      )}
 
       <div className={styles.splitGridWide}>
         <div className={styles.diversCard}>

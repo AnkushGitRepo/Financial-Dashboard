@@ -9,6 +9,9 @@ import {
   type PricePeriod,
 } from '@/lib/dashboard/fundamentalsApi';
 import { getNews } from '@/lib/dashboard/newsApi';
+import { getCurrentUserId } from '@/lib/currentUserId';
+import { getAiConfig } from '@/lib/ai/userAiConfig';
+import { getCachedInsight } from '@/lib/insights';
 import { pivotFinancials, toRangeSeries, groupShareholding } from '@/lib/dashboard/transforms';
 import { StockPageClient } from './StockPageClient';
 import styles from './page.module.css';
@@ -46,6 +49,18 @@ export default async function StockPage({ params }: { params: Promise<{ ticker: 
     );
   }
 
+  const userId = await getCurrentUserId();
+  const [aiConfig, cachedInsight] = await Promise.all([
+    userId ? getAiConfig(userId, { allowEnv: false }) : null,
+    userId ? getCachedInsight('stock', symbol, userId).catch(() => null) : null,
+  ]);
+  const aiInsight = {
+    hasKey: aiConfig !== null,
+    initial: cachedInsight
+      ? { content: cachedInsight.content, generatedAt: cachedInsight.generatedAt.toISOString() }
+      : null,
+  };
+
   const priceSeries = Object.fromEntries(
     PRICE_PERIODS.map((period, i) => [period, toRangeSeries(priceSets[i] ?? [], period)])
   ) as Record<PricePeriod, ReturnType<typeof toRangeSeries>>;
@@ -64,6 +79,7 @@ export default async function StockPage({ params }: { params: Promise<{ ticker: 
       documents={documents ?? []}
       shareholding={groupShareholding(shareholding ?? [])}
       news={news.items}
+      aiInsight={aiInsight}
       financials={{
         profit_and_loss: pivotFinancials(pl ?? [], 'profit_and_loss'),
         balance_sheet: pivotFinancials(bs ?? [], 'balance_sheet'),

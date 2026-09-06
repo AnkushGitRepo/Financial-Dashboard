@@ -10,6 +10,7 @@ import styles from './page.module.css';
 interface IposPageClientProps {
   ipos: Ipo[];
   initialWatch: IpoWatchParams | null;
+  aiKeyAvailable: boolean;
 }
 
 const DEFAULT_WATCH: IpoWatchParams = {
@@ -17,7 +18,7 @@ const DEFAULT_WATCH: IpoWatchParams = {
   ipoType: 'all',
 };
 
-export function IposPageClient({ ipos, initialWatch }: IposPageClientProps) {
+export function IposPageClient({ ipos, initialWatch, aiKeyAvailable }: IposPageClientProps) {
   const router = useRouter();
   const [watchOpen, setWatchOpen] = useState(false);
   const [watch, setWatch] = useState<IpoWatchParams>(initialWatch ?? DEFAULT_WATCH);
@@ -112,16 +113,24 @@ export function IposPageClient({ ipos, initialWatch }: IposPageClientProps) {
         </div>
       ) : (
         <>
-          <Section title="Open now" ipos={openNow} />
-          <Section title="Upcoming" ipos={upcoming} />
-          <Section title="Recently closed / listed" ipos={recent} />
+          <Section title="Open now" ipos={openNow} aiKeyAvailable={aiKeyAvailable} />
+          <Section title="Upcoming" ipos={upcoming} aiKeyAvailable={aiKeyAvailable} />
+          <Section title="Recently closed / listed" ipos={recent} aiKeyAvailable={aiKeyAvailable} />
         </>
       )}
     </>
   );
 }
 
-function Section({ title, ipos }: { title: string; ipos: Ipo[] }) {
+function Section({
+  title,
+  ipos,
+  aiKeyAvailable,
+}: {
+  title: string;
+  ipos: Ipo[];
+  aiKeyAvailable: boolean;
+}) {
   if (ipos.length === 0) return null;
   return (
     <section className={styles.section}>
@@ -130,7 +139,7 @@ function Section({ title, ipos }: { title: string; ipos: Ipo[] }) {
       </h2>
       <ul className={styles.ipoList}>
         {ipos.map((ipo) => (
-          <IpoRow key={ipo.slug} ipo={ipo} />
+          <IpoRow key={ipo.slug} ipo={ipo} aiKeyAvailable={aiKeyAvailable} />
         ))}
       </ul>
     </section>
