@@ -317,8 +317,35 @@ Scoped in the [ADR 0020 amendment](./docs/decisions/0020-phase-10-rag-chat.md#am
 
 A **structured brief** (fixed markdown sections), **retrieval + synthesis only** (no agentic loop — that's Phase 11), **ephemeral** (not stored). Subjects: company / theme / portfolio / comparison. `POST /api/research` (BYO key, `ai` tier, no cache) + `/dashboard/research` (`ResearchPageClient`, `MarkdownLite` renderer). 272 web tests green at ship.
 
-## Phase 11 — Advanced Analytical Agents (TradingAgents-pattern, built in-house) ❓
-Needs a dedicated discussion once Phase 8–10 exist to build on. Reminder: this means building our own multi-agent analysis pattern inspired by TauricResearch's architecture — not importing their repo as a dependency.
+## Phase 11 — Multi-agent analytical briefings 🔄 scoped (1 open item)
+
+Scoped 2026-09-07 → [ADR 0021](./docs/decisions/0021-phase-11-multi-agent-analysis.md). Port the **analytical half** of TauricResearch/TradingAgents (Apache-2.0) — analyst team → bull/bear **debate** → synthesis — **as our own code, not a dependency**, and **stop before any trade decision** (no trader / risk-manager / position / simulated execution — the guardrail forbids it). Output: a debated briefing that may state which side of the debate is better-evidenced (a "direction"), never a recommendation/target, still ends "not investment advice." Full **reflection loop** in v1. Subject = one **stock** only (theme/portfolio/comparison stay Phase 10b's shallow tier).
+
+**Open item:** orchestrator runtime — ADR 0021 recommends **TS in the Next app** (reuses the whole `src/lib/ai/` layer, no new service); the alternative is a dedicated Python/LangGraph `services/agents/`. Confirm before building.
+
+### Part A — the pipeline (`src/lib/agents/`)
+- [ ] `AGENT_*_SYSTEM` prompts (fundamentals / news+sentiment / technical / macro analyst; bull; bear; synthesis) — each carries `GUARDRAIL`; synthesis prompt spells out the direction boundary.
+- [ ] Analyst context builders (reuse `fundamentalsApi`, the news feed, `retrieve()`), parallel. Technical analyst: SMA/EMA cross + RSI + drawdown computed in the orchestrator from `/prices`. Pure, unit-tested.
+- [ ] Debate loop — bull ↔ bear, N rounds (default 2), each sees the analyst reports + the other's last turn.
+- [ ] Synthesis — bull case / bear case / agreements / key uncertainties / what would change it / "where the evidence leans" + guardrail line. Emits 2–4 structured "key claims" for reflection.
+- [ ] A lightweight post-check rejecting a briefing with trade-action phrasing; one regenerate.
+
+### Part B — async, checkpointed runs
+- [ ] `agentRuns` collection (the doc **is** the checkpoint: `status`, `phase`, per-phase results, `priceAtRun`).
+- [ ] `POST /api/agents/run` — auth, `getUserAiConfig` (400 `no_ai_key`), `ai` tier, one-in-flight-per-user guard → create doc `queued`, kick the worker, return `{ id }`.
+- [ ] `POST /api/agents/tick` (internal, `CRON_SECRET`) — run the next phase, persist, re-invoke if not `done`. Bounded per invocation.
+- [ ] `GET /api/agents/run/[id]` — owner-scoped poll: `{ status, phase, briefing? }`.
+- [ ] `.github/workflows/agents-tick.yml` — safety-net sweep for stuck runs.
+- [ ] `/dashboard/agents` — symbol input + a plain "~15–20 calls on your key, a few minutes" note → live phase indicator → rendered briefing (`MarkdownLite`). "Agents" nav item. No per-user run list.
+
+### Part C — reflection loop
+- [ ] `POST /api/cron/agents-reflect` + `.github/workflows/agents-reflect.yml` (daily) — finds `done` runs older than the reflection horizon (21 d) with no `reflection`, pulls `/prices` since `createdAt`, LLM (run owner's key) writes **lessons** vs. the debate's key claims. Per-user, never pooled.
+- [ ] Injection — new runs pull recent same-symbol-then-sector lessons into the debate + synthesis prompts as "calibration, not predictions". UI + prompt caveat that 21 d is a short arbitrary horizon and this is not a track record.
+
+### Cross-cutting
+- [ ] `tsc` / `lint` / `next build` / `npm test` green; `docs/architecture.md` + `docs/api-surface.md` + `public/openapi.json` entries; ADR 0021 → accepted-and-built; prod deploy; `CRON_SECRET` already covers the new workflows.
+
+_Out of scope: any trade decision / position / risk-manager / simulated execution; price targets or valuation verdicts; a LangGraph dependency (unless the open item flips); cross-user memory; streaming agent output; non-stock subjects; backtesting._
 
 ## Phase 12 — Mobile App (Expo/React Native, hosted-only) ⬜
 Full spec already written — see `marketmitra-mobile-app-prompt.md`. Deprioritized relative to the web feature phases above; pick up when there's bandwidth for a parallel track. In-app purchase handling remains an explicit open decision inside that document — resolve before App Store submission, not before starting the build.
