@@ -244,6 +244,16 @@
         "responses": { "200": { "description": "Brief text + metadata." }, "400": { "description": "no_ai_key." }, "401": { "description": "Not authenticated." }, "429": { "description": "Rate limited." } }
       }
     },
+    "/api/research": {
+      "post": {
+        "tags": ["AI"],
+        "summary": "Generate a research brief (Phase 10b)",
+        "description": "A longer structured brief (markdown sections: what it is / recent developments / the numbers / risks / open questions), retrieval + synthesis. Subject is one of company | theme | portfolio | comparison. Requires the user's own AI key. Not cached (ephemeral). Rate limited (ai tier).",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["subject"], "properties": { "subject": { "type": "object", "properties": { "type": { "type": "string", "enum": ["company", "theme", "portfolio", "comparison"] }, "symbol": { "type": "string" }, "symbols": { "type": "array", "items": { "type": "string" }, "minItems": 2, "maxItems": 4 }, "text": { "type": "string" } } } } }, "example": { "subject": { "type": "company", "symbol": "RELIANCE" } } } } },
+        "responses": { "200": { "description": "{ content (markdown), model, generatedAt }." }, "400": { "description": "no_ai_key or no holdings." }, "401": { "description": "Not authenticated." }, "422": { "description": "Invalid subject." }, "502": { "description": "Bad symbol / generation failed." }, "429": { "description": "Rate limited." } }
+      }
+    },
     "/api/ai/chat": {
       "post": {
         "tags": ["AI"],

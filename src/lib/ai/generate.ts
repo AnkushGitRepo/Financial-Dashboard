@@ -26,7 +26,8 @@ const MAX_OUTPUT_TOKENS = 2048;
 export async function generateInsightText(
   config: AiConfig,
   system: string,
-  prompt: string
+  prompt: string,
+  opts: { maxOutputTokens?: number } = {}
 ): Promise<GenerateResult | GenerateError> {
   try {
     const model = resolveModel(config);
@@ -35,7 +36,7 @@ export async function generateInsightText(
       system,
       prompt,
       temperature: 0.4,
-      maxOutputTokens: MAX_OUTPUT_TOKENS,
+      maxOutputTokens: opts.maxOutputTokens ?? MAX_OUTPUT_TOKENS,
     });
     const clean = text.trim();
     if (!clean) {

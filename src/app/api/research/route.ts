@@ -1,0 +1,236 @@
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { withRateLimit } from '@/lib/rateLimit';
+import { getCurrentUserId } from '@/lib/currentUserId';
+import { getUserAiConfig } from '@/lib/ai/userAiConfig';
+import { generateInsightText } from '@/lib/ai/generate';
+import { RESEARCH_SYSTEM } from '@/lib/ai/prompts';
+import {
+  buildResearchPrompt,
+  type FactBlock,
+  type ResearchSubject,
+} from '@/lib/ai/researchPrompts';
+import { retrieveInsightGrounding } from '@/lib/rag/insightContext';
+import {
+  getCompany,
+  getFinancials,
+  getPrices,
+  getRatios,
+  getShareholding,
+} from '@/lib/dashboard/fundamentalsApi';
+import { getEnrichedHoldings } from '@/lib/dashboard/enrichedHoldings';
+
+export const dynamic = 'force-dynamic';
+export const maxDuration = 120;
+
+const RESEARCH_MAX_TOKENS = 3500;
+
+const SYMBOL = z.string().trim().min(1).max(20);
+const bodySchema = z.object({
+  subject: z.discriminatedUnion('type', [
+    z.object({ type: z.literal('company'), symbol: SYMBOL }),
+    z.object({ type: z.literal('theme'), text: z.string().trim().min(2).max(200) }),
+    z.object({ type: z.literal('portfolio') }),
+    z.object({ type: z.literal('comparison'), symbols: z.array(SYMBOL).min(2).max(4) }),
+  ]),
+});
+
+const HEADLINE_LABELS = ['Sales', 'Revenue', 'Net Profit', 'Operating Profit', 'EPS', 'Profit before tax'];
+
+/** Latest + prior for a few headline P&L line items. */
+function pivotFinancials(pl: { label: string; period_end: string; value: string | null }[] | null): string {
+  const byLabel = new Map<string, { period_end: string; value: string | null }[]>();
+  for (const item of pl ?? []) {
+    if (!byLabel.has(item.label)) byLabel.set(item.label, []);
+    byLabel.get(item.label)!.push(item);
+  }
+  const rows = HEADLINE_LABELS.filter((l) => byLabel.has(l)).map((l) => {
+    const sorted = byLabel.get(l)!.slice().sort((a, b) => b.period_end.localeCompare(a.period_end));
+    return `${l}: ${sorted[0]?.value ?? '—'} (prior ${sorted[1]?.value ?? '—'})`;
+  });
+  return rows.join('; ');
+}
+
+/** Gather the structured facts for one company. Shared by `company` and
+ *  each member of a `comparison`. */
+async function companyFacts(symbol: string): Promise<{ name: string; blocks: FactBlock[] } | null> {
+  const [company, ratios, pl, shareholding, prices] = await Promise.all([
+    getCompany(symbol),
+    getRatios(symbol),
+    getFinancials(symbol, 'profit_and_loss'),
+    getShareholding(symbol),
+    getPrices(symbol, '1mo'),
+  ]);
+  if (!company) return null;
+
+  const blocks: FactBlock[] = [];
+  blocks.push({
+    heading: `${company.name} (${symbol}) — profile`,
+    body: [
+      `Sector / industry: ${company.sector ?? '—'} / ${company.industry ?? '—'}`,
+      company.about ? `About: ${company.about.slice(0, 700)}` : '',
+    ]
+      .filter(Boolean)
+      .join('\n'),
+  });
+
+  const ratioLine = (ratios ?? [])
+    .slice(0, 16)
+    .map((r) => `${r.name}: ${r.value ?? '—'}${r.unit ? ` ${r.unit}` : ''}`)
+    .join('; ');
+  if (ratioLine) blocks.push({ heading: 'Valuation & quality ratios', body: ratioLine });
+
+  const fin = pivotFinancials(pl);
+  if (fin) blocks.push({ heading: 'Recent financials (latest vs prior period)', body: fin });
+
+  const shByCat = new Map<string, string>();
+  for (const s of (shareholding ?? []).slice().sort((a, b) => b.quarter_end.localeCompare(a.quarter_end))) {
+    if (!shByCat.has(s.category)) shByCat.set(s.category, s.percentage);
+  }
+  if (shByCat.size > 0) {
+    blocks.push({
+      heading: 'Latest shareholding',
+      body: [...shByCat].map(([cat, pct]) => `${cat}: ${pct}%`).join(', '),
+    });
+  }
+
+  const closes = (prices ?? []).filter((p) => p.close !== null).map((p) => Number(p.close));
+  if (closes.length > 0) {
+    blocks.push({ heading: 'Price', body: `Last close ₹${closes.at(-1)}; ~1-month history available.` });
+  }
+
+  return { name: company.name, blocks };
+}
+
+async function assemble(
+  subject: ResearchSubject,
+  userId: string
+): Promise<{ factBlocks: FactBlock[]; grounding: Awaited<ReturnType<typeof retrieveInsightGrounding>>; names?: Record<string, string> }> {
+  switch (subject.type) {
+    case 'company': {
+      const facts = await companyFacts(subject.symbol);
+      const grounding = await retrieveInsightGrounding({
+        query: `${facts?.name ?? subject.symbol} ${subject.symbol} results valuation risks recent developments`,
+        userId,
+        symbol: subject.symbol,
+        docTypes: ['news', 'filing'],
+        limit: 8,
+      });
+      return {
+        factBlocks: facts?.blocks ?? [],
+        grounding,
+        names: facts ? { [subject.symbol]: facts.name } : undefined,
+      };
+    }
+    case 'theme': {
+      const grounding = await retrieveInsightGrounding({
+        query: subject.text,
+        userId,
+        docTypes: ['news', 'filing', 'note'],
+        limit: 12,
+      });
+      return { factBlocks: [], grounding };
+    }
+    case 'portfolio': {
+      const holdings = await getEnrichedHoldings(userId).catch(() => []);
+      const rows = holdings.map((h) => {
+        const value = h.ltp != null ? h.ltp * h.quantity : null;
+        const pl = value != null ? value - h.avgPrice * h.quantity : null;
+        return `- ${h.name} (${h.symbol})${h.sector ? `, ${h.sector}` : ''}: qty ${h.quantity}, avg ₹${h.avgPrice}${
+          h.ltp != null ? `, LTP ₹${h.ltp}` : ''
+        }${pl != null ? `, unrealised P&L ₹${Math.round(pl)}` : ''}`;
+      });
+      const factBlocks: FactBlock[] = holdings.length
+        ? [{ heading: `Holdings (${holdings.length})`, body: rows.join('\n') }]
+        : [];
+      const grounding = await retrieveInsightGrounding({
+        query: `portfolio review: ${holdings.map((h) => h.name).join(', ') || 'no holdings'} — news, sector moves`,
+        userId,
+        docTypes: ['news', 'note'],
+        limit: 12,
+      });
+      return { factBlocks, grounding };
+    }
+    case 'comparison': {
+      const gathered = await Promise.all(subject.symbols.map((s) => companyFacts(s)));
+      const factBlocks: FactBlock[] = [];
+      const names: Record<string, string> = {};
+      subject.symbols.forEach((sym, i) => {
+        const g = gathered[i];
+        if (!g) {
+          factBlocks.push({ heading: `${sym}`, body: 'No data available for this symbol.' });
+          return;
+        }
+        names[sym] = g.name;
+        factBlocks.push(...g.blocks.map((b) => ({ heading: `[${sym}] ${b.heading}`, body: b.body })));
+      });
+      const grounding = await retrieveInsightGrounding({
+        query: `compare ${Object.values(names).join(' vs ') || subject.symbols.join(' vs ')} — results, valuation, risks`,
+        userId,
+        docTypes: ['news', 'filing'],
+        limit: 12,
+      });
+      return { factBlocks, grounding, names };
+    }
+  }
+}
+
+async function handlePOST(request: Request) {
+  const userId = await getCurrentUserId();
+  if (!userId) return NextResponse.json({ success: false, error: 'Not authenticated' }, { status: 401 });
+
+  const parsed = bodySchema.safeParse(await request.json().catch(() => null));
+  if (!parsed.success) {
+    return NextResponse.json({ success: false, error: parsed.error.message }, { status: 422 });
+  }
+  const subject = parsed.data.subject;
+
+  const aiConfig = await getUserAiConfig(userId);
+  if (!aiConfig) {
+    return NextResponse.json(
+      { success: false, error: 'no_ai_key', hint: 'Add your AI provider key in Settings.' },
+      { status: 400 }
+    );
+  }
+
+  if (subject.type === 'company' || subject.type === 'comparison') {
+    // Confirm at least one symbol resolves before spending a generation.
+    const first = subject.type === 'company' ? subject.symbol : subject.symbols[0];
+    if (!(await getCompany(first))) {
+      return NextResponse.json(
+        { success: false, error: 'Could not load data for that symbol.' },
+        { status: 502 }
+      );
+    }
+  }
+  if (subject.type === 'portfolio') {
+    const holdings = await getEnrichedHoldings(userId).catch(() => []);
+    if (holdings.length === 0) {
+      return NextResponse.json({ success: false, error: 'No holdings to research yet.' }, { status: 400 });
+    }
+  }
+
+  const { factBlocks, grounding, names } = await assemble(subject, userId);
+  const promptSubject: ResearchSubject =
+    subject.type === 'company'
+      ? { type: 'company', symbol: subject.symbol, name: names?.[subject.symbol] }
+      : subject.type === 'comparison'
+        ? { type: 'comparison', symbols: subject.symbols, names }
+        : subject;
+
+  const prompt = buildResearchPrompt({ subject: promptSubject, factBlocks, grounding: grounding.passages });
+  const gen = await generateInsightText(aiConfig, RESEARCH_SYSTEM, prompt, {
+    maxOutputTokens: RESEARCH_MAX_TOKENS,
+  });
+  if (!gen.ok) {
+    return NextResponse.json({ success: false, error: gen.error }, { status: 502 });
+  }
+
+  return NextResponse.json({
+    success: true,
+    data: { content: gen.text, model: gen.model, generatedAt: new Date().toISOString() },
+    meta: { grounded: grounding.passages.length > 0, facts: factBlocks.length },
+  });
+}
+
+export const POST = withRateLimit(handlePOST, 'ai');
