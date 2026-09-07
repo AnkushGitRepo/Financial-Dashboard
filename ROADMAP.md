@@ -317,11 +317,9 @@ Scoped in the [ADR 0020 amendment](./docs/decisions/0020-phase-10-rag-chat.md#am
 
 A **structured brief** (fixed markdown sections), **retrieval + synthesis only** (no agentic loop — that's Phase 11), **ephemeral** (not stored). Subjects: company / theme / portfolio / comparison. `POST /api/research` (BYO key, `ai` tier, no cache) + `/dashboard/research` (`ResearchPageClient`, `MarkdownLite` renderer). 272 web tests green at ship.
 
-## Phase 11 — Multi-agent analytical briefings 🔄 scoped (1 open item)
+## Phase 11 — Multi-agent analytical briefings 🔄 scoped, build starting
 
-Scoped 2026-09-07 → [ADR 0021](./docs/decisions/0021-phase-11-multi-agent-analysis.md). Port the **analytical half** of TauricResearch/TradingAgents (Apache-2.0) — analyst team → bull/bear **debate** → synthesis — **as our own code, not a dependency**, and **stop before any trade decision** (no trader / risk-manager / position / simulated execution — the guardrail forbids it). Output: a debated briefing that may state which side of the debate is better-evidenced (a "direction"), never a recommendation/target, still ends "not investment advice." Full **reflection loop** in v1. Subject = one **stock** only (theme/portfolio/comparison stay Phase 10b's shallow tier).
-
-**Open item:** orchestrator runtime — ADR 0021 recommends **TS in the Next app** (reuses the whole `src/lib/ai/` layer, no new service); the alternative is a dedicated Python/LangGraph `services/agents/`. Confirm before building.
+Scoped 2026-09-07 → [ADR 0021](./docs/decisions/0021-phase-11-multi-agent-analysis.md) (accepted; runtime = **TS in the Next app**). Port the **analytical half** of TauricResearch/TradingAgents (Apache-2.0) — analyst team → bull/bear **debate** → synthesis — **as our own code, not a dependency**, and **stop before any trade decision** (no trader / risk-manager / position / simulated execution — the guardrail forbids it). Output: a debated briefing that may state which side of the debate is better-evidenced (a "direction"), never a recommendation/target, still ends "not investment advice." Full **reflection loop** in v1. Subject = one **stock** only (theme/portfolio/comparison stay Phase 10b's shallow tier).
 
 ### Part A — the pipeline (`src/lib/agents/`)
 - [ ] `AGENT_*_SYSTEM` prompts (fundamentals / news+sentiment / technical / macro analyst; bull; bear; synthesis) — each carries `GUARDRAIL`; synthesis prompt spells out the direction boundary.

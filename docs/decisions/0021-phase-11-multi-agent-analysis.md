@@ -1,9 +1,9 @@
 # 0021: Phase 11 — multi-agent analytical briefings (TradingAgents-pattern, in-house)
 
 Date: 2026-09-07
-Status: proposed (scoping decision — no code written yet). One open item —
-the orchestrator runtime — carries a recommendation below; confirm or
-override before the build.
+Status: accepted (scoping decision — no code written yet). The one open
+item — orchestrator runtime — was **resolved by the user 2026-09-07: TS in
+the Next app** (Part B as written). Build checklist: `ROADMAP.md` Phase 11.
 
 ## Context
 
@@ -230,10 +230,7 @@ obvious trade-action phrasing and regenerates once.
   comparison runs; that's Phase 10b's job at the shallow tier).
 - Backtesting or any historical-simulation harness.
 
-## Open item
+## Resolved (was the open item)
 
-- **Orchestrator runtime.** Recommended: **TS in the Next app** (Part B).
-  Confirm, or choose a dedicated Python/LangGraph `services/agents/`
-  service (which then needs its own ADR-scoped exception like the
-  fundamentals-api, a Vercel project, and a plan for duplicating the
-  BYO-key + guardrail layer).
+- **Orchestrator runtime → TS in the Next app** (Part B as written). No
+  Python/LangGraph service; the `agentRuns` doc is the checkpoint.
