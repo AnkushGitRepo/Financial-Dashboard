@@ -320,6 +320,15 @@
         "responses": { "200": { "description": "{ ran, fired, skippedNoData, errors, ... }" }, "401": { "description": "Bad / missing bearer." }, "503": { "description": "CRON_SECRET not set (production)." } }
       }
     },
+    "/api/cron/agents-reflect": {
+      "post": {
+        "tags": ["System"],
+        "summary": "Reflect on finished agent runs (Phase 11 Part C)",
+        "description": "Machine-to-machine. Bearer CRON_SECRET (dev-open, prod-503). For each `done` multi-agent run older than the reflection horizon (~21 days) with no reflection, writes a hindsight 'lessons' note comparing the debate's key claims to the stock's actual move, and prunes runs older than 120 days. `.github/workflows/agents-reflect.yml` calls it daily. Lessons are per-user and feed future runs.",
+        "security": [{ "cronBearer": [] }],
+        "responses": { "200": { "description": "{ considered, written, skipped, error, pruned, errors }" }, "401": { "description": "Bad / missing bearer." }, "503": { "description": "CRON_SECRET not set (production)." } }
+      }
+    },
     "/api/cron/index-corpus": {
       "post": {
         "tags": ["System"],

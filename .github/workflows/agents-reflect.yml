@@ -1,0 +1,37 @@
+# Phase 11 reflection loop (ADR 0021 Part C).
+#
+# Daily: writes a hindsight "lessons" reflection on finished multi-agent
+# runs older than the reflection horizon (~21 days), comparing what the
+# debate emphasised to what the price actually did, and prunes very old
+# runs. Lessons are per-user and feed future runs on the same stock/sector.
+#
+# ACTIVATION: add the CRON_SECRET repo secret (same value as on the
+# marketmitra-v2 Vercel project). Fires from the default branch only.
+
+name: agents-reflect
+
+on:
+  schedule:
+    - cron: "40 2 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: agents-reflect
+  cancel-in-progress: false
+
+jobs:
+  reflect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Run the reflection sweep
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          TARGET_URL: ${{ vars.AGENTS_REFLECT_URL || 'https://marketmitra-v2.vercel.app/api/cron/agents-reflect' }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::error::CRON_SECRET repo secret is not set — see this workflow's ACTIVATION notes."
+            exit 1
+          fi
+          curl --fail-with-body --silent --show-error --max-time 290 \
+            -X POST -H "Authorization: Bearer ${CRON_SECRET}" "${TARGET_URL}"

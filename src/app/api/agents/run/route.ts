@@ -48,7 +48,13 @@ async function handlePOST(request: Request) {
   const priceAtRun =
     (prices ?? []).map((p) => Number(p.close)).filter((c) => Number.isFinite(c) && c > 0).at(-1) ?? null;
 
-  const id = await createRun({ userId, symbol, companyName: company.name, priceAtRun });
+  const id = await createRun({
+    userId,
+    symbol,
+    companyName: company.name,
+    sector: company.sector ?? null,
+    priceAtRun,
+  });
 
   // Kick the worker without blocking the response. The safety-net
   // workflow (agents-tick.yml) sweeps if this fetch is dropped.

@@ -5,6 +5,7 @@ import type { AgentRunDoc } from './store';
 const m = vi.hoisted(() => ({
   getUserAiConfig: vi.fn(),
   gatherAnalystContext: vi.fn(),
+  buildLessonsContext: vi.fn(),
   runAnalysts: vi.fn(),
   runDebateRound: vi.fn(),
   runSynthesis: vi.fn(),
@@ -15,6 +16,7 @@ const m = vi.hoisted(() => ({
 
 vi.mock('@/lib/ai/userAiConfig', () => ({ getUserAiConfig: m.getUserAiConfig }));
 vi.mock('./context', () => ({ gatherAnalystContext: m.gatherAnalystContext }));
+vi.mock('./lessons', () => ({ buildLessonsContext: m.buildLessonsContext }));
 vi.mock('./orchestrator', async (orig) => ({
   ...(await orig<typeof import('./orchestrator')>()),
   runAnalysts: m.runAnalysts,
@@ -31,9 +33,11 @@ const baseDoc = (over: Partial<AgentRunDoc> = {}): AgentRunDoc => ({
   userId: 'u1',
   symbol: 'RELIANCE',
   companyName: 'Reliance',
+  sector: 'Energy',
   status: 'running',
   phase: 'analysts',
   priceAtRun: 100,
+  lessonsContext: null,
   analystReports: [],
   debateTurns: [],
   debateRoundsDone: 0,
@@ -53,6 +57,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   m.getUserAiConfig.mockResolvedValue({ provider: 'gemini', apiKey: 'k' });
   m.gatherAnalystContext.mockResolvedValue({});
+  m.buildLessonsContext.mockResolvedValue(null);
   m.runAnalysts.mockResolvedValue([{ role: 'fundamentals', text: 'F', hadData: true }]);
   m.runDebateRound.mockResolvedValue([
     { side: 'bull', round: 1, text: 'b' },
@@ -70,10 +75,26 @@ describe('advanceRun', () => {
     expect(m.patchRun.mock.calls[0][1]).toMatchObject({ status: 'error' });
   });
 
-  it('analysts phase → runs analysts, advances to debate', async () => {
+  it('analysts phase → runs analysts, resolves lessons, advances to debate', async () => {
+    m.buildLessonsContext.mockResolvedValue('Lessons from earlier panels: …');
     const r = await advanceRun(baseDoc({ phase: 'analysts' }));
     expect(r).toEqual({ done: false, phase: 'debate', status: 'running' });
-    expect(m.patchRun.mock.calls[0][1]).toMatchObject({ phase: 'debate', debateRoundsDone: 0 });
+    expect(m.patchRun.mock.calls[0][1]).toMatchObject({
+      phase: 'debate',
+      debateRoundsDone: 0,
+      lessonsContext: 'Lessons from earlier panels: …',
+    });
+  });
+
+  it('passes stored lessonsContext into the debate + synthesis phases', async () => {
+    await advanceRun(baseDoc({ phase: 'debate', debateRoundsDone: 0, lessonsContext: 'L' }));
+    expect(m.runDebateRound).toHaveBeenCalledWith(expect.anything(), [], [], 1, 'L');
+    vi.clearAllMocks();
+    m.getUserAiConfig.mockResolvedValue({ provider: 'gemini', apiKey: 'k' });
+    m.runSynthesis.mockResolvedValue({ briefing: 'b', regenerated: false });
+    m.extractKeyClaims.mockResolvedValue([]);
+    await advanceRun(baseDoc({ phase: 'synthesis', lessonsContext: 'L' }));
+    expect(m.runSynthesis).toHaveBeenCalledWith(expect.anything(), [], [], 'L');
   });
 
   it('analysts phase → errors on a PhaseError', async () => {

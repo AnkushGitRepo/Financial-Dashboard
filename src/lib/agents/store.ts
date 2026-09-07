@@ -18,9 +18,13 @@ export interface AgentRunDoc {
   userId: string;
   symbol: string;
   companyName: string | null;
+  sector: string | null;
   status: RunStatus;
   phase: RunPhase;
   priceAtRun: number | null;
+  /** Lessons from the user's past reflected runs, resolved once in the
+   *  analysts phase and reused by the debate + synthesis phases. */
+  lessonsContext: string | null;
   analystReports: AnalystReport[];
   debateTurns: DebateTurn[];
   debateRoundsDone: number;
@@ -84,6 +88,7 @@ export async function createRun(input: {
   userId: string;
   symbol: string;
   companyName: string | null;
+  sector: string | null;
   priceAtRun: number | null;
 }): Promise<string> {
   const col = await collection();
@@ -93,9 +98,11 @@ export async function createRun(input: {
     userId: input.userId,
     symbol: input.symbol,
     companyName: input.companyName,
+    sector: input.sector,
     status: 'queued',
     phase: 'analysts',
     priceAtRun: input.priceAtRun,
+    lessonsContext: null,
     analystReports: [],
     debateTurns: [],
     debateRoundsDone: 0,
@@ -164,7 +171,55 @@ export async function ensureAgentRunsIndexes(): Promise<void> {
     { key: { userId: 1, status: 1 }, name: 'user_status' },
     { key: { status: 1, lockedAt: 1, createdAt: 1 }, name: 'claimable' },
     { key: { createdAt: 1 }, name: 'created' },
+    { key: { userId: 1, symbol: 1, 'reflection.writtenAt': 1 }, name: 'user_symbol_reflected' },
   ]);
+}
+
+// ---- Part C: reflection loop -------------------------------------------
+
+/** `done` runs older than `horizonDays` with no reflection yet. */
+export async function findRunsNeedingReflection(
+  horizonDays: number,
+  limit: number
+): Promise<AgentRunDoc[]> {
+  const col = await collection();
+  const cutoff = new Date(Date.now() - horizonDays * 24 * 60 * 60 * 1000);
+  return col
+    .find({ status: 'done', reflection: null, createdAt: { $lt: cutoff } })
+    .sort({ createdAt: 1 })
+    .limit(limit)
+    .toArray();
+}
+
+/** The user's own past runs on this symbol (then sector) that carry a
+ *  reflection — newest first, for injecting lessons into a fresh run. */
+export async function reflectedRunsForContext(
+  userId: string,
+  symbol: string,
+  sector: string | null,
+  limit: number
+): Promise<AgentRunDoc[]> {
+  const col = await collection();
+  const bySymbol = await col
+    .find({ userId, symbol, reflection: { $ne: null } })
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .toArray();
+  if (bySymbol.length >= limit || !sector) return bySymbol.slice(0, limit);
+  const seen = new Set(bySymbol.map((r) => r._id.toString()));
+  const bySector = await col
+    .find({ userId, sector, symbol: { $ne: symbol }, reflection: { $ne: null } })
+    .sort({ createdAt: -1 })
+    .limit(limit - bySymbol.length)
+    .toArray();
+  return [...bySymbol, ...bySector.filter((r) => !seen.has(r._id.toString()))].slice(0, limit);
+}
+
+export async function pruneOldRuns(days: number): Promise<number> {
+  const col = await collection();
+  const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  const res = await col.deleteMany({ createdAt: { $lt: cutoff } });
+  return res.deletedCount ?? 0;
 }
 
 /** For Part C's reflection sweep. */

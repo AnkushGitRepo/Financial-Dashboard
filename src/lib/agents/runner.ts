@@ -5,6 +5,7 @@
 
 import { getUserAiConfig } from '@/lib/ai/userAiConfig';
 import { gatherAnalystContext } from './context';
+import { buildLessonsContext } from './lessons';
 import {
   extractKeyClaims,
   isPhaseError,
@@ -37,11 +38,15 @@ export async function advanceRun(doc: AgentRunDoc): Promise<AdvanceResult> {
     const model = doc.model ?? config.model?.trim() ?? `${config.provider} (default)`;
 
     if (doc.phase === 'analysts') {
-      const ctx = await gatherAnalystContext(doc.symbol, doc.userId);
+      const [ctx, lessonsContext] = await Promise.all([
+        gatherAnalystContext(doc.symbol, doc.userId),
+        buildLessonsContext(doc.userId, doc.symbol, doc.sector).catch(() => null),
+      ]);
       const reports = await runAnalysts(config, ctx);
       if (isPhaseError(reports)) return fail(id, reports.error);
       await patchRun(id, {
         analystReports: reports,
+        lessonsContext,
         model,
         phase: 'debate',
         debateRoundsDone: 0,
@@ -52,7 +57,13 @@ export async function advanceRun(doc: AgentRunDoc): Promise<AdvanceResult> {
 
     if (doc.phase === 'debate') {
       const nextRound = doc.debateRoundsDone + 1;
-      const turns = await runDebateRound(config, doc.analystReports, doc.debateTurns, nextRound);
+      const turns = await runDebateRound(
+        config,
+        doc.analystReports,
+        doc.debateTurns,
+        nextRound,
+        doc.lessonsContext ?? undefined
+      );
       if (isPhaseError(turns)) return fail(id, turns.error);
       const lastRound = nextRound >= DEBATE_ROUNDS;
       await patchRun(id, {
@@ -65,7 +76,12 @@ export async function advanceRun(doc: AgentRunDoc): Promise<AdvanceResult> {
     }
 
     if (doc.phase === 'synthesis') {
-      const synth = await runSynthesis(config, doc.analystReports, doc.debateTurns);
+      const synth = await runSynthesis(
+        config,
+        doc.analystReports,
+        doc.debateTurns,
+        doc.lessonsContext ?? undefined
+      );
       if (isPhaseError(synth)) return fail(id, synth.error);
       const keyClaims = await extractKeyClaims(config, synth.briefing, doc.debateTurns);
       await patchRun(id, {

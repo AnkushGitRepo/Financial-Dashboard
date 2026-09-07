@@ -69,10 +69,12 @@ export async function runDebateRound(
   config: AiConfig,
   reports: AnalystReport[],
   prior: DebateTurn[],
-  round: number
+  round: number,
+  lessons?: string
 ): Promise<[DebateTurn, DebateTurn] | PhaseError> {
   const priorBlock = prior.length ? `\n\nDebate so far:\n${debateBlock(prior)}` : '';
-  const base = `Analyst reports:\n${analystDigest(reports)}${priorBlock}`;
+  const lessonBlock = lessons ? `\n\n${lessons}` : '';
+  const base = `Analyst reports:\n${analystDigest(reports)}${lessonBlock}${priorBlock}`;
 
   const bull = await generateInsightText(
     config,
@@ -99,9 +101,11 @@ export async function runDebateRound(
 export async function runSynthesis(
   config: AiConfig,
   reports: AnalystReport[],
-  debate: DebateTurn[]
+  debate: DebateTurn[],
+  lessons?: string
 ): Promise<{ briefing: string; regenerated: boolean } | PhaseError> {
-  const prompt = `Analyst reports:\n${analystDigest(reports)}\n\nFull debate:\n${debateBlock(debate)}`;
+  const lessonBlock = lessons ? `\n\n${lessons}` : '';
+  const prompt = `Analyst reports:\n${analystDigest(reports)}${lessonBlock}\n\nFull debate:\n${debateBlock(debate)}`;
 
   let gen = await generateInsightText(config, SYNTHESIS_SYSTEM, prompt, {
     maxOutputTokens: SYNTHESIS_TOKENS,
