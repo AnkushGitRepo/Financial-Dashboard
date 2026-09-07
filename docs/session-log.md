@@ -140,3 +140,10 @@ Rolling log of work sessions, most recent first is NOT required — append chron
 - UI: `/dashboard/research` (`ResearchPageClient` — subject tabs → input → Generate → rendered brief), design-system `page.module.css`, "Research" nav item. New `src/components/MarkdownLite.tsx` + `markdownLiteParse.ts` (a deliberately tiny markdown subset — `##`/`###`, bullets, `**bold**`/`*em*`; 7 parser tests; no new dep).
 - `public/openapi.json` + `docs/api-surface.md` + `docs/architecture.md` entries; ADR 0020 amendment covers the scope.
 - **272 web tests / tsc / lint / `next build` green.** Branch `phase-10b-research` (2 commits), **not merged/deployed** — awaiting sign-off.
+
+## 2026-09-07 — Phase 10b reviewed, merged, deployed + archived
+
+- User reviewed the PR ([#1](https://github.com/AnkushGitRepo/Financial-Dashboard/pull/1), now MERGED) and approved. `phase-10b-research` fast-forwarded into `main` + `v2`; `marketmitra-v2` deployed (`65h11tfyh`). Smoke: `/` 200, `POST /api/research` 401 (loads), `/dashboard/research` 404-unauth (not 500). Next-app only — no fundamentals-api deploy.
+- _(Preview deploy was attempted first and failed — this project's Vercel env vars are all Production-scoped, so a Preview build can't collect page data. User reviewed via the PR diff + local instead.)_
+- **Archiving pass:** `docs/archive/rag-chat.md` gained a "Phase 10b — the research surface" section (full detail); `ROADMAP.md` Phase 10b → ✅; `CLAUDE.md` Current phase → "Phases 0–10b signed off + archived; Phase 11 still ❓", Active focus → "No build in flight". `session-log.md` at 15 entries — at the rollup threshold; roll the pre-Phase-10 entries next session if it grows.
+- **Next:** Phase 11 (multi-agent) needs a scoping session — the `src/lib/rag/` layer + MCP tools + the agentic chat are its foundation. Non-blocking: pre-bundle the embedding model; the two market-hours fire tests.

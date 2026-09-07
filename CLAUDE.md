@@ -8,13 +8,13 @@ MarketMitra is a financial dashboard (Indian markets: indices, stocks, IPOs, new
 
 ## Current phase
 
-**Phases 0–10a signed off + archived; Phase 10b scoped (ADR 0020), not started.** Everything through the retrieval layer is live in production. Per-feature build detail lives in `/docs/archive/*.md`; `/docs/architecture.md` has the current-state summaries; `/docs/session-log.md` has the play-by-play.
+**Phases 0–10b signed off + archived; Phase 11 (multi-agent) still ❓.** Everything through the research surface is live in production. Per-feature build detail lives in `/docs/archive/*.md`; `/docs/architecture.md` has the current-state summaries; `/docs/session-log.md` has the play-by-play.
 
 **Phase 10a — RAG** ([ADR 0020](./docs/decisions/0020-phase-10-rag-chat.md)) — done, archived, deployed + verified live on hosted 2026-09-07. `chunks` collection + Atlas Vector Search index; **embeddings run on `services/fundamentals-api` `POST /embed`** (`fastembed`, `bge-small-en-v1.5`, 384-dim — NOT in the Next app; `onnxruntime-node` won't load on Vercel), `src/lib/rag/embed.ts` is an HTTP client to it; `POST /api/cron/index-corpus` (`.github/workflows/index-corpus.yml`, every 2 h); agentic tool-calling chat (`search_context` + the 7 MCP tools); retrieval-grounded stock/portfolio/IPO insights; per-user layer (`/api/notes` + `/dashboard/notes`, holdings snapshot, chat history). **Everything degrades to pre-Phase-10 behaviour** when the corpus/embed service is unavailable. Full detail + the onnxruntime saga: [`/docs/archive/rag-chat.md`](./docs/archive/rag-chat.md). `EMBED_DIM = 384` must stay in lockstep across `embed.ts` / `embeddings.py` / the index def in `chunks.ts`.
 
-**Phase 10b** — a dedicated `/dashboard/research` surface — scoped in ADR 0020, **not built**. **Phase 11** (multi-agent) still ❓ — needs its own scoping session.
+**Phase 10b — research surface** ([ADR 0020 amendment](./docs/decisions/0020-phase-10-rag-chat.md#amendment-2026-09-07-phase-10b-scoped)) — done, archived, deployed 2026-09-07. `POST /api/research` (subject = company | theme | portfolio | comparison; BYO key, `ai` tier, **no cache**, `generateInsightText` @ 3.5k tokens) + `/dashboard/research` (`ResearchPageClient` + `MarkdownLite`). A structured brief, retrieval + synthesis only — **no agentic loop** (that's Phase 11). Detail: [`/docs/archive/rag-chat.md`](./docs/archive/rag-chat.md#phase-10b--the-research-surface). **Phase 11** (multi-agent, TradingAgents-style, built in-house) still ❓ — needs its own scoping session; do not build from assumptions.
 
-**Still open** (non-blocking): one real alert fire + one real IPO-alert fire in market hours; README self-host note for the RAG env; pre-bundle the embedding model (kills a ~18s cold-instance download); a "clear chat history" control in the widget; filings-in-corpus needs an un-blocked PDF host (BSE 403s Vercel's IP). Optional Resend verified domain in `ALERT_EMAIL_FROM`; rotate the Resend + Resend keys pasted in chat.
+**Still open** (non-blocking): one real alert fire + one real IPO-alert fire in market hours; pre-bundle the `bge-small` embedding model (kills a ~18s cold-instance download); filings-in-corpus needs an un-blocked PDF host (BSE 403s Vercel's IP). Optional Resend verified domain in `ALERT_EMAIL_FROM`; rotate the Resend + `re_…` keys pasted in chat.
 
 **`main` = `v2`** — merged 2026-09-06 so the GitHub Actions `schedule:` triggers fire; every commit since is pushed to both. Start new feature work from a fresh branch off `main`.
 
@@ -43,11 +43,11 @@ MarketMitra is a financial dashboard (Indian markets: indices, stocks, IPOs, new
 
 ## Active focus
 
-**No build in flight.** Phases 0–10a are signed off, archived, and in production. The next feature-level work is **Phase 10b** (a dedicated `/dashboard/research` surface — scoped in [ADR 0020](./docs/decisions/0020-phase-10-rag-chat.md), not built) or **Phase 11** (multi-agent — ❓, needs a scoping session first). Neither should be started from assumptions.
+**No build in flight.** Phases 0–10b are signed off, archived, and in production. The next feature-level work is **Phase 11** (multi-agent analytical agents, TradingAgents-style, built in-house — ❓) — needs its own scoping session first, do not build from assumptions. Phase 12 (mobile) has a full spec already (`marketmitra-mobile-app-prompt.md`) but is deprioritised.
 
-The `src/lib/rag/` layer + the MCP tools are the foundation for both — Phase 10b builds a UI on `retrieve()`; Phase 11 orchestrates the tool-calling chat that already exists.
+`src/lib/rag/` + the MCP tools + the agentic tool-calling chat (`/api/ai/chat`) are the foundation Phase 11 orchestrates.
 
-**Non-blocking follow-ups** (see ROADMAP.md): README self-host note for the RAG env (`FUNDAMENTALS_API_URL` reachable from the app + `IPO_INGEST_TOKEN` shared between the two services); pre-bundle the `bge-small` embedding model; a "clear chat history" control in `AiWidget`; filings-in-corpus (blocked — BSE 403s Vercel); one real alert fire + one real IPO-alert fire in market hours.
+**Non-blocking follow-ups** (see ROADMAP.md): pre-bundle the `bge-small` embedding model into the fundamentals-api deployment; filings-in-corpus (blocked — BSE 403s Vercel); one real alert fire + one real IPO-alert fire in market hours.
 
 **Standing facts that outlived the phase detail:**
 

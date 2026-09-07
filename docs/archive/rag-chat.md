@@ -6,8 +6,8 @@ hosted instance 2026-09-07** (150 news docs embedded into the corpus, `errors: [
 summary in [`/docs/architecture.md`](../architecture.md); per-endpoint reference in
 [`/docs/api-surface.md`](../api-surface.md).
 
-Phase 10b (a dedicated `/dashboard/research` surface) is scoped in ADR 0020 but **not
-built**.
+Phase 10b (the `/dashboard/research` surface) shipped 2026-09-07 — see the section at the
+end.
 
 ## What shipped
 
@@ -181,5 +181,36 @@ Python `test_embed`, `test_pdf_text`.
 - Pre-bundle the embedding model into the deployment to kill the ~18s cold-instance
   download.
 - Filings-in-corpus needs an un-blocked PDF host, or a DRHP-URL source for the IPO briefs.
-- A "clear chat history" control in the chat widget.
-- Phase 10b — the dedicated research surface.
+- Pre-bundling the `bge-small` embedding model into the fundamentals-api deployment.
+
+## Phase 10b — the research surface
+
+Scoped in the [ADR 0020 amendment](../decisions/0020-phase-10-rag-chat.md#amendment-2026-09-07-phase-10b-scoped);
+built + deployed 2026-09-07 (`fa98358`, `69fbffb`). A **structured** research brief —
+retrieval + synthesis only (no agentic loop; that stays Phase 11), **ephemeral** (not
+stored or listed).
+
+- **`RESEARCH_SYSTEM`** (`src/lib/ai/prompts.ts`) — a fixed markdown section template
+  (`## What it is` / `## Recent developments` / `## The numbers` / `## Risks & watch-items`
+  / `## Open questions`), guardrail unchanged.
+- **`src/lib/ai/researchPrompts.ts`** (pure) — `describeSubject()` +
+  `buildResearchPrompt({ subject, factBlocks, grounding })`. The route owns the per-type
+  `fundamentalsApi` gathering; this just lays it out. 7 tests.
+- **`POST /api/research`** — zod discriminated union on `subject.type`: `company` (`symbol`),
+  `theme` (`text`), `portfolio`, `comparison` (`symbols[2..4]`). Per-user BYO key
+  (`getUserAiConfig`), `ai` rate-limit tier, **no cache**. `companyFacts()` gathers ratios /
+  financials pivot / shareholding / price for one symbol, shared by `company` and each
+  `comparison` member. `retrieveInsightGrounding()` per type (`docTypes` vary). Pre-flight
+  symbol/holdings checks so a bad request doesn't spend a generation.
+  `generateInsightText` gained an optional `maxOutputTokens` (3500 here). Degrades to
+  structured-data-only (still 200) when retrieval is empty. 8 route tests.
+- **`/dashboard/research`** — `ResearchPageClient`: subject-type tabs → input(s) → Generate
+  → the rendered brief + a "not investment advice" meta line. No history/list (ephemeral).
+  Design-system `page.module.css`; "Research" nav item.
+- **`src/components/MarkdownLite.tsx`** + **`markdownLiteParse.ts`** — a deliberately tiny
+  markdown subset (`##`/`###`/`####`, `-`/`*` bullets, `**bold**`/`*em*`; no links, images,
+  or HTML — the model is told not to emit them). Pure parser (`parseMarkdownLite` →
+  `Block[]`, 7 tests) + a thin JSX renderer. No new dependency.
+- 272 web tests at ship. `public/openapi.json` + `docs/api-surface.md` entries.
+- **Out of scope** (deliberately): persisted/shareable reports, a plan→act loop (Phase 11),
+  web search / any new source, token-streaming the report.

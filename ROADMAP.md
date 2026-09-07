@@ -311,17 +311,11 @@ _Signed off, merged to `main`/`v2`, both projects deployed, RAG verified live on
 - [x] **"Clear" control in `AiWidget`** — header button (shown when the transcript is non-empty) → `DELETE /api/ai/chat` (wipes server history + the `chat:<userId>` corpus entry) + clears local state. Best-effort.
 - [ ] **Follow-ups (non-blocking):** pre-bundle the `bge-small` embedding model to kill the ~18s cold-instance download; filings-in-corpus needs an un-blocked PDF host (or a DRHP-URL source).
 
-### Phase 10b — dedicated research surface 🔄 code-complete on `phase-10b-research`
+### Phase 10b — dedicated research surface ✅ deployed 2026-09-07
 
-Scoped 2026-09-07 → [ADR 0020 amendment](./docs/decisions/0020-phase-10-rag-chat.md#amendment-2026-09-07-phase-10b-scoped). A **structured report** (fixed sections: what it is / recent developments / the numbers / risks / open questions), **retrieval + synthesis only** (no agentic loop — that's Phase 11), **ephemeral** (not stored/listed). Subjects: one company, a theme/sector, the portfolio, or a comparison.
+Scoped in the [ADR 0020 amendment](./docs/decisions/0020-phase-10-rag-chat.md#amendment-2026-09-07-phase-10b-scoped); built on `phase-10b-research`, reviewed, merged to `main`/`v2`, `marketmitra-v2` deployed (`65h11tfyh`). Full detail in [`docs/archive/rag-chat.md`](./docs/archive/rag-chat.md#phase-10b--the-research-surface).
 
-- [x] **`RESEARCH_SYSTEM` prompt** (`src/lib/ai/prompts.ts`) — fixed markdown section template (what it is / recent developments / the numbers / risks / open questions), guardrail intact.
-- [x] **`src/lib/ai/researchPrompts.ts`** (pure) — `describeSubject()` + `buildResearchPrompt({ subject, factBlocks, grounding })`. 7 tests. (The per-type `fundamentalsApi` gathering lives in the route.)
-- [x] **`POST /api/research`** — zod discriminated union on `subject.type`; `getUserAiConfig` (BYO, per-user); `ai` tier; `generateInsightText` @ 3500 tokens (added an optional `maxOutputTokens`); **no cache**. `companyFacts()` shared by `company` + each `comparison` member; `retrieveInsightGrounding` per type; degrades to structured-data-only. 8 route tests. `public/openapi.json` entry (CI check passes).
-- [x] **`/dashboard/research`** — `ResearchPageClient` (subject tabs → input(s) → Generate → rendered brief), `page.module.css` (design-system), "Research" nav item. `src/components/MarkdownLite.tsx` + `markdownLiteParse.ts` (tiny markdown subset: `##`/`###`, bullets, `**bold**`; 7 parser tests).
-- [x] **Cross-cutting** — 272 web tests / tsc / lint / `next build` green; `docs/architecture.md` + `docs/api-surface.md` entries; ADR 0020 amendment. **Branch `phase-10b-research`, not merged/deployed — awaiting sign-off.**
-
-_Out of scope: persisted/shareable reports, a plan→act loop (Phase 11), web search or any new source, token-streaming the report._
+A **structured brief** (fixed markdown sections), **retrieval + synthesis only** (no agentic loop — that's Phase 11), **ephemeral** (not stored). Subjects: company / theme / portfolio / comparison. `POST /api/research` (BYO key, `ai` tier, no cache) + `/dashboard/research` (`ResearchPageClient`, `MarkdownLite` renderer). 272 web tests green at ship.
 
 ## Phase 11 — Advanced Analytical Agents (TradingAgents-pattern, built in-house) ❓
 Needs a dedicated discussion once Phase 8–10 exist to build on. Reminder: this means building our own multi-agent analysis pattern inspired by TauricResearch's architecture — not importing their repo as a dependency.
