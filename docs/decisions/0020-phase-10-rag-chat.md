@@ -187,3 +187,52 @@ Nothing user-specific is ever visible to another user.
   (DRHP grounding included and its deferred follow-up closes here).
   **Phase 10b** = the dedicated `/dashboard/research` surface, as a
   follow-on phase after 10a ships and is validated.
+
+## Amendment (2026-09-07): Phase 10b scoped
+
+Phase 10a shipped and is verified live, so Phase 10b was scoped (a
+4-question session). Answers:
+
+1. **Shape → a structured report.** One subject in, one longer-form output
+   rendered in fixed sections (what it is / recent developments / the
+   numbers / risks / open questions), adapted per subject type. Not a
+   chat-style thread.
+2. **Subject → all four:** one company, a theme/sector (free text), the
+   user's whole portfolio, or a comparison of 2–4 companies.
+3. **Agency → retrieval + synthesis, not an agentic loop.** One retrieval
+   pass (parallel queries allowed) + tool calls for live numbers, then
+   write — like grounded insights but longer and wider. **Phase 11 stays
+   the real multi-agent work**; 10b must not grow a plan→act loop.
+4. **Output → ephemeral.** Generated on demand, not stored, no list view,
+   no new collection. Re-run for a fresh one; the user can paste it into a
+   note (`/dashboard/notes`) to keep it.
+
+### Decision — Phase 10b
+
+- **`POST /api/research`** — body `{ subject: { type: 'company' | 'theme' |
+  'portfolio' | 'comparison', symbol?/symbols?/text? } }`. Per-user key
+  (`getUserAiConfig`, BYO — same as `/api/insights/*`); `ai` rate-limit
+  tier; guardrail unchanged (no buy/sell/hold, "…not investment advice").
+  Non-streaming `generateInsightText` with a higher `maxOutputTokens`
+  (~3–4k) and a new `RESEARCH_SYSTEM` prompt carrying the section template.
+  **No cache** (ephemeral) — one submit, one generation.
+- **Context builders** (`src/lib/ai/researchPrompts.ts`, pure): per subject
+  type, assemble structured data (reuse `fundamentalsApi` gathering like
+  the stock/portfolio insight routes) + `retrieveInsightGrounding()` output
+  (`docTypes` per type). Comparison fans out per symbol.
+- **`/dashboard/research`** — a client page: subject-type tabs
+  (Company / Theme / Portfolio / Compare) → input → Generate → the rendered
+  report (markdown → sections). No history/list. Nav item added. Built
+  against `/docs/design-system.md`.
+- **Degradation:** retrieval unavailable → the report still generates from
+  structured data + the model's general knowledge and says where detail is
+  thin — identical to the grounded-insight fallback.
+
+### Explicitly out of Phase 10b scope
+
+- Persisted / listable / shareable reports (that's the "ephemeral" answer).
+- A plan→retrieve→act agentic loop (that's Phase 11).
+- Web search or any new external source — the existing corpus + MCP tools
+  + `fundamentalsApi` only.
+- Streaming the report token-by-token — a single rendered result is fine;
+  revisit only if latency feels bad.

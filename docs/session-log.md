@@ -128,3 +128,8 @@ Rolling log of work sessions, most recent first is NOT required — append chron
 - **`CLAUDE.md`** — Current phase → "Phases 0–10a signed off + archived; Phase 10b scoped, not started"; Active focus → "No build in flight" with the `EMBED_DIM=384` lockstep note + non-blocking follow-ups.
 - `session-log.md` at 12 entries — under the ~15-20 rollup threshold, left intact. `decisions/` / `data-sources.md` / `api-surface.md` untouched (living reference).
 - **Next:** Phase 10b (research surface) or Phase 11 (multi-agent) — both need a scoping pass, neither started from assumptions.
+
+## 2026-09-07 — Phase 10a follow-ups + Phase 10b scoped
+
+- **Phase 10a loose ends shipped** (`eb746f6`): README "Retrieval / RAG" self-host section + `.env.local.example` (`IPO_INGEST_TOKEN`, `CRON_SECRET`-guards-`index-corpus`); a "Clear" control in `AiWidget` → `DELETE /api/ai/chat` (server history + `chat:<userId>` corpus entry) + local reset. 250 tests green, deployed (`do4eykh3h`).
+- **Phase 10b scoped** (4-question session) → [ADR 0020 amendment](./decisions/0020-phase-10-rag-chat.md). A **structured report** (fixed sections), **retrieval + synthesis only** (no agentic loop — Phase 11's job), **ephemeral** (not stored/listed). Subjects: company / theme / portfolio / comparison. Design: `POST /api/research` (BYO key, `ai` tier, no cache, `generateInsightText` @ ~3–4k tokens) + `src/lib/ai/researchPrompts.ts` (pure builders reusing the insight-route gathering + `retrieveInsightGrounding`) + `/dashboard/research` client page (subject tabs → input → rendered report, no history). 5-item build checklist in ROADMAP. **Not started.**
