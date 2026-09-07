@@ -311,15 +311,15 @@ _Signed off, merged to `main`/`v2`, both projects deployed, RAG verified live on
 - [x] **"Clear" control in `AiWidget`** — header button (shown when the transcript is non-empty) → `DELETE /api/ai/chat` (wipes server history + the `chat:<userId>` corpus entry) + clears local state. Best-effort.
 - [ ] **Follow-ups (non-blocking):** pre-bundle the `bge-small` embedding model to kill the ~18s cold-instance download; filings-in-corpus needs an un-blocked PDF host (or a DRHP-URL source).
 
-### Phase 10b — dedicated research surface 🔄 scoped
+### Phase 10b — dedicated research surface 🔄 code-complete on `phase-10b-research`
 
 Scoped 2026-09-07 → [ADR 0020 amendment](./docs/decisions/0020-phase-10-rag-chat.md#amendment-2026-09-07-phase-10b-scoped). A **structured report** (fixed sections: what it is / recent developments / the numbers / risks / open questions), **retrieval + synthesis only** (no agentic loop — that's Phase 11), **ephemeral** (not stored/listed). Subjects: one company, a theme/sector, the portfolio, or a comparison.
 
-- [ ] **`RESEARCH_SYSTEM` prompt** (`src/lib/ai/prompts.ts`) — the section template + guardrail, one base + a note per subject type.
-- [ ] **`src/lib/ai/researchPrompts.ts`** (pure) — per subject type (`company` | `theme` | `portfolio` | `comparison`), assemble structured data (reuse the `fundamentalsApi` gathering from the stock/portfolio insight routes) + `retrieveInsightGrounding()` (`docTypes` per type; comparison fans out per symbol). Unit-tested.
-- [ ] **`POST /api/research`** — body `{ subject: { type, symbol?/symbols?/text? } }` (zod). `getUserAiConfig` (BYO key, per-user, like `/api/insights/*`); `ai` rate-limit tier; `generateInsightText` non-streaming with `maxOutputTokens` ~3–4k. **No cache.** Guardrail unchanged. Degrades to structured-data-only when retrieval is unavailable. `public/openapi.json` entry (+ CI check).
-- [ ] **`/dashboard/research`** — client page: subject-type tabs (Company / Theme / Portfolio / Compare) → input(s) → Generate → rendered report (markdown → sections). No history/list. `page.module.css` against `/docs/design-system.md`. "Research" nav item in `AppHeader`.
-- [ ] **Cross-cutting** — `tsc` / `lint` / `next build` / `npm test` green; `docs/architecture.md` + `docs/api-surface.md` entries; ADR 0020 amendment → built; prod deploy.
+- [x] **`RESEARCH_SYSTEM` prompt** (`src/lib/ai/prompts.ts`) — fixed markdown section template (what it is / recent developments / the numbers / risks / open questions), guardrail intact.
+- [x] **`src/lib/ai/researchPrompts.ts`** (pure) — `describeSubject()` + `buildResearchPrompt({ subject, factBlocks, grounding })`. 7 tests. (The per-type `fundamentalsApi` gathering lives in the route.)
+- [x] **`POST /api/research`** — zod discriminated union on `subject.type`; `getUserAiConfig` (BYO, per-user); `ai` tier; `generateInsightText` @ 3500 tokens (added an optional `maxOutputTokens`); **no cache**. `companyFacts()` shared by `company` + each `comparison` member; `retrieveInsightGrounding` per type; degrades to structured-data-only. 8 route tests. `public/openapi.json` entry (CI check passes).
+- [x] **`/dashboard/research`** — `ResearchPageClient` (subject tabs → input(s) → Generate → rendered brief), `page.module.css` (design-system), "Research" nav item. `src/components/MarkdownLite.tsx` + `markdownLiteParse.ts` (tiny markdown subset: `##`/`###`, bullets, `**bold**`; 7 parser tests).
+- [x] **Cross-cutting** — 272 web tests / tsc / lint / `next build` green; `docs/architecture.md` + `docs/api-surface.md` entries; ADR 0020 amendment. **Branch `phase-10b-research`, not merged/deployed — awaiting sign-off.**
 
 _Out of scope: persisted/shareable reports, a plan→act loop (Phase 11), web search or any new source, token-streaming the report._
 

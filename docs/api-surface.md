@@ -150,6 +150,18 @@ Every endpoint here is a Next.js App Router route handler under `app/api/**/rout
 - **Response:** `data` = `{ content, model, generatedAt }`; `meta.cached` = whether it came from the cache.
 - **Errors:** `400` `no_ai_key` / no holdings / bad symbol-data; `404` unknown IPO slug; `502` on a generation failure (the error text is the provider's, normalised).
 
+### `POST /api/research`  _(Phase 10b, ADR 0020 amendment)_
+- **Purpose:** Generate a longer **structured research brief** — markdown sections (what it is / recent developments / the numbers / risks / open questions), retrieval + synthesis (no agentic loop). Same guardrail as the insight surfaces.
+- **Auth:** required. Uses the caller's **own** AI key (`getUserAiConfig` — or the `AI_*` env key only in self-host). `400 {error:'no_ai_key'}` when none.
+- **Request:** `{ subject: … }`, a discriminated union on `subject.type`:
+  - `company` → `{ type, symbol }`
+  - `theme` → `{ type, text }` (2–200 chars)
+  - `portfolio` → `{ type }` (400 if no holdings)
+  - `comparison` → `{ type, symbols: string[2..4] }`
+- **Not cached** — each call is one generation (`ai` rate-limit tier). `generateInsightText` at ~3.5k output tokens.
+- **Response:** `data` = `{ content (markdown), model, generatedAt }`; `meta` = `{ grounded, facts }`.
+- **Errors:** `422` invalid subject, `400` `no_ai_key` / no holdings, `502` a bad symbol (`company`/`comparison`) or a generation failure. Degrades to structured-data-only (still 200) when retrieval is unavailable.
+
 ### `POST /api/ai/chat`
 - **Purpose:** The "Mitra" widget's streamed chat (ADR 0018 pt.5). **As of Phase 10a (on `phase-10-rag`, not yet in prod)** it is an agentic tool-calling loop (`stopWhen: stepCountIs(5)`): the model has `search_context` (vector search over the retrieval corpus — indexed news, filings, the caller's own notes/holdings/questions) plus the 7 read-only market-data tools from the MCP layer. A small portfolio summary is still seeded into the system prompt. Guardrail (`CHAT_SYSTEM_AGENTIC`) unchanged — no buy/sell/hold, same "not investment advice" ending. Completed turns are persisted (`chatMessages`, 100/user rolling cap); the caller's recent questions are re-embedded as `chat:<userId>`. Everything degrades to the pre-Phase-10 prompt-stuffing path when vector search is unavailable.
 - **Auth:** required. Per-user key rules identical to `/api/insights/stock` (`getUserAiConfig`). `400 {error:'no_ai_key'}` when none.

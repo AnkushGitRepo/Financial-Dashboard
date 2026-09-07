@@ -305,6 +305,11 @@ unavailable.
   invalidates stale insights.
 - **Per-user sync** — `src/lib/rag/userSync.ts` + `/api/notes` CRUD + `/dashboard/notes`
   panel + `resyncUserHoldings` on every holdings mutation. All fire-and-forget.
+- **Research surface (Phase 10b)** — `POST /api/research` + `/dashboard/research`: a longer
+  **structured** brief (fixed markdown sections) on a company / theme / portfolio /
+  comparison. Retrieval + synthesis only — no agentic loop (that's Phase 11). Ephemeral (not
+  stored). `src/lib/ai/researchPrompts.ts` (pure) + `RESEARCH_SYSTEM`; `MarkdownLite`
+  renders the result. Degrades to structured-data-only when retrieval is empty.
 
 ## Shipped features (see `/docs/archive/` for detail)
 
