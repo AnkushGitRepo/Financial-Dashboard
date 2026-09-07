@@ -317,7 +317,7 @@ Scoped in the [ADR 0020 amendment](./docs/decisions/0020-phase-10-rag-chat.md#am
 
 A **structured brief** (fixed markdown sections), **retrieval + synthesis only** (no agentic loop — that's Phase 11), **ephemeral** (not stored). Subjects: company / theme / portfolio / comparison. `POST /api/research` (BYO key, `ai` tier, no cache) + `/dashboard/research` (`ResearchPageClient`, `MarkdownLite` renderer). 272 web tests green at ship.
 
-## Phase 11 — Multi-agent analytical briefings 🔄 Part A done (`phase-11-agents`)
+## Phase 11 — Multi-agent analytical briefings 🔄 code-complete on `phase-11-agents`
 
 Scoped 2026-09-07 → [ADR 0021](./docs/decisions/0021-phase-11-multi-agent-analysis.md) (accepted; runtime = **TS in the Next app**). Port the **analytical half** of TauricResearch/TradingAgents (Apache-2.0) — analyst team → bull/bear **debate** → synthesis — **as our own code, not a dependency**, and **stop before any trade decision** (no trader / risk-manager / position / simulated execution — the guardrail forbids it). Output: a debated briefing that may state which side of the debate is better-evidenced (a "direction"), never a recommendation/target, still ends "not investment advice." Full **reflection loop** in v1. Subject = one **stock** only (theme/portfolio/comparison stay Phase 10b's shallow tier).
 
@@ -329,19 +329,19 @@ Scoped 2026-09-07 → [ADR 0021](./docs/decisions/0021-phase-11-multi-agent-anal
 - [x] `src/lib/agents/tradeActionCheck.ts` `scanForTradeActions()` (regex; 9 tests). `runSynthesis` regenerates once on a hit.
 
 ### Part B — async, checkpointed runs
-- [ ] `agentRuns` collection (the doc **is** the checkpoint: `status`, `phase`, per-phase results, `priceAtRun`).
-- [ ] `POST /api/agents/run` — auth, `getUserAiConfig` (400 `no_ai_key`), `ai` tier, one-in-flight-per-user guard → create doc `queued`, kick the worker, return `{ id }`.
-- [ ] `POST /api/agents/tick` (internal, `CRON_SECRET`) — run the next phase, persist, re-invoke if not `done`. Bounded per invocation.
-- [ ] `GET /api/agents/run/[id]` — owner-scoped poll: `{ status, phase, briefing? }`.
-- [ ] `.github/workflows/agents-tick.yml` — safety-net sweep for stuck runs.
-- [ ] `/dashboard/agents` — symbol input + a plain "~15–20 calls on your key, a few minutes" note → live phase indicator → rendered briefing (`MarkdownLite`). "Agents" nav item. No per-user run list.
+- [x] `src/lib/agents/store.ts` — `agentRuns` collection (the doc IS the checkpoint): create/get/patch, `claimNextRun` (atomic, advisory lock + stale-lock recovery), `userHasActiveRun`, `ensureAgentRunsIndexes`, and the Part-C queries.
+- [x] `POST /api/agents/run` — auth, `getUserAiConfig` (400 `no_ai_key`), `ai` tier, one-in-flight (409), symbol check (502), `priceAtRun` capture → `createRun` → `after()` kicks the tick → 202 `{ id }`.
+- [x] `POST /api/agents/tick` — `CRON_SECRET` bearer, `claimNextRun`, `advanceRun` (one phase), `after()` re-invoke until done. `maxDuration` 120. `src/lib/agents/runner.ts` `advanceRun()` + 9 tests.
+- [x] `GET /api/agents/run/[id]` — owner-scoped poll → `toView`.
+- [x] `.github/workflows/agents-tick.yml` — every 5 min, sweeps the oldest stuck run.
+- [x] `/dashboard/agents` — `AgentsPageClient` (symbol input + cost note → phase indicator polling `GET run/[id]` every 4 s → `MarkdownLite` briefing). "Agents" nav item. No run list.
 
 ### Part C — reflection loop
-- [ ] `POST /api/cron/agents-reflect` + `.github/workflows/agents-reflect.yml` (daily) — finds `done` runs older than the reflection horizon (21 d) with no `reflection`, pulls `/prices` since `createdAt`, LLM (run owner's key) writes **lessons** vs. the debate's key claims. Per-user, never pooled.
-- [ ] Injection — new runs pull recent same-symbol-then-sector lessons into the debate + synthesis prompts as "calibration, not predictions". UI + prompt caveat that 21 d is a short arbitrary horizon and this is not a track record.
+- [x] `POST /api/cron/agents-reflect` + `.github/workflows/agents-reflect.yml` (daily) — `src/lib/agents/reflect.ts` `reflectOnRun()` (price move since the run → owner's model → hindsight lessons; never a verdict). Prunes runs > 120 d. 5 tests.
+- [x] Injection — `src/lib/agents/lessons.ts` `buildLessonsContext()` (same-symbol then sector, ≤3 runs); the analysts phase resolves it into `doc.lessonsContext`, debate + synthesis pass it through. Prompts + `reflect.ts` carry the "calibration not prediction, short arbitrary window" caveat. 3 tests.
 
 ### Cross-cutting
-- [ ] `tsc` / `lint` / `next build` / `npm test` green; `docs/architecture.md` + `docs/api-surface.md` + `public/openapi.json` entries; ADR 0021 → accepted-and-built; prod deploy; `CRON_SECRET` already covers the new workflows.
+- [x] 325 web tests / tsc / lint / `next build` green; `docs/architecture.md` + `docs/api-surface.md` + `public/openapi.json` entries. `CRON_SECRET` is already a repo secret → both new workflows fire from `main`. **Not merged / not deployed — awaiting review.**
 
 _Out of scope: any trade decision / position / risk-manager / simulated execution; price targets or valuation verdicts; a LangGraph dependency (unless the open item flips); cross-user memory; streaming agent output; non-stock subjects; backtesting._
 

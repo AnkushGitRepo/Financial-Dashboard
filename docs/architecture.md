@@ -311,6 +311,40 @@ unavailable.
   stored). `src/lib/ai/researchPrompts.ts` (pure) + `RESEARCH_SYSTEM`; `MarkdownLite`
   renders the result. Degrades to structured-data-only when retrieval is empty.
 
+## Multi-agent analysis (Phase 11) — built on `phase-11-agents`, NOT deployed
+
+Scoping: [ADR 0021](./decisions/0021-phase-11-multi-agent-analysis.md). Ports the
+**analytical half** of TradingAgents as our own TS code — **no dependency**, and it **stops
+before any trade decision** (no trader / risk manager / position / simulated execution — the
+guardrail forbids it). `src/lib/agents/`:
+
+- **Pipeline** (`prompts.ts`, `context.ts`, `orchestrator.ts`, `indicators.ts`): four
+  **analyst** agents (fundamentals / news+sentiment+retrieval / technical / macro, each only
+  its data slice, no-data roles skip the LLM) → a **bull vs bear debate** (2 rounds) → a
+  **synthesis** briefing (bull case / bear case / agreements / uncertainties / what would
+  change it / *where the evidence leans*). `tradeActionCheck.ts` `scanForTradeActions()`
+  regenerates the synthesis once if it drifts into a recommendation / target / valuation
+  verdict. All calls go through `generateInsightText` (BYO key, guardrailed).
+- **Async, checkpointed** (`store.ts`, `runner.ts`): a run is a job. `POST /api/agents/run`
+  creates an `agentRuns` doc (`queued`) and `after()`-kicks `POST /api/agents/tick`, which
+  runs **one phase per invocation** (analysts, then one debate round, then synthesis),
+  persisting to the doc — so no invocation runs long. The doc **is** the checkpoint;
+  `claimNextRun` has an advisory lock + stale-lock recovery. `GET /api/agents/run/[id]` is
+  the owner-scoped poll. `.github/workflows/agents-tick.yml` (every 5 min) sweeps stuck
+  runs. `/dashboard/agents`: symbol input + a "~15–20 calls on your key, a few minutes"
+  note → phase indicator (polls every 4 s) → `MarkdownLite` briefing. One run in flight per
+  user; runs are ephemeral to the user (no list).
+- **Reflection loop** (`reflect.ts`, `lessons.ts`): `POST /api/cron/agents-reflect` (daily
+  workflow) finds `done` runs older than ~21 days with no reflection, pulls the price move
+  since, and writes hindsight **lessons** comparing the debate's tagged key claims to what
+  happened — per-user, never a verdict, framed as calibration. A fresh run injects the
+  user's recent same-symbol-then-sector lessons into the debate + synthesis prompts. Runs
+  older than 120 days are pruned.
+
+Cost and latency are the user's (BYO key); no operator-key path. Any analyst with no data,
+retrieval down, etc. degrades — the debate proceeds with what it has; a generation failure
+fails the run with a clear `error`.
+
 ## Shipped features (see `/docs/archive/` for detail)
 
 - **Landing page (`/`)** — [archive/landing-page.md](./archive/landing-page.md)

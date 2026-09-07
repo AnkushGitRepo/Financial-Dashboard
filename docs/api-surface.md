@@ -175,6 +175,28 @@ Every endpoint here is a Next.js App Router route handler under `app/api/**/rout
 - **Response:** `data`: `{ removed: <count> }`.
 - **Errors:** `401` unauthenticated.
 
+### `POST /api/agents/run`  _(Phase 11, ADR 0021 — on `phase-11-agents`, not deployed)_
+- **Purpose:** Start an async multi-agent analysis run over one stock — analyst panel → bull/bear debate → synthesis briefing. **No trade decision is ever produced.** ~15–20 LLM calls on the caller's own key over a few minutes.
+- **Auth:** required; per-user key (`getUserAiConfig`, `400 no_ai_key` when none). `ai` rate-limit tier. **One run in flight per user** (`409` otherwise).
+- **Request:** `{ symbol }`.
+- **Response:** `202` `data: { id }` — the run doc (`agentRuns`), created `queued`; the worker is kicked via `after()`.
+- **Errors:** `400` `no_ai_key`, `401`, `409` a run already in progress, `422` bad symbol, `502` the symbol didn't resolve, `429` rate limited.
+
+### `GET /api/agents/run/[id]`  _(Phase 11)_
+- **Purpose:** Poll a run. Owner-scoped.
+- **Response:** `data` = `{ id, symbol, companyName, status (queued|running|done|error), phase (analysts|debate|synthesis|complete), debateRoundsDone, briefing, briefingRegenerated, error, createdAt, updatedAt }`.
+- **Errors:** `401`, `404` not found / not owned.
+
+### `GET|POST /api/agents/tick`  _(Phase 11 — machine-to-machine)_
+- **Purpose:** Advance ONE phase of ONE run, persist, and re-invoke itself until done — so no invocation runs long. Claims the oldest resumable run, or `?id=` for a specific one.
+- **Auth:** `CRON_SECRET` bearer (dev-open, prod-`503`). `.github/workflows/agents-tick.yml` sweeps every 5 min as a safety net.
+- **Response:** `data` = `{ picked: false }` when nothing to do, else `{ id, phase, status, done }`.
+
+### `GET|POST /api/cron/agents-reflect`  _(Phase 11 Part C — machine-to-machine)_
+- **Purpose:** For each `done` run older than the reflection horizon (~21 days) with no reflection, write a hindsight **lessons** note (debate's key claims vs. the stock's actual move — per-user, never a verdict) and prune runs older than 120 days. `.github/workflows/agents-reflect.yml` daily.
+- **Auth:** `CRON_SECRET` bearer (dev-open, prod-`503`).
+- **Response:** `data` = `{ considered, written, skipped, error, pruned, errors[] }`.
+
 ### `GET|POST /api/cron/index-corpus`  _(Phase 10a — on `phase-10-rag`, not yet in prod)_
 - **Purpose:** Rebuild the shared retrieval corpus (ADR 0020): pull recent news + configured annual-report filings, chunk + locally embed, upsert into the `chunks` collection under `userId: null`, prune news past a retention window. Runs from `.github/workflows/index-corpus.yml` (every 2 h) and self-hosters' own schedulers.
 - **Auth:** `CRON_SECRET` bearer, same contract as `/api/cron/evaluate-alerts` (dev-open, prod-`503` when unset).
