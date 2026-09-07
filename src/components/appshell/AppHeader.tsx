@@ -18,6 +18,7 @@ const NAV_ITEMS = [
   { href: '/dashboard/news', label: 'News' },
   { href: '/dashboard/ipos', label: 'IPOs' },
   { href: '/dashboard/research', label: 'Research' },
+  { href: '/dashboard/agents', label: 'Agents' },
   { href: '/dashboard/notes', label: 'Notes' },
   { href: '/dashboard/api', label: 'API' },
 ] as const;

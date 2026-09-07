@@ -1,0 +1,37 @@
+# Safety net for the Phase 11 agent runner (ADR 0021).
+#
+# A run advances itself: POST /api/agents/run kicks POST /api/agents/tick,
+# which does one phase and re-invokes itself until done. If one of those
+# self-calls is dropped (cold start, a killed function), this schedule
+# sweeps the oldest stuck run every few minutes and resumes it.
+#
+# ACTIVATION: add the CRON_SECRET repo secret (same value as on the
+# marketmitra-v2 Vercel project). Fires from the default branch only.
+
+name: agents-tick
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: agents-tick
+  cancel-in-progress: false
+
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Resume the next stuck run (if any)
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          TARGET_URL: ${{ vars.AGENTS_TICK_URL || 'https://marketmitra-v2.vercel.app/api/agents/tick' }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::error::CRON_SECRET repo secret is not set — see this workflow's ACTIVATION notes."
+            exit 1
+          fi
+          curl --fail-with-body --silent --show-error --max-time 115 \
+            -X POST -H "Authorization: Bearer ${CRON_SECRET}" "${TARGET_URL}"
