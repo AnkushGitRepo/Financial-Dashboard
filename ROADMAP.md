@@ -317,16 +317,16 @@ Scoped in the [ADR 0020 amendment](./docs/decisions/0020-phase-10-rag-chat.md#am
 
 A **structured brief** (fixed markdown sections), **retrieval + synthesis only** (no agentic loop — that's Phase 11), **ephemeral** (not stored). Subjects: company / theme / portfolio / comparison. `POST /api/research` (BYO key, `ai` tier, no cache) + `/dashboard/research` (`ResearchPageClient`, `MarkdownLite` renderer). 272 web tests green at ship.
 
-## Phase 11 — Multi-agent analytical briefings 🔄 scoped, build starting
+## Phase 11 — Multi-agent analytical briefings 🔄 Part A done (`phase-11-agents`)
 
 Scoped 2026-09-07 → [ADR 0021](./docs/decisions/0021-phase-11-multi-agent-analysis.md) (accepted; runtime = **TS in the Next app**). Port the **analytical half** of TauricResearch/TradingAgents (Apache-2.0) — analyst team → bull/bear **debate** → synthesis — **as our own code, not a dependency**, and **stop before any trade decision** (no trader / risk-manager / position / simulated execution — the guardrail forbids it). Output: a debated briefing that may state which side of the debate is better-evidenced (a "direction"), never a recommendation/target, still ends "not investment advice." Full **reflection loop** in v1. Subject = one **stock** only (theme/portfolio/comparison stay Phase 10b's shallow tier).
 
 ### Part A — the pipeline (`src/lib/agents/`)
-- [ ] `AGENT_*_SYSTEM` prompts (fundamentals / news+sentiment / technical / macro analyst; bull; bear; synthesis) — each carries `GUARDRAIL`; synthesis prompt spells out the direction boundary.
-- [ ] Analyst context builders (reuse `fundamentalsApi`, the news feed, `retrieve()`), parallel. Technical analyst: SMA/EMA cross + RSI + drawdown computed in the orchestrator from `/prices`. Pure, unit-tested.
-- [ ] Debate loop — bull ↔ bear, N rounds (default 2), each sees the analyst reports + the other's last turn.
-- [ ] Synthesis — bull case / bear case / agreements / key uncertainties / what would change it / "where the evidence leans" + guardrail line. Emits 2–4 structured "key claims" for reflection.
-- [ ] A lightweight post-check rejecting a briefing with trade-action phrasing; one regenerate.
+- [x] `AGENT_*_SYSTEM` prompts (`src/lib/agents/prompts.ts`) — 4 analyst roles + bull/bear/synthesis/claims/reflect, each `withGuardrail`; synthesis spells out the direction boundary.
+- [x] `src/lib/agents/context.ts` `gatherAnalystContext()` — 4 slices (fundamentals / news+sentiment+retrieval / technical / macro) from the existing clients, each with `hadData`. `src/lib/agents/indicators.ts` — SMA/EMA/RSI/drawdown/MA-cross + `summariseTechnicals()`. 18 tests.
+- [x] `orchestrator.ts` `runDebateRound()` — bull then bear (bear sees the fresh bull turn + all prior). `DEBATE_ROUNDS = 2`.
+- [x] `orchestrator.ts` `runSynthesis()` (the briefing) + `extractKeyClaims()` (best-effort JSON, 2–4 claims for reflection). 8 orchestrator tests.
+- [x] `src/lib/agents/tradeActionCheck.ts` `scanForTradeActions()` (regex; 9 tests). `runSynthesis` regenerates once on a hit.
 
 ### Part B — async, checkpointed runs
 - [ ] `agentRuns` collection (the doc **is** the checkpoint: `status`, `phase`, per-phase results, `priceAtRun`).
