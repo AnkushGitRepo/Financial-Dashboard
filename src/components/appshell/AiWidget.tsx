@@ -1,7 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport, type UIMessage } from 'ai';
+import { useEffect, useRef, useState } from 'react';
+import { usePageContext } from '@/lib/dashboard/PageContext';
 import styles from './AiWidget.module.css';
 
 // Starter prompts per section. These are questions, not claims — Mitra
@@ -39,21 +43,37 @@ export function sectionFromPathname(pathname: string): Section {
   return 'dashboard';
 }
 
-interface ChatMessage {
-  from: 'user' | 'ai';
-  text: string;
-}
-
 type KeyState = 'unknown' | 'present' | 'absent';
+
+// ADR 0022: routes the client reacts to when the model calls one of the
+// navigation tools. Must stay in sync with `chatTools.ts`'s `execute()`
+// return values (`to`) — kept here as a static map instead of trusting the
+// tool output directly, so the client's own routing intent is explicit.
+const NAVIGATION_ROUTES: Record<string, string> = {
+  'tool-navigate_to_dashboard': '/dashboard',
+  'tool-navigate_to_portfolio': '/dashboard/portfolio',
+  'tool-navigate_to_markets': '/dashboard/markets',
+};
 
 const BENTO_TILES = Array.from({ length: 9 });
 
-/** New array with the last message's text replaced — keeps updates immutable
- * while a streamed reply fills in token by token. */
-function withLastText(msgs: ChatMessage[], from: 'ai', text: string): ChatMessage[] {
-  const out = msgs.slice();
-  out[out.length - 1] = { from, text };
-  return out;
+/** Plain text of a message, for rendering (joins text parts). */
+function textOf(message: UIMessage): string {
+  return message.parts
+    .filter((p): p is Extract<UIMessage['parts'][number], { type: 'text' }> => p.type === 'text')
+    .map((p) => p.text)
+    .join('');
+}
+
+/** Best-effort recovery of a structured `{ error, hint }` body from a
+ * useChat `onError` Error — the transport throws `new Error(responseText)`
+ * on a non-2xx response, and our route's error responses are JSON. */
+function parseErrorBody(error: Error): { error?: string; hint?: string } | null {
+  try {
+    return JSON.parse(error.message);
+  } catch {
+    return null;
+  }
 }
 
 // `open` lives here so the panel stays open/closed across section
@@ -76,10 +96,26 @@ export function AiWidget({ section }: { section: Section }) {
 }
 
 function AiPanelBody({ section, onClose }: { section: Section; onClose: () => void }) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const router = useRouter();
+  const { pageContext } = usePageContext();
   const [draft, setDraft] = useState('');
-  const [busy, setBusy] = useState(false);
   const [keyState, setKeyState] = useState<KeyState>('unknown');
+  const [errorText, setErrorText] = useState<string | null>(null);
+  const handledToolCallIds = useRef(new Set<string>());
+
+  const { messages, sendMessage, status, setMessages } = useChat({
+    transport: new DefaultChatTransport({ api: '/api/ai/chat' }),
+    onError: (err) => {
+      const body = parseErrorBody(err);
+      if (body?.error === 'no_ai_key') {
+        setKeyState('absent');
+        setErrorText('Add your AI provider key in Settings to chat with Mitra.');
+      } else {
+        setErrorText('Mitra could not answer just now. Try again shortly.');
+      }
+    },
+  });
+  const busy = status === 'submitted' || status === 'streaming';
 
   // Whether an AI provider key is configured — controls the composer hint.
   useEffect(() => {
@@ -97,55 +133,39 @@ function AiPanelBody({ section, onClose }: { section: Section; onClose: () => vo
     };
   }, []);
 
-  const send = async (explicitText?: string) => {
-    const text = (explicitText ?? draft).trim();
-    if (!text || busy) return;
-
-    const history: ChatMessage[] = [...messages, { from: 'user', text }];
-    setMessages([...history, { from: 'ai', text: '' }]);
-    setDraft('');
-    setBusy(true);
-
-    try {
-      const res = await fetch('/api/ai/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: history.map((m) => ({
-            role: m.from === 'user' ? 'user' : 'assistant',
-            content: m.text,
-          })),
-        }),
-      });
-
-      if (!res.ok || !res.body) {
-        const body = await res.json().catch(() => null);
-        const msg =
-          body?.error === 'no_ai_key'
-            ? 'Add your AI provider key in Settings to chat with Mitra.'
-            : 'Mitra could not answer just now. Try again shortly.';
-        if (body?.error === 'no_ai_key') setKeyState('absent');
-        setMessages((prev) => withLastText(prev, 'ai', msg));
-        return;
+  // React to navigation tool calls (ADR 0022) — `execute()` on the server
+  // only confirms the destination; moving the browser is a client concern.
+  useEffect(() => {
+    for (const message of messages) {
+      if (message.role !== 'assistant') continue;
+      for (const part of message.parts) {
+        if (!('toolCallId' in part)) continue;
+        const route = NAVIGATION_ROUTES[part.type];
+        if (!route) continue;
+        if (!('state' in part) || part.state !== 'output-available') continue;
+        if (handledToolCallIds.current.has(part.toolCallId)) continue;
+        handledToolCallIds.current.add(part.toolCallId);
+        router.push(route);
       }
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let acc = '';
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        acc += decoder.decode(value, { stream: true });
-        setMessages((prev) => withLastText(prev, 'ai', acc));
+      // open_stock carries a dynamic ticker in its output rather than a
+      // fixed route, so it isn't in the static map — handle separately.
+      for (const part of message.parts) {
+        if (part.type !== 'tool-open_stock') continue;
+        if (!('state' in part) || part.state !== 'output-available') continue;
+        if (handledToolCallIds.current.has(part.toolCallId)) continue;
+        handledToolCallIds.current.add(part.toolCallId);
+        const output = part.output as { to?: string } | undefined;
+        if (output?.to) router.push(output.to);
       }
-      if (!acc.trim()) {
-        setMessages((prev) => withLastText(prev, 'ai', 'Mitra returned an empty response.'));
-      }
-    } catch {
-      setMessages((prev) => withLastText(prev, 'ai', 'Mitra could not answer just now. Try again shortly.'));
-    } finally {
-      setBusy(false);
     }
+  }, [messages, router]);
+
+  const send = (text: string) => {
+    const clean = text.trim();
+    if (!clean || busy) return;
+    setErrorText(null);
+    setDraft('');
+    void sendMessage({ text: clean }, { body: { pageContext } });
   };
 
   // Wipe the visible transcript and the server-side history (which also
@@ -154,6 +174,7 @@ function AiPanelBody({ section, onClose }: { section: Section; onClose: () => vo
   const clearChat = async () => {
     setMessages([]);
     setDraft('');
+    setErrorText(null);
     try {
       await fetch('/api/ai/chat', { method: 'DELETE' });
     } catch {
@@ -215,18 +236,20 @@ function AiPanelBody({ section, onClose }: { section: Section; onClose: () => vo
         {messages.length > 0 && (
           <div className={styles.messages}>
             {messages.map((m, i) => {
-              const isStreamingAi = busy && m.from === 'ai' && i === messages.length - 1;
+              const isStreamingAi = busy && m.role === 'assistant' && i === messages.length - 1;
+              const text = textOf(m);
               return (
                 <div
-                  key={i}
-                  className={`${m.from === 'user' ? styles.msgUser : styles.msgAi} ${
+                  key={m.id}
+                  className={`${m.role === 'user' ? styles.msgUser : styles.msgAi} ${
                     isStreamingAi ? styles.msgTyping : ''
                   }`}
                 >
-                  {m.text || (isStreamingAi ? 'Thinking' : '')}
+                  {text || (isStreamingAi ? 'Thinking' : '')}
                 </div>
               );
             })}
+            {errorText && !busy && <div className={styles.msgAi}>{errorText}</div>}
           </div>
         )}
 
@@ -242,13 +265,13 @@ function AiPanelBody({ section, onClose }: { section: Section; onClose: () => vo
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') send();
+              if (e.key === 'Enter') send(draft);
             }}
             disabled={busy}
             placeholder={section === 'stock' ? 'Ask about these fundamentals' : 'Ask Mitra about your portfolio'}
             className={styles.composerInput}
           />
-          <button onClick={() => send()} disabled={busy} className={styles.sendButton} type="button" aria-label="Send">
+          <button onClick={() => send(draft)} disabled={busy} className={styles.sendButton} type="button" aria-label="Send">
             ↑
           </button>
         </div>

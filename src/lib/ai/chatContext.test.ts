@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatChatContext, mergeNews } from './chatContext';
+import { formatChatContext, formatPageContext, mergeNews } from './chatContext';
 import type { EnrichedHolding } from '@/lib/dashboard/enrichedHoldings';
 import type { NewsItem } from '@/lib/dashboard/newsApi';
 
@@ -71,5 +71,25 @@ describe('mergeNews', () => {
     expect(merged).toHaveLength(10);
     expect(merged[0].url).toBe('u-new');
     expect(merged.filter((n) => n.url === 'u-new')).toHaveLength(1);
+  });
+});
+
+describe('formatPageContext', () => {
+  it('reports unknown when no context is given', () => {
+    expect(formatPageContext(null)).toBe('The user is somewhere in the app; exact page unknown.');
+  });
+
+  it('names the page for non-stock pages', () => {
+    expect(formatPageContext({ page: 'portfolio' })).toBe('The user is currently on the portfolio page.');
+  });
+
+  it('includes ticker and range for a stock page', () => {
+    expect(formatPageContext({ page: 'stock', ticker: 'TCS', range: '1y' })).toBe(
+      'The user is currently on a stock detail page for TCS, viewing the 1y price chart.'
+    );
+  });
+
+  it('handles a stock page with no ticker gracefully', () => {
+    expect(formatPageContext({ page: 'stock' })).toBe('The user is currently on a stock detail page.');
   });
 });

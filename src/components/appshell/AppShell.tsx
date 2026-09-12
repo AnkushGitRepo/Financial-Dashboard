@@ -6,6 +6,7 @@ import { AppHeader } from './AppHeader';
 import { AiWidget, sectionFromPathname } from './AiWidget';
 import { MobileTabBar } from './MobileTabBar';
 import { MaskProvider, useMask } from '@/lib/dashboard/MaskContext';
+import { PageContextProvider } from '@/lib/dashboard/PageContext';
 import styles from './AppShell.module.css';
 
 function AppShellInner({ children }: { children: ReactNode }) {
@@ -26,7 +27,9 @@ function AppShellInner({ children }: { children: ReactNode }) {
 export function AppShell({ children }: { children: ReactNode }) {
   return (
     <MaskProvider>
-      <AppShellInner>{children}</AppShellInner>
+      <PageContextProvider>
+        <AppShellInner>{children}</AppShellInner>
+      </PageContextProvider>
     </MaskProvider>
   );
 }

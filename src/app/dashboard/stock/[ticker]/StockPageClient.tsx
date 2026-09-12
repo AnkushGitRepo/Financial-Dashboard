@@ -1,13 +1,14 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { LineChart } from '@/components/dashboard-charts/LineChart';
 import { PillTabs } from '@/components/dashboard-charts/PillTabs';
 import { CompanyLogo } from '@/components/dashboard-charts/CompanyLogo';
 import { NewsList } from '@/components/dashboard-charts/NewsList';
 import { InsightCard } from '@/components/dashboard-charts/InsightCard';
 import { useMask } from '@/lib/dashboard/MaskContext';
+import { usePageContext } from '@/lib/dashboard/PageContext';
 import { formatInr } from '@/lib/dashboard/format';
 import type { CompanyOut, DocumentOut, PeerOut, PricePeriod, RatioOut } from '@/lib/dashboard/fundamentalsApi';
 import type { NewsItem } from '@/lib/dashboard/newsApi';
@@ -71,8 +72,17 @@ export function StockPageClient({
 }: StockPageClientProps) {
   const router = useRouter();
   const { masked } = useMask();
+  const { setPageContext } = usePageContext();
   const [range, setRange] = useState<PricePeriod>('1y');
   const [fin, setFin] = useState<StatementKey>('profit_and_loss');
+
+  // Publish what the user is looking at so Mitra (mounted as a shell
+  // sibling, not a child of this page) can reference "this stock" /
+  // "this timeframe" accurately (ADR 0022).
+  useEffect(() => {
+    setPageContext({ page: 'stock', ticker: symbol, range });
+    return () => setPageContext(null);
+  }, [symbol, range, setPageContext]);
 
   const price = latestClose !== null ? Number(latestClose) : null;
   const prev = previousClose !== null ? Number(previousClose) : null;

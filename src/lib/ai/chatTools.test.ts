@@ -26,10 +26,50 @@ beforeEach(() => {
 });
 
 describe('buildChatTools', () => {
-  it('adapts every MCP tool plus search_context', () => {
+  it('adapts every MCP tool plus search_context plus the 4 navigation tools', () => {
     const set = buildChatTools('u1');
-    expect(Object.keys(set).sort()).toEqual(['get_quote', 'search_context']);
+    expect(Object.keys(set).sort()).toEqual([
+      'get_quote',
+      'navigate_to_dashboard',
+      'navigate_to_markets',
+      'navigate_to_portfolio',
+      'open_stock',
+      'search_context',
+    ]);
     expect(typeof (set.get_quote as unknown as ExecTool).execute).toBe('function');
+  });
+
+  // ADR 0022's hard boundary: settings/security/billing/destructive actions
+  // must never appear in the ToolSet, under any tool name. This asserts the
+  // boundary as a testable invariant rather than trusting a comment.
+  it('never exposes a settings, security, billing, or delete tool', () => {
+    const set = buildChatTools('u1');
+    const forbidden = /settings|security|billing|subscription|delete|remove/i;
+    for (const name of Object.keys(set)) {
+      expect(name).not.toMatch(forbidden);
+    }
+  });
+
+  it('navigate_to_dashboard/portfolio/markets resolve to their fixed route', async () => {
+    const set = buildChatTools('u1');
+    await expect((set.navigate_to_dashboard as unknown as ExecTool).execute({})).resolves.toEqual({
+      navigated: true,
+      to: '/dashboard',
+    });
+    await expect((set.navigate_to_portfolio as unknown as ExecTool).execute({})).resolves.toEqual({
+      navigated: true,
+      to: '/dashboard/portfolio',
+    });
+    await expect((set.navigate_to_markets as unknown as ExecTool).execute({})).resolves.toEqual({
+      navigated: true,
+      to: '/dashboard/markets',
+    });
+  });
+
+  it('open_stock uppercases the ticker and builds the stock route', async () => {
+    const set = buildChatTools('u1');
+    const out = await (set.open_stock as unknown as ExecTool).execute({ ticker: 'tcs' });
+    expect(out).toEqual({ navigated: true, to: '/dashboard/stock/TCS' });
   });
 
   it('an adapted MCP tool calls run and passes args through', async () => {

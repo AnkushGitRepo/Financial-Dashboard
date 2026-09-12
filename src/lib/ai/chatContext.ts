@@ -5,8 +5,29 @@
 
 import type { EnrichedHolding } from '@/lib/dashboard/enrichedHoldings';
 import type { NewsItem } from '@/lib/dashboard/newsApi';
+import type { PageContextValue } from '@/lib/dashboard/pageContextTypes';
 
 const MAX_NEWS = 10;
+
+const PAGE_LABELS: Record<PageContextValue['page'], string> = {
+  dashboard: 'the dashboard home',
+  portfolio: 'the portfolio page',
+  markets: 'the markets page',
+  stock: 'a stock detail page',
+};
+
+/** One line describing where the user currently is, for the system prompt
+ * (ADR 0022) — lets Mitra resolve "this stock"/"what you're looking at"
+ * and gives `open_stock` a default ticker when the user doesn't name one. */
+export function formatPageContext(ctx: PageContextValue | null): string {
+  if (!ctx) return 'The user is somewhere in the app; exact page unknown.';
+  let line = `The user is currently on ${PAGE_LABELS[ctx.page]}`;
+  if (ctx.page === 'stock' && ctx.ticker) {
+    line += ` for ${ctx.ticker}`;
+    if (ctx.range) line += `, viewing the ${ctx.range} price chart`;
+  }
+  return `${line}.`;
+}
 
 function inr(n: number): string {
   return `₹${Math.round(n).toLocaleString('en-IN')}`;

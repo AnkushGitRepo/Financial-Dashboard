@@ -1,17 +1,18 @@
 import { NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/rateLimit';
 import { z } from 'zod';
-import type { ModelMessage } from 'ai';
+import { convertToModelMessages, safeValidateUIMessages, type UIMessage } from 'ai';
 import { getCurrentUserId } from '@/lib/currentUserId';
 import { getUserAiConfig } from '@/lib/ai/userAiConfig';
 import { streamChat } from '@/lib/ai/generate';
 import { CHAT_SYSTEM_AGENTIC } from '@/lib/ai/prompts';
 import { buildChatTools } from '@/lib/ai/chatTools';
-import { formatChatContext, mergeNews } from '@/lib/ai/chatContext';
+import { formatChatContext, formatPageContext, mergeNews } from '@/lib/ai/chatContext';
 import { appendTurn, clearHistory, recentUserQuestions } from '@/lib/chat/chatHistory';
 import { syncRecentChat } from '@/lib/rag/userSync';
 import { getEnrichedHoldings } from '@/lib/dashboard/enrichedHoldings';
 import { getNews } from '@/lib/dashboard/newsApi';
+import type { PageContextValue } from '@/lib/dashboard/pageContextTypes';
 
 export const dynamic = 'force-dynamic';
 // A tool-calling turn can take several round-trips (retrieval embed +
@@ -20,17 +21,36 @@ export const maxDuration = 120;
 const MAX_TOOL_STEPS = 5;
 
 const MAX_TURNS = 12;
-const bodySchema = z.object({
-  messages: z
-    .array(
-      z.object({
-        role: z.enum(['user', 'assistant']),
-        content: z.string().trim().min(1).max(2000),
-      })
-    )
-    .min(1)
-    .max(MAX_TURNS),
+
+// ADR 0022: the request body carries AI SDK `UIMessage[]` (from `useChat`)
+// plus an optional `pageContext` describing where the user currently is.
+// Message *shape* is validated separately via `safeValidateUIMessages` —
+// this schema only bounds the array length and the page-context payload.
+const pageContextSchema: z.ZodType<PageContextValue> = z.object({
+  page: z.enum(['dashboard', 'portfolio', 'markets', 'stock']),
+  ticker: z.string().trim().min(1).max(20).optional(),
+  range: z.string().trim().min(1).max(10).optional(),
 });
+
+const bodySchema = z.object({
+  messages: z.array(z.unknown()).min(1).max(MAX_TURNS),
+  pageContext: pageContextSchema.nullable().optional(),
+});
+
+/** Joins a UI message's text parts — used to persist the plain-text turn
+ * (chat history / retrieval corpus) regardless of the richer part shape. */
+function textFromParts(message: UIMessage): string {
+  return message.parts
+    .filter((p): p is Extract<UIMessage['parts'][number], { type: 'text' }> => p.type === 'text')
+    .map((p) => p.text)
+    .join('\n')
+    .trim();
+}
+
+function lastUserText(messages: UIMessage[]): string {
+  const last = [...messages].reverse().find((m) => m.role === 'user');
+  return last ? textFromParts(last) : '';
+}
 
 // A small always-present seed: the portfolio summary + a few headlines.
 // The model reaches for `search_context` / the data tools for anything
@@ -54,6 +74,10 @@ async function handlePOST(request: Request) {
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: 'Invalid request' }, { status: 422 });
 
+  const validated = await safeValidateUIMessages({ messages: parsed.data.messages });
+  if (!validated.success) return NextResponse.json({ error: 'Invalid request' }, { status: 422 });
+  const uiMessages = validated.data;
+
   // Mitra is a per-user surface — the caller's own key (or, in self-host,
   // the deployment env key). Never the hosted operator's key (ADR 0018 §2).
   const aiConfig = await getUserAiConfig(userId);
@@ -65,12 +89,14 @@ async function handlePOST(request: Request) {
   }
 
   const context = await buildContext(userId);
-  const system = `${CHAT_SYSTEM_AGENTIC}\n\n--- PORTFOLIO CONTEXT ---\n${context}`;
+  const pageContextLine = formatPageContext(parsed.data.pageContext ?? null);
+  const system = `${CHAT_SYSTEM_AGENTIC}\n\n--- PORTFOLIO CONTEXT ---\n${context}\n\n--- CURRENT PAGE ---\n${pageContextLine}`;
   const tools = buildChatTools(userId);
-  const lastUserMessage = parsed.data.messages.at(-1)?.content ?? '';
+  const lastUserMessage = lastUserText(uiMessages);
+  const modelMessages = await convertToModelMessages(uiMessages);
 
   try {
-    const result = streamChat(aiConfig, system, parsed.data.messages as ModelMessage[], {
+    const result = streamChat(aiConfig, system, modelMessages, {
       tools,
       maxSteps: MAX_TOOL_STEPS,
       onFinish: async ({ text }) => {
@@ -79,7 +105,7 @@ async function handlePOST(request: Request) {
         void syncRecentChat(userId, await recentUserQuestions(userId));
       },
     });
-    return result.toTextStreamResponse();
+    return result.toUIMessageStreamResponse();
   } catch {
     return NextResponse.json({ error: 'The AI request failed. Please try again.' }, { status: 502 });
   }
