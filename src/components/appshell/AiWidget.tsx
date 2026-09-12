@@ -4,9 +4,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport, type UIMessage } from 'ai';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { usePageContext } from '@/lib/dashboard/PageContext';
+import { ImportPreviewCard } from './ImportPreviewCard';
+import type { ProposedChange } from '@/lib/portfolio-import/types';
 import styles from './AiWidget.module.css';
+
+const ACCEPTED_IMPORT_TYPES =
+  '.csv,.xlsx,.docx,.pdf,image/*,text/csv,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
 // Starter prompts per section. These are questions, not claims — Mitra
 // answers them from the real server-built context (portfolio + news), so
@@ -103,6 +108,14 @@ function AiPanelBody({ section, onClose }: { section: Section; onClose: () => vo
   const [errorText, setErrorText] = useState<string | null>(null);
   const handledToolCallIds = useRef(new Set<string>());
 
+  // File-based portfolio import (ADR 0022, part D). This is a separate
+  // upload -> extract -> preview pipeline, not part of the chat turn or
+  // the model's tool-calling loop — see ImportPreviewCard for why.
+  const [importPreviews, setImportPreviews] = useState<Array<{ id: string; changes: ProposedChange[] }>>([]);
+  const [importReading, setImportReading] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const { messages, sendMessage, status, setMessages } = useChat({
     transport: new DefaultChatTransport({ api: '/api/ai/chat' }),
     onError: (err) => {
@@ -182,6 +195,31 @@ function AiPanelBody({ section, onClose }: { section: Section; onClose: () => vo
     }
   };
 
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow re-selecting the same file next time
+    if (!file) return;
+
+    setImportError(null);
+    setImportReading(true);
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      const res = await fetch('/api/portfolio-import/extract', { method: 'POST', body: form });
+      const body = await res.json().catch(() => null);
+      if (!res.ok) {
+        if (body?.error === 'no_ai_key') setKeyState('absent');
+        setImportError(body?.message ?? body?.hint ?? "Couldn't read that file. Try again.");
+        return;
+      }
+      setImportPreviews((prev) => [...prev, { id: crypto.randomUUID(), changes: body.data }]);
+    } catch {
+      setImportError("Couldn't read that file. Try again.");
+    } finally {
+      setImportReading(false);
+    }
+  };
+
   return (
     <div className={styles.panel}>
       <div className={styles.panelBg} />
@@ -253,6 +291,16 @@ function AiPanelBody({ section, onClose }: { section: Section; onClose: () => vo
           </div>
         )}
 
+        {importReading && <div className={styles.msgAi}>Reading your file…</div>}
+        {importError && <div className={styles.msgAi}>{importError}</div>}
+        {importPreviews.map((preview) => (
+          <ImportPreviewCard
+            key={preview.id}
+            changes={preview.changes}
+            onDone={() => setImportPreviews((prev) => prev.filter((p) => p.id !== preview.id))}
+          />
+        ))}
+
         {keyState === 'absent' && (
           <p className={styles.keyHint}>
             Mitra needs your AI provider key. <Link href="/dashboard/settings">Add it in Settings</Link> — it
@@ -261,6 +309,23 @@ function AiPanelBody({ section, onClose }: { section: Section; onClose: () => vo
         )}
 
         <div className={styles.composer}>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={ACCEPTED_IMPORT_TYPES}
+            onChange={handleFileChange}
+            style={{ display: 'none' }}
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={importReading}
+            className={styles.attachButton}
+            type="button"
+            aria-label="Import holdings from a file"
+            title="Import holdings from a screenshot, CSV, XLSX, DOCX, or PDF"
+          >
+            +
+          </button>
           <input
             value={draft}
             onChange={(e) => setDraft(e.target.value)}

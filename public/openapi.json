@@ -1517,6 +1517,88 @@
           }
         }
       }
+    },
+    "/api/portfolio-import/confirm": {
+      "post": {
+        "tags": [
+          "Portfolio"
+        ],
+        "summary": "Commit a reviewed portfolio import (ADR 0022)",
+        "description": "Writes the user's explicitly approved subset of a POST /api/portfolio-import/extract response \u2014 the only route that actually creates/updates holdings from a Mitra-driven import. No AI involvement; a plain create-or-update per item. Never called automatically \u2014 reached only by an explicit approve action in the UI.",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "changes"
+                ],
+                "properties": {
+                  "changes": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "matchedSymbol",
+                        "action",
+                        "existingHoldingId",
+                        "after"
+                      ],
+                      "properties": {
+                        "matchedSymbol": {
+                          "type": "string"
+                        },
+                        "action": {
+                          "type": "string",
+                          "enum": [
+                            "create",
+                            "update"
+                          ]
+                        },
+                        "existingHoldingId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "after": {
+                          "type": "object",
+                          "properties": {
+                            "quantity": {
+                              "type": "number"
+                            },
+                            "avgPrice": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ success: true, data: { succeeded, failedSymbols } }"
+          },
+          "401": {
+            "description": "Not authenticated."
+          },
+          "422": {
+            "description": "Invalid request."
+          },
+          "429": {
+            "description": "Rate limited."
+          }
+        }
+      }
     }
   }
 }

@@ -257,6 +257,25 @@
   cursor: default;
 }
 
+.attachButton {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--app-border);
+  background: var(--color-surface);
+  color: var(--app-ink);
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  flex: none;
+  font-family: var(--font-sans);
+}
+
+.attachButton:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 .keyHint {
   margin-top: 12px;
   font-size: 12px;

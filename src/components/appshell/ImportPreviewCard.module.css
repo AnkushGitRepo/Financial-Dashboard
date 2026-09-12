@@ -1,0 +1,172 @@
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 16px;
+  padding: 14px;
+  font-size: 12.8px;
+  color: var(--app-ink);
+  max-width: 100%;
+}
+
+.title {
+  margin: 0 0 10px;
+  font-weight: 600;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.row {
+  border: 1px solid var(--app-border-soft);
+  border-radius: 12px;
+  padding: 9px 11px;
+  background: var(--app-teal-tint);
+}
+
+.rowMain {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+}
+
+.rowMain input[type='checkbox'] {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  accent-color: var(--app-ink);
+}
+
+.rowText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.rowName {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rowNums {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--app-text-muted);
+}
+
+.tagNew,
+.tagUpdate {
+  flex: none;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+}
+
+.tagNew {
+  background: var(--app-teal-bg);
+  color: var(--app-teal-strong);
+}
+
+.tagUpdate {
+  background: var(--app-pill-bg);
+  color: var(--app-text-muted);
+}
+
+.resolve {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--app-border-softer);
+}
+
+.candidatePills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.candidatePill,
+.searchToggle {
+  border: 1px solid var(--app-border);
+  background: var(--color-surface);
+  border-radius: var(--radius-pill);
+  padding: 5px 11px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--app-ink);
+  cursor: pointer;
+}
+
+.searchToggle {
+  font-family: var(--font-sans);
+  color: var(--app-text-muted);
+}
+
+.searchWrap {
+  position: relative;
+}
+
+.searchInput {
+  width: 100%;
+  border: 1px solid var(--app-border);
+  border-radius: var(--radius-pill);
+  padding: 7px 12px;
+  font-size: 12px;
+  font-family: var(--font-sans);
+  color: var(--app-ink);
+  background: var(--color-surface);
+}
+
+.formError {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--app-loss);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.btnPrimary,
+.btnSecondary {
+  border-radius: var(--radius-pill);
+  padding: 8px 16px;
+  font-size: 12.5px;
+  font-family: var(--font-sans);
+  cursor: pointer;
+}
+
+.btnPrimary {
+  border: none;
+  background: var(--app-ink);
+  color: var(--app-cream);
+}
+
+.btnPrimary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btnSecondary {
+  border: 1px solid var(--app-border);
+  background: var(--color-surface);
+  color: var(--app-ink);
+}
+
+.doneText {
+  margin: 0 0 10px;
+}
