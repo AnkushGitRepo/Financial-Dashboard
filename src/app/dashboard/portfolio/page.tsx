@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { getCurrentUserId } from '@/lib/currentUserId';
 import { getEnrichedHoldings } from '@/lib/dashboard/enrichedHoldings';
 import { getPortfolioValueHistory } from '@/lib/dashboard/portfolioHistory';
@@ -6,6 +7,11 @@ import { getCachedInsight } from '@/lib/insights';
 import type { PricePeriod } from '@/lib/dashboard/fundamentalsApi';
 import { PortfolioPageClient } from './PortfolioPageClient';
 import styles from './page.module.css';
+
+export const metadata: Metadata = {
+  title: 'Portfolio',
+  description: 'Your holdings, live value, allocation, and unrealised P&L.',
+};
 
 export const dynamic = 'force-dynamic';
 

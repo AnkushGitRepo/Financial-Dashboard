@@ -1,9 +1,15 @@
+import type { Metadata } from 'next';
 import { IndexCard } from '@/components/dashboard-charts/IndexCard';
 import { MoverPanel } from '@/components/dashboard-charts/MoverPanel';
 import { getIndices } from '@/lib/dashboard/fundamentalsApi';
 import { getTopMovers } from '@/lib/dashboard/quotes';
 import { MarketsSearchBar } from './MarketsSearchBar';
 import styles from './page.module.css';
+
+export const metadata: Metadata = {
+  title: 'Markets',
+  description: 'Live Indian market indices and today’s top movers.',
+};
 
 export const dynamic = 'force-dynamic';
 

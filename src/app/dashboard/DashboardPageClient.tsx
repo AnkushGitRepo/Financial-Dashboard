@@ -115,7 +115,12 @@ export function DashboardPageClient({
               <PillTabs options={RANGE_OPTIONS} value={range} onChange={setRange} labels={RANGE_LABELS} />
             </div>
             {history[range].v.length > 0 ? (
-              <LineChart series={history[range]} height={230} formatValue={(v) => formatInr(v, 0, masked)} />
+              <LineChart
+                series={history[range]}
+                height={230}
+                formatValue={(v) => formatInr(v, 0, masked)}
+                ariaLabel={`Portfolio value chart, ${RANGE_LABELS[range]}`}
+              />
             ) : (
               <p className={styles.statSub}>Not enough price history yet for this range.</p>
             )}

@@ -173,7 +173,12 @@ export function StockPageClient({
             <PillTabs options={RANGE_OPTIONS} value={range} onChange={setRange} labels={RANGE_LABELS} />
           </div>
           {priceSeries[range].v.length > 0 ? (
-            <LineChart series={priceSeries[range]} height={210} formatValue={(v) => formatInr(v, 2, masked)} />
+            <LineChart
+              series={priceSeries[range]}
+              height={210}
+              formatValue={(v) => formatInr(v, 2, masked)}
+              ariaLabel={`${symbol} price chart, ${RANGE_LABELS[range]}`}
+            />
           ) : (
             <p className={styles.meta}>No price history available for this range.</p>
           )}
@@ -304,7 +309,13 @@ export function StockPageClient({
                 </div>
                 <div className={styles.shChartCol}>
                   <div className={styles.shChartWrap}>
-                    <svg viewBox="0 0 600 200" preserveAspectRatio="none" className={styles.shSvg}>
+                    <svg
+                      viewBox="0 0 600 200"
+                      preserveAspectRatio="none"
+                      className={styles.shSvg}
+                      role="img"
+                      aria-label={`${symbol} shareholding pattern over ${quarters.length} quarters`}
+                    >
                       {gridValues.map((v) => (
                         <line key={v} x1="0" x2="600" y1={shY(v)} y2={shY(v)} stroke="#F1EDE3" strokeWidth={1} />
                       ))}

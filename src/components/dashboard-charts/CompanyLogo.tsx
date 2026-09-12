@@ -20,7 +20,7 @@ export function CompanyLogo({ symbol, size }: { symbol: string; size: number }) 
     // eslint-disable-next-line @next/next/no-img-element -- external SVG logo, arbitrary host, needs onError fallback
     <img
       src={LOGO_URL(symbol)}
-      alt=""
+      alt={`${symbol} logo`}
       width={size}
       height={size}
       style={{ width: size, height: size, objectFit: 'contain' }}

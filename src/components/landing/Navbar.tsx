@@ -64,9 +64,11 @@ export function Navbar() {
           ))}
         </div>
         <div className={styles.actions}>
-          <a href="#opensource" className={styles.ghost}>
+          <a href="#opensource" className={styles.ghost} aria-label="GitHub">
             <GitHubIcon />
-            <span className={styles.ghostLabel}>GitHub</span>
+            <span className={styles.ghostLabel} aria-hidden="true">
+              GitHub
+            </span>
           </a>
           {hosted ? (
             <HostedNavCta />

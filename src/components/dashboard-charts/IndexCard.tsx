@@ -22,7 +22,7 @@ export function IndexCard({ index }: { index: IndexQuoteOut }) {
           {change.toFixed(2)} ({up ? '+' : ''}
           {changePct.toFixed(2)}%)
         </span>
-        <svg viewBox="0 0 120 34" preserveAspectRatio="none" className={styles.spark}>
+        <svg viewBox="0 0 120 34" preserveAspectRatio="none" className={styles.spark} aria-hidden="true">
           <path
             d={buildSparkline(index.spark)}
             fill="none"

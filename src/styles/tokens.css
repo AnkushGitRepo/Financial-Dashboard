@@ -20,11 +20,16 @@
   --color-text-secondary: #4b5057;
   --color-text-muted: #5b6067;
   --color-text-faint: #6b7078;
-  --color-text-subtle: #8a9099;
+  /* Darkened from #8a9099 (2026-09-12) — the original failed WCAG AA
+     (3.08:1) at the small sizes this is actually used at (eyebrow labels).
+     4.53:1 against --color-bg. */
+  --color-text-subtle: #6e727a;
   --color-text-on-dark: #ffffff;
   --color-text-on-dark-muted: #b9bfc6;
   --color-text-on-dark-faint: #9aa0a8;
-  --color-text-on-dark-subtle: #6f757d;
+  /* Lightened from #6f757d (2026-09-12) — the original failed WCAG AA
+     (3.86:1) against --color-surface-dark. 4.54:1 now. */
+  --color-text-on-dark-subtle: #7a818a;
 
   /* Color — brand / accents */
   --color-mint: #7ee2a8;
@@ -115,16 +120,28 @@
   --app-border-softer: #f5f2ea;
   --app-pill-bg: #f6f3ea;
   --app-ink: #16191c;
-  --app-text-muted: #6b747c;
-  --app-text-faint: #8e9aa1;
-  --app-text-subtle: #9aa3ab;
+  /* Darkened 2026-09-12 — the originals failed WCAG AA against white/cream
+     surfaces (muted 4.49:1, faint 2.72:1, subtle 2.41:1 — faint/subtle
+     failed even the lenient large-text 3:1 bar, and these are used as
+     small caption/label text on nearly every dashboard page). Staggered
+     (5.3 / 4.95 / 4.53:1) to keep the three tiers visually distinct
+     rather than converging on one grey. */
+  --app-text-muted: #606870;
+  --app-text-faint: #656d72;
+  --app-text-subtle: #6d7379;
   --app-cream: #fbf8f1;
   --app-teal: #17c39a;
-  --app-teal-strong: #0c8a6c;
+  /* Darkened from #0c8a6c (2026-09-12) — this is text color on several
+     "active/open/public/ok" status pills (background --app-teal-bg) and
+     was 3.89:1, failing WCAG AA. 4.52:1 now. */
+  --app-teal-strong: #0b7e63;
   --app-teal-bg: #e6f7f1;
   --app-teal-bg-strong: #bfe9da;
   --app-teal-tint: #f2f7f4;
-  --app-gain: #0c8a6c;
-  --app-loss: #c2563f;
+  /* Darkened 2026-09-12 — gain/loss are used as real P&L text (not just a
+     chart-line/dot color) and the originals were just under WCAG AA
+     (4.07:1 / 4.22:1 against cream). 4.52:1 / 4.52:1 now. */
+  --app-gain: #0b8266;
+  --app-loss: #ba533c;
   --app-loss-soft: #d9917f;
 }

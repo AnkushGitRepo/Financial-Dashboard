@@ -15,21 +15,23 @@ export default function Home() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.heroBand}>
-        <Navbar />
-        <Hero />
-        <DashboardPreview />
-      </div>
-      <FeaturesGrid />
-      <HowItWorks />
-      <div className={hosted ? undefined : styles.openSourceLast}>
-        <OpenSourceSection />
-      </div>
-      {/* Hosted-only, per ADR 0010 — the self-hosted landing page is leaner
-          (the visitor already made their choice). Both sections are free
-          content now, not billing UI (ADR 0016). */}
-      {hosted && <PricingCards />}
-      {hosted && <FAQAccordion />}
+      <Navbar />
+      <main>
+        <div className={styles.heroBand}>
+          <Hero />
+          <DashboardPreview />
+        </div>
+        <FeaturesGrid />
+        <HowItWorks />
+        <div className={hosted ? undefined : styles.openSourceLast}>
+          <OpenSourceSection />
+        </div>
+        {/* Hosted-only, per ADR 0010 — the self-hosted landing page is leaner
+            (the visitor already made their choice). Both sections are free
+            content now, not billing UI (ADR 0016). */}
+        {hosted && <PricingCards />}
+        {hosted && <FAQAccordion />}
+      </main>
       <Footer />
     </div>
   );

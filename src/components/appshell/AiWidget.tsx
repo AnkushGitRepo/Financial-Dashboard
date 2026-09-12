@@ -86,7 +86,7 @@ function parseErrorBody(error: Error): { error?: string; hint?: string } | null 
 // AiPanelBody below, keyed by `section` from the parent (AppShell.tsx) so
 // switching sections resets it by remounting — not via setState-in-effect.
 export function AiWidget({ section }: { section: Section }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
 
   return (
     <div className={styles.wrap}>

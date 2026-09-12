@@ -151,7 +151,9 @@
   font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--app-teal);
+  /* --app-teal fails WCAG AA at this size (2.26:1) — --color-mint-text is
+     the token meant for exactly this (text on a mint-tinted surface). */
+  color: var(--color-mint-text);
 }
 
 .starterChips {

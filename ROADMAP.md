@@ -363,6 +363,22 @@ _Standing rule from this ADR: any future Mitra-driven portfolio edit must go thr
 
 ---
 
+## Production-readiness pass (launch checklist) ✅ built, not yet deployed
+
+Run 2026-09-12 against a 20-item checklist (legal, security, SEO, performance, accessibility, reliability/UX) → [ADR 0023](./docs/decisions/0023-analytics-and-cookie-consent.md) for the analytics/cookie-consent decision.
+
+- [x] **Legal:** `/privacy` + `/terms` pages, written for this app's actual hosted-vs-self-host behavior. **Needs the user's own lawyer review before being final — not a substitute for legal counsel.**
+- [x] **Analytics + cookie notice** — `@vercel/analytics` (hosted-only, confirmed cookieless), `CookieNotice` disclosure bar (not a consent toggle — nothing non-essential to opt into). See ADR 0023.
+- [x] **Security** — `NEXT_PUBLIC_` var audit + a grep of the actual built `.next/static` bundle (not just source) for leaked secrets: clean. HTTPS verified live on the prod domain (HSTS preload active, HTTP→HTTPS 308). README gained a self-host HTTPS-is-your-responsibility note.
+- [x] **SEO** — per-route `generateMetadata`, `icon.tsx`/`apple-icon.tsx`, static + dynamic-per-stock OG images, `sitemap.ts`/`robots.ts`. Sitemap deliberately excludes auth-gated dashboard/stock routes.
+- [x] **Accessibility** — WCAG AA contrast audit of the full token palette (8 tokens fixed), alt-text audit, and a real Lighthouse run against the production build for landing/dashboard/stock — caught and fixed a missing `<main>` landmark and a GitHub link with no accessible name at mobile widths. All three pages now score 1.0 on accessibility.
+- [x] **Mobile pass** — landing, dashboard, portfolio, markets, stock, privacy, terms, 404 checked at 375px: no horizontal overflow anywhere. Found and fixed a real bug: Mitra's chat panel defaulted to open on every page load, covering dashboard content on narrow viewports.
+- [x] **Reliability/UX** — custom `not-found.tsx`, footer link audit (removed every fabricated/`href="#"` link), form validation + spam-protection reviewed and concluded (both existing forms have real Zod server-side validation; no public form exists that needs Turnstile).
+- [x] Full suite (typecheck/lint/test/build) green after all changes.
+- [ ] **Not yet pushed or deployed** — awaiting explicit go-ahead, same as the Mitra build above.
+
+---
+
 ## Deferred / Held Separately
 
 - **Company legal issues / litigation tracking** — deferred, no data source decided, no ETA. Revisit only when explicitly raised again.

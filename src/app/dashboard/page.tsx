@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { getCurrentUserId } from '@/lib/currentUserId';
 import { getEnrichedHoldings } from '@/lib/dashboard/enrichedHoldings';
 import { getPortfolioValueHistory } from '@/lib/dashboard/portfolioHistory';
@@ -5,6 +6,11 @@ import { getIndices, type PricePeriod } from '@/lib/dashboard/fundamentalsApi';
 import { getIpos } from '@/lib/dashboard/iposApi';
 import { getTopMovers } from '@/lib/dashboard/quotes';
 import { DashboardPageClient } from './DashboardPageClient';
+
+export const metadata: Metadata = {
+  title: 'Dashboard',
+  description: 'Your holdings, today’s movers, and market indices at a glance.',
+};
 
 export const dynamic = 'force-dynamic';
 

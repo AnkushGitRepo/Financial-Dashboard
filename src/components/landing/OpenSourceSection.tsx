@@ -31,11 +31,21 @@ export function OpenSourceSection() {
               an issue, or send a fix. Contributions are welcome from investors and builders alike.
             </p>
             <div className={styles.actions}>
-              <a href="#" className={styles.primary}>
+              <a
+                href="https://github.com/AnkushGitRepo/marketmitra"
+                target="_blank"
+                rel="noreferrer"
+                className={styles.primary}
+              >
                 <GitHubIcon />
                 View on GitHub
               </a>
-              <a href="#" className={styles.secondary}>
+              <a
+                href="https://github.com/AnkushGitRepo/marketmitra/tree/main/docs"
+                target="_blank"
+                rel="noreferrer"
+                className={styles.secondary}
+              >
                 Read the docs
               </a>
             </div>

@@ -121,7 +121,12 @@ export function PortfolioPageClient({ holdings, history, aiInsight }: PortfolioP
             <PillTabs options={RANGE_OPTIONS} value={range} onChange={setRange} labels={RANGE_LABELS} />
           </div>
           {history[range].v.length > 0 ? (
-            <LineChart series={history[range]} height={210} formatValue={(v) => formatInr(v, 0, masked)} />
+            <LineChart
+              series={history[range]}
+              height={210}
+              formatValue={(v) => formatInr(v, 0, masked)}
+              ariaLabel={`Portfolio value chart, ${RANGE_LABELS[range]}`}
+            />
           ) : (
             <p className={styles.chartSub}>Not enough price history yet for this range.</p>
           )}

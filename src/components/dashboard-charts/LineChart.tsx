@@ -9,9 +9,14 @@ interface LineChartProps {
   height: number;
   formatValue: (v: number) => string;
   deltaLabel?: (v: number) => string;
+  /** This chart is the primary way to see the trend — a screen reader
+   * can't parse the raw SVG path, so it needs a real description rather
+   * than being hidden. Callers know the subject (a stock/portfolio/index
+   * and timeframe); this component doesn't, so it takes the label. */
+  ariaLabel: string;
 }
 
-export function LineChart({ series, height, formatValue, deltaLabel }: LineChartProps) {
+export function LineChart({ series, height, formatValue, deltaLabel, ariaLabel }: LineChartProps) {
   const gradientId = useId();
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const chart = buildChart(series, height);
@@ -31,7 +36,14 @@ export function LineChart({ series, height, formatValue, deltaLabel }: LineChart
 
   return (
     <div className={styles.wrap}>
-      <svg viewBox={`0 0 720 ${height}`} preserveAspectRatio="none" className={styles.svg} style={{ height }}>
+      <svg
+        viewBox={`0 0 720 ${height}`}
+        preserveAspectRatio="none"
+        className={styles.svg}
+        style={{ height }}
+        role="img"
+        aria-label={ariaLabel}
+      >
         <defs>
           <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="var(--app-teal)" stopOpacity="0.26" />

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import {
   getCompany,
   getDocuments,
@@ -19,6 +20,21 @@ import styles from './page.module.css';
 export const dynamic = 'force-dynamic';
 
 const PRICE_PERIODS: PricePeriod[] = ['1mo', '6mo', '1y', '5y'];
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ ticker: string }>;
+}): Promise<Metadata> {
+  const { ticker } = await params;
+  const symbol = ticker.toUpperCase();
+  const company = await getCompany(symbol);
+  if (!company) return { title: symbol };
+  return {
+    title: `${company.name} (${symbol})`,
+    description: `${company.name} — ratios, financials, shareholding, peers, and price history for ${symbol} on the NSE.${company.sector ? ` Sector: ${company.sector}.` : ''}`,
+  };
+}
 
 export default async function StockPage({ params }: { params: Promise<{ ticker: string }> }) {
   const { ticker } = await params;

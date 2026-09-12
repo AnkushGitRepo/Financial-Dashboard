@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { isHosted } from '@/lib/deployment-mode';
 import { Logo } from './Logo';
 import styles from './Footer.module.css';
@@ -10,6 +11,8 @@ function GitHubIcon() {
   );
 }
 
+const REPO = 'https://github.com/AnkushGitRepo/marketmitra';
+
 const COLUMNS = [
   {
     label: 'Product',
@@ -17,39 +20,35 @@ const COLUMNS = [
       { href: '#dashboard', label: 'Dashboard' },
       { href: '#features', label: 'Features' },
       { href: '#pricing', label: 'Hosted or self-host' },
-      { href: '#', label: 'Alerts' },
-      { href: '#', label: 'Changelog' },
+      { href: `${REPO}/commits/main`, label: 'Changelog', external: true },
     ],
   },
   {
-    label: 'Company',
+    label: 'Legal',
     links: [
-      { href: '#', label: 'About' },
-      { href: '#', label: 'Blog' },
-      { href: '#', label: 'Contact' },
-      { href: '#', label: 'Privacy' },
-      { href: '#', label: 'Terms' },
+      { href: '/privacy', label: 'Privacy' },
+      { href: '/terms', label: 'Terms' },
     ],
   },
   {
     label: 'Resources',
     links: [
-      { href: '#', label: 'Getting started' },
-      { href: '#', label: 'Docs' },
-      { href: '#', label: 'API reference' },
+      { href: `${REPO}#getting-started`, label: 'Getting started', external: true },
+      { href: `${REPO}/tree/main/docs`, label: 'Docs', external: true },
+      { href: '/dashboard/api', label: 'API reference' },
       { href: '#faq', label: 'FAQ' },
-      { href: '#', label: 'Support' },
+      { href: `${REPO}/issues`, label: 'Support', external: true },
     ],
   },
   {
     label: 'Open source',
     links: [
-      { href: '#', label: 'GitHub repo' },
+      { href: REPO, label: 'GitHub repo', external: true },
       { href: '#pricing', label: 'Self-host it free' },
-      { href: '#', label: 'Issues' },
-      { href: '#', label: 'Contributing' },
-      { href: '#', label: 'Licence' },
-      { href: '#', label: 'Discussions' },
+      { href: `${REPO}/issues`, label: 'Issues', external: true },
+      { href: `${REPO}/blob/main/CONTRIBUTING.md`, label: 'Contributing', external: true },
+      { href: `${REPO}/blob/main/LICENSE`, label: 'Licence', external: true },
+      { href: `${REPO}/discussions`, label: 'Discussions', external: true },
     ],
   },
 ];
@@ -73,20 +72,30 @@ export function Footer() {
           <div className={styles.brandCol}>
             <Logo size={28} onDark />
             <p>An open-source dashboard for people who want to understand their own investments.</p>
-            <a href="#" className={styles.repoLink}>
+            <a href={REPO} target="_blank" rel="noreferrer" className={styles.repoLink}>
               <GitHubIcon />
-              github.com/marketmitra
+              github.com/AnkushGitRepo/marketmitra
             </a>
           </div>
           {columns.map((col) => (
             <div key={col.label}>
               <div className={styles.colLabel}>{col.label}</div>
               <div className={styles.linkList}>
-                {col.links.map((link) => (
-                  <a href={link.href} key={link.label}>
-                    {link.label}
-                  </a>
-                ))}
+                {col.links.map((link) =>
+                  'external' in link && link.external ? (
+                    <a href={link.href} key={link.label} target="_blank" rel="noreferrer">
+                      {link.label}
+                    </a>
+                  ) : link.href.startsWith('/') ? (
+                    <Link href={link.href} key={link.label}>
+                      {link.label}
+                    </Link>
+                  ) : (
+                    <a href={link.href} key={link.label}>
+                      {link.label}
+                    </a>
+                  )
+                )}
               </div>
             </div>
           ))}
@@ -95,10 +104,9 @@ export function Footer() {
         <div className={styles.bottomBar}>
           <div>© {year} MarketMitra. MIT licensed. Not investment advice.</div>
           <div className={styles.socials}>
-            <a href="#">GitHub</a>
-            <a href="#">X</a>
-            <a href="#">Discord</a>
-            <a href="#">RSS</a>
+            <a href={REPO} target="_blank" rel="noreferrer">
+              GitHub
+            </a>
           </div>
         </div>
       </div>

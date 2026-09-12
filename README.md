@@ -155,7 +155,11 @@ runs on every push and pull request.
 
 The project deploys to Vercel with MongoDB Atlas as the database — no other infrastructure
 required. Set the same environment variables from `.env.local.example` in the Vercel project
-settings.
+settings. Vercel provisions and renews HTTPS automatically for the domain it assigns you.
+
+If you self-host on your own infrastructure instead (a VPS, a home server, etc.) rather than
+on Vercel, setting up HTTPS (a TLS certificate, e.g. via Let's Encrypt/Caddy/nginx, and
+keeping it renewed) is your responsibility — it is not handled by this project.
 
 ### Alerts, retrieval/RAG, rate limiting, and the MCP server
 

@@ -3,7 +3,13 @@
 import { usePathname, useRouter } from 'next/navigation';
 import styles from './MobileTabBar.module.css';
 
-const ICON_PROPS = { width: 21, height: 21, viewBox: '0 0 22 22', fill: 'none' } as const;
+const ICON_PROPS = {
+  width: 21,
+  height: 21,
+  viewBox: '0 0 22 22',
+  fill: 'none',
+  'aria-hidden': true,
+} as const;
 
 function DashboardIcon() {
   return (

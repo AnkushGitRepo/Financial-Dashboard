@@ -1,9 +1,12 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { SignUp } from '@clerk/nextjs';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { clerkAppearance } from '@/components/auth/clerkAppearance';
 import { isHosted } from '@/lib/deployment-mode';
 import styles from './page.module.css';
+
+export const metadata: Metadata = { title: 'Sign up' };
 
 export default function SignUpPage() {
   if (!isHosted()) {
