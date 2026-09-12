@@ -347,6 +347,21 @@ _Out of scope: any trade decision / position / risk-manager / simulated executio
 
 ---
 
+## Mitra navigation + file-based portfolio import ✅ built, merged, not yet deployed
+
+Scoped and built 2026-09-12 → [ADR 0022](./docs/decisions/0022-mitra-navigation-and-file-import.md). Two capabilities: page-aware navigation via LLM tool-calling, and file-based portfolio import (image/XLSX/CSV/DOCX/PDF → extract → match → mandatory preview → explicit confirm).
+
+- [x] **Part A** — chat protocol migration to `@ai-sdk/react`'s `useChat` + `toUIMessageStreamResponse()`, zero behavior change, verified before anything else landed.
+- [x] **Part B** — 4 navigation tools (`navigate_to_dashboard`, `navigate_to_portfolio`, `navigate_to_markets`, `open_stock`) + `PageContext` (mirrors `MaskContext`). Hard boundary: these + the 7 MCP tools + `search_context` are the *entire* ToolSet — no settings/security/billing/destructive-action tool exists, tested as an invariant. `open_document` dropped — no in-app document entity exists yet to point it at.
+- [x] **Part C** — `src/lib/portfolio-import/`: deterministic XLSX/CSV (`exceljs`+`csv-parse`), AI-assisted image/PDF/DOCX (`unpdf`+`mammoth`+`generateObject`), fuzzy matching against `/search` (edit-distance + word-boundary prefix bonus).
+- [x] **Part D** — `ImportPreviewCard` + `POST /api/portfolio-import/confirm` (the only route that writes; zero AI involvement). Nothing persisted between extract and confirm.
+- [x] 355 web tests / tsc / lint / `next build` green throughout. **Verified live, not just unit-tested**: real navigation, the hard boundary holding under direct pressure, and a full CSV-upload-to-portfolio-write round trip (matched + ambiguous rows, one resolved, one excluded, confirmed via a fresh page load). Full detail in `docs/architecture.md`'s "Mitra navigation + file-based portfolio import" section (not yet archived) and the ADR.
+- [ ] **Awaiting user review/sign-off.** Not yet deployed to production. Archiving/pruning protocol deliberately not run yet.
+
+_Standing rule from this ADR: any future Mitra-driven portfolio edit must go through the same preview-then-explicit-confirm shape — this isn't scoped to import._
+
+---
+
 ## Deferred / Held Separately
 
 - **Company legal issues / litigation tracking** — deferred, no data source decided, no ETA. Revisit only when explicitly raised again.

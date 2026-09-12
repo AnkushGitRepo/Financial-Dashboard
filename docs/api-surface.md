@@ -163,11 +163,25 @@ Every endpoint here is a Next.js App Router route handler under `app/api/**/rout
 - **Errors:** `422` invalid subject, `400` `no_ai_key` / no holdings, `502` a bad symbol (`company`/`comparison`) or a generation failure. Degrades to structured-data-only (still 200) when retrieval is unavailable.
 
 ### `POST /api/ai/chat`
-- **Purpose:** The "Mitra" widget's streamed chat (ADR 0018 pt.5). **As of Phase 10a (on `phase-10-rag`, not yet in prod)** it is an agentic tool-calling loop (`stopWhen: stepCountIs(5)`): the model has `search_context` (vector search over the retrieval corpus — indexed news, filings, the caller's own notes/holdings/questions) plus the 7 read-only market-data tools from the MCP layer. A small portfolio summary is still seeded into the system prompt. Guardrail (`CHAT_SYSTEM_AGENTIC`) unchanged — no buy/sell/hold, same "not investment advice" ending. Completed turns are persisted (`chatMessages`, 100/user rolling cap); the caller's recent questions are re-embedded as `chat:<userId>`. Everything degrades to the pre-Phase-10 prompt-stuffing path when vector search is unavailable.
+- **Purpose:** The "Mitra" widget's streamed chat (ADR 0018 pt.5). Agentic tool-calling loop (`stopWhen: stepCountIs(5)`): the model has `search_context` (vector search over the retrieval corpus), the 7 read-only market-data tools from the MCP layer, and — **as of ADR 0022** — 4 navigation tools (`navigate_to_dashboard`, `navigate_to_portfolio`, `navigate_to_markets`, `open_stock`). These, plus the two groups above, are the *entire* ToolSet — no settings/security/billing/destructive-action tool exists, by construction. A portfolio-context block and a page-context line (`{ page, ticker, range }`, ADR 0022) are seeded into the system prompt. Guardrail (`CHAT_SYSTEM_AGENTIC`) unchanged — no buy/sell/hold, same "not investment advice" ending. Completed turns are persisted (`chatMessages`, 100/user rolling cap); the caller's recent questions are re-embedded as `chat:<userId>`. Everything degrades to prompt-stuffing when vector search is unavailable.
 - **Auth:** required. Per-user key rules identical to `/api/insights/stock` (`getUserAiConfig`). `400 {error:'no_ai_key'}` when none.
-- **Request:** `{ messages: [{ role: 'user'|'assistant', content: string(1–2000) }] }`, 1–12 turns.
-- **Response:** a `text/plain` **token stream** (`streamText().toTextStreamResponse()`), not the `{success,data,error}` envelope. Tool steps stay server-side — the client sees only assistant text. Consumed incrementally by `AiWidget.tsx`.
+- **Request:** `{ messages: UIMessage[], pageContext?: { page: 'dashboard'|'portfolio'|'markets'|'stock', ticker?: string, range?: string } | null }` (AI SDK `UIMessage` shape, from `useChat`), 1–12 turns.
+- **Response:** the AI SDK's **UI-message stream** (`streamText().toUIMessageStreamResponse()`, ADR 0022 — was a plain `text/plain` token stream before), not the `{success,data,error}` envelope. Tool-call parts (including the navigation tools) are part of the stream; the client (`AiWidget.tsx`, via `useChat`) reacts to a navigation tool part by calling `router.push`.
 - **Errors:** `422` bad body, `400` `no_ai_key`, `502` if the stream can't start.
+
+### `POST /api/portfolio-import/extract`  _(ADR 0022)_
+- **Purpose:** Extract candidate holdings from an uploaded broker screenshot/XLSX/CSV/DOCX/PDF, match each against the company database, and diff against the caller's existing holdings. **Writes nothing** — this is the preview step.
+- **Auth:** required. CSV/XLSX need no AI key (deterministic parsing); image/PDF/DOCX use the per-user key (`getUserAiConfig`, `400 no_ai_key` when none). `ai` rate-limit tier.
+- **Request:** `multipart/form-data`, field `file` (≤10 MB).
+- **Response:** `data`: `ProposedChange[]` — each `{ tempId, extracted: {rawName, rawSymbol, quantity, avgPrice}, matchStatus: 'matched'|'ambiguous'|'unmatched', matchedSymbol, matchedName, candidates: SearchResultOut[], action: 'create'|'update', existingHoldingId, before, after }`.
+- **Errors:** `401`, `400 no_ai_key`, `422 {error:'unreadable'|'no_holdings_found', message}`, `429` rate limited.
+
+### `POST /api/portfolio-import/confirm`  _(ADR 0022)_
+- **Purpose:** Commit the caller's explicitly approved subset of a `/extract` response. The only route that writes a Mitra-proposed portfolio change; no AI involvement.
+- **Auth:** required. `ai` rate-limit tier.
+- **Request:** `{ changes: [{ matchedSymbol, action: 'create'|'update', existingHoldingId, after: {quantity, avgPrice} }] }`, 1–100 items.
+- **Response:** `data`: `{ succeeded: number, failedSymbols: string[] }`.
+- **Errors:** `401`, `422` invalid body, `429` rate limited.
 
 ### `DELETE /api/ai/chat`  _(Phase 10a)_
 - **Purpose:** Clear the caller's stored chat history and drop their `chat:<userId>` entry from the retrieval corpus.

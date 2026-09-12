@@ -236,9 +236,39 @@ archive). **Guardrail on every prompt:** synthesis only, no buy/sell/hold, no pr
 ends "…not investment advice." Insight cache (`src/lib/insights.ts`, `insights` collection):
 per-user for stock (24 h) + portfolio (6 h), **cross-user shared** for IPO briefs
 (`userId:null`, 12 h); a generation error is never cached. Mitra chat: `POST /api/ai/chat`
-streams plain-text tokens on the Node runtime, context from `src/lib/ai/chatContext.ts`.
-Default Gemini model is `gemini-3.6-flash` (2.5-flash is retired for new keys). The scripted
-"Proactive insight" chat tiles are still a concept demo (Phase 9+ follow-up).
+streams via the AI SDK's UI-message format (`toUIMessageStreamResponse()` /
+`useChat`, ADR 0022 — see below), context from `src/lib/ai/chatContext.ts`. Default Gemini
+model is `gemini-3.6-flash` (2.5-flash is retired for new keys).
+
+## Mitra navigation + file-based portfolio import (ADR 0022)
+
+Built (Parts A-D), not yet archived — this section is the full reference until a future
+sign-off pass collapses it. Rationale + the live-verification notes are in
+[ADR 0022](./decisions/0022-mitra-navigation-and-file-import.md) itself.
+
+- **Navigation** — 4 tools in `buildChatTools()` (`navigate_to_dashboard`,
+  `navigate_to_portfolio`, `navigate_to_markets`, `open_stock`) plus the 7 MCP tools plus
+  `search_context` are the *entire* ToolSet Mitra ever receives — no tool for
+  settings/security/billing/destructive actions exists, enforced at the tool-definition
+  level (tested as an invariant, not just stated in the prompt). `execute()` only confirms
+  the destination; `AiWidget` watches for these tool parts reaching `output-available` and
+  calls `router.push`. `PageContext` (mirrors `MaskContext`) lets a page (the stock detail
+  page, so far) publish `{ page, ticker, range }` to the globally-mounted widget, folded
+  into the system prompt so Mitra can reference "this stock"/"what you're looking at".
+- **File-based portfolio import** — attaching a file in the chat widget hits
+  `POST /api/portfolio-import/extract` directly (not a chat tool call): CSV/XLSX are
+  parsed deterministically (`src/lib/portfolio-import/extractStructured.ts`, `exceljs` +
+  `csv-parse`, header row detected by keyword); images/PDF/DOCX go through the user's own
+  AI key via `generateObject` (`extractUnstructured.ts` — vision for images, `unpdf`/
+  `mammoth` text extraction first for PDF/DOCX). `match.ts` resolves each extraction
+  against the fundamentals-api company database (`/search` is substring-only — queries a
+  few derived fragments, ranks by edit-distance + a word-boundary prefix bonus for
+  same-conglomerate ambiguity). `diff.ts` decides create-vs-update against the caller's
+  holdings. **Writes nothing** — returns a proposed change list rendered as
+  `ImportPreviewCard` in the chat transcript; only an explicit "Add N holdings" click hits
+  `POST /api/portfolio-import/confirm`, the sole route that writes (reusing
+  `addHolding`/`updateHolding` as-is, zero AI involvement). Nothing is persisted between
+  extract and confirm — closing the chat mid-preview is safe by construction.
 
 ## Data flow
 

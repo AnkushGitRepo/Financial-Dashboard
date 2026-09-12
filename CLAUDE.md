@@ -45,9 +45,9 @@ MarketMitra is a financial dashboard (Indian markets: indices, stocks, IPOs, new
 
 ## Active focus
 
-**No new phase in flight — refining existing pages and features.** All 11 phases are built and merged to `main`/`v2` (Phase 11 still awaiting production deploy). Work now shifts to page-by-page and feature-by-feature refinement, discussed and scoped one at a time rather than as a phase. Mobile app development (formerly Phase 12) is dropped — not on the roadmap.
+**One feature-level build in flight, awaiting review: Mitra navigation + file-based portfolio import** ([ADR 0022](./docs/decisions/0022-mitra-navigation-and-file-import.md)) — page-aware navigation via LLM tool-calling (hard boundary at the tool-definition level: no settings/security/billing/destructive-action tool exists, ever) plus file-based portfolio import (image/XLSX/CSV/DOCX/PDF → extract → match → mandatory preview → explicit confirm, never auto-save). Built (Parts A-D on `main`), tested, and verified live — not yet reviewed/signed-off, so **do not run the archiving protocol yet**; `docs/architecture.md`'s new section is the full working reference until that happens. Outside this, work is page-by-page/feature-by-feature refinement, scoped one at a time. Mobile app development (formerly Phase 12) is dropped — not on the roadmap.
 
-**Non-blocking follow-ups** (see ROADMAP.md): deploy Phase 11 to production; pre-bundle the `bge-small` embedding model into the fundamentals-api deployment; filings-in-corpus (blocked — BSE 403s Vercel); one real alert fire + one real IPO-alert fire in market hours.
+**Non-blocking follow-ups** (see ROADMAP.md): deploy Phase 11 to production; deploy the Mitra navigation/import build once reviewed; pre-bundle the `bge-small` embedding model into the fundamentals-api deployment; filings-in-corpus (blocked — BSE 403s Vercel); one real alert fire + one real IPO-alert fire in market hours.
 
 **Standing facts that outlived the phase detail:**
 
