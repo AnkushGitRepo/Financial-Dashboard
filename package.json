@@ -23,13 +23,18 @@
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.4",
     "ai": "^7.0.93",
+    "csv-parse": "^7.0.2",
+    "exceljs": "^4.4.0",
+    "fastest-levenshtein": "^1.0.16",
     "framer-motion": "^13.2.0",
+    "mammoth": "^1.12.3",
     "mcp-handler": "^2.1.1",
     "mongodb": "^7.6.0",
     "next": "16.3.4",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "resend": "^6.26.0",
+    "unpdf": "^1.8.1",
     "zod": "^4.5.4"
   },
   "devDependencies": {
