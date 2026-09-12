@@ -93,7 +93,18 @@ focused PRs get reviewed faster than large ones.
 ## Reporting bugs and requesting features
 
 Use the [issue templates](.github/ISSUE_TEMPLATE/) — they ask for the information needed to
-act on a report quickly (repro steps, environment, expected vs. actual behavior).
+act on a report quickly (repro steps, environment, expected vs. actual behavior). New issues
+land as `needs-triage`; a maintainer replaces that with the right priority/area labels.
+
+## Labels
+
+Every issue gets a **type** (`bug`, `enhancement`, `documentation`, `question`), and
+generally a **priority** (`priority: high|medium|low`) and an **area** (`area: dashboard`,
+`area: alerts`, `area: news`, `area: ipos`, `area: ai-insights`, `area: agents`, `area: api`,
+`area: fundamentals-api`, `area: self-hosting`, `area: docs`) once triaged. `status:
+in-progress` / `status: blocked` track active work; `good first issue` / `help wanted` flag
+issues that are open for anyone to pick up. See the full list on the
+[Labels page](../../labels).
 
 ## Security issues
 
