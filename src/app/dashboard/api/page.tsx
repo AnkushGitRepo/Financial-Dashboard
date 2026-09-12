@@ -29,7 +29,7 @@ export default async function ApiExplorerPage() {
         Public endpoints work for anyone; the rest use your signed-in session &mdash; no keys are
         entered here. For automated / agent access to public market data, prefer the{' '}
         <strong>MCP server</strong> below. Full reference:{' '}
-        <a href="https://github.com/AnkushGitRepo/Financial-Dashboard/blob/main/docs/api-surface.md">
+        <a href="https://github.com/AnkushGitRepo/marketmitra/blob/main/docs/api-surface.md">
           docs/api-surface.md
         </a>
         . The machine-readable spec is at <a href="/openapi.json">/openapi.json</a>.

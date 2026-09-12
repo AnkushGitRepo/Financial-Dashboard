@@ -34,7 +34,7 @@ Resolve company names with `search_symbols` before calling the others.
 The dashboard's own HTTP endpoints (holdings, alerts, notifications, AI
 insights, chat, search, news) are documented at:
 
-    https://github.com/AnkushGitRepo/Financial-Dashboard/blob/main/docs/api-surface.md
+    https://github.com/AnkushGitRepo/marketmitra/blob/main/docs/api-surface.md
 
 Per-user endpoints require a Clerk session. The MCP server above is the
 supported interface for automated/agent access to public data.

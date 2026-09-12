@@ -4,8 +4,8 @@ A financial dashboard for Indian markets — one place to see your holdings, pri
 moved your money. Free, open-source, and self-hostable, with a hosted option for people who'd
 rather not run their own infrastructure.
 
-[![CI](https://github.com/AnkushGitRepo/Financial-Dashboard/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/AnkushGitRepo/Financial-Dashboard/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/github/license/AnkushGitRepo/Financial-Dashboard)](LICENSE)
+[![CI](https://github.com/AnkushGitRepo/marketmitra/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/AnkushGitRepo/marketmitra/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/github/license/AnkushGitRepo/marketmitra)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 **[Live demo](https://marketmitra-v2.vercel.app)** · [Documentation](#project-context-for-humans-and-agents) · [Contributing](CONTRIBUTING.md) · [Report a bug](../../issues/new/choose)
@@ -110,7 +110,7 @@ A single `DEPLOYMENT_MODE` environment variable gates which one you get at runti
 ### Local setup
 
 ```bash
-git clone https://github.com/AnkushGitRepo/Financial-Dashboard.git marketmitra
+git clone https://github.com/AnkushGitRepo/marketmitra.git marketmitra
 cd marketmitra
 npm install
 cp .env.local.example .env.local

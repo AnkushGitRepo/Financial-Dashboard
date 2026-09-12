@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Security vulnerability
-    url: https://github.com/AnkushGitRepo/Financial-Dashboard/security/advisories/new
+    url: https://github.com/AnkushGitRepo/marketmitra/security/advisories/new
     about: Please report security vulnerabilities privately, not as a public issue — see SECURITY.md.
   - name: Questions / general discussion
-    url: https://github.com/AnkushGitRepo/Financial-Dashboard/issues?q=is%3Aissue
+    url: https://github.com/AnkushGitRepo/marketmitra/issues?q=is%3Aissue
     about: Search existing issues, or open a bug/feature issue if you don't find one.

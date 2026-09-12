@@ -216,5 +216,5 @@ Rolled up 2026-09-12 during the Phase 11 archiving pass. Feature detail:
   theme / portfolio / comparison), retrieval + synthesis only, no agentic loop.
 - **2026-09-07** — Built on `phase-10b-research`: `POST /api/research`, `/dashboard/research`,
   `MarkdownLite` (a new tiny markdown renderer, no dependency). 272 tests green.
-- **2026-09-07** — Reviewed via [PR #1](https://github.com/AnkushGitRepo/Financial-Dashboard/pull/1),
+- **2026-09-07** — Reviewed via [PR #1](https://github.com/AnkushGitRepo/marketmitra/pull/1),
   approved, merged, deployed. Archived into `rag-chat.md`'s Phase 10b section.
