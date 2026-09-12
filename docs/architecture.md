@@ -4,14 +4,14 @@ Current system architecture for MarketMitra v2. Kept in sync with reality — wh
 ships and is signed off, its detailed build notes move to `/docs/archive/<feature-name>.md`
 and only a short summary stays here (see the context maintenance protocol in `/CLAUDE.md`).
 
-## Status: Phases 0–11 signed off; Phase 11 merged, not yet deployed
+## Status: Phases 0–11 signed off and live in production
 
 v2 is a teardown-and-rebuild of the v1 Financial-Dashboard repo ([ADR 0001](./decisions/0001-teardown-and-rebuild.md)).
-Every feature phase through **Phase 10b (research surface)** is built, deployed to
-production, and signed off. **Phase 11 (multi-agent analysis)** is built, tested, verified
-with a real live run, and merged to `main`/`v2` — production deployment is the only step
-left. `v2` is kept identical to `main` so the GitHub Actions cron schedulers can fire from
-the default branch.
+Every feature phase through **Phase 11 (multi-agent analysis)** is built, deployed to
+production, and signed off. `v2` is kept identical to `main` so the GitHub Actions cron
+schedulers can fire from the default branch. A Mitra navigation + file-import build
+(ADR 0022) is also live — merged, deployed, and awaiting review before its own
+archiving pass (see below).
 
 - **Phase 2–3:** scaffold + deployment-mode gate, landing page, on-brand auth pages,
   dashboard shell. ([archive: landing-page, auth-pages, dashboard-shell](./archive/))
@@ -24,14 +24,14 @@ the default branch.
 - **Phase 9:** API surface — MCP server (`/api/mcp`), fair-use rate limiting, interactive explorer (`/dashboard/api`). ([archive](./archive/api-surface.md))
 - **Phase 10a:** retrieval (RAG) under chat + insights — `chunks` collection + Atlas Vector Search, embeddings on the fundamentals-api (`/embed`), `/api/cron/index-corpus`, agentic chat, grounded insights, per-user notes/holdings/chat layer. ([archive](./archive/rag-chat.md))
 - **Phase 10b:** `/dashboard/research` — a structured, ephemeral brief (company / theme / portfolio / comparison), retrieval + synthesis only, no agentic loop. ([archive](./archive/rag-chat.md#phase-10b--the-research-surface))
-- **Phase 11:** multi-agent analytical briefings (`/dashboard/agents`) — four analyst agents → bull/bear debate → synthesis, async checkpointed runs, a reflection loop. Merged to `main`/`v2`, **not yet deployed**. ([archive](./archive/multi-agent-analysis.md))
+- **Phase 11:** multi-agent analytical briefings (`/dashboard/agents`) — four analyst agents → bull/bear debate → synthesis, async checkpointed runs, a reflection loop. Deployed. ([archive](./archive/multi-agent-analysis.md))
 
 The repo is a small monorepo: the Next.js app at the root (`src/`) plus a standalone Python
 service under `services/fundamentals-api/`.
 
 **Open follow-ups** (tracked in ROADMAP.md, none a blocker): one real alert fire + one real
 IPO-alert fire in market hours; pre-bundle the embedding model; filings-in-corpus needs an
-un-blocked PDF host; deploy Phase 11 to production.
+un-blocked PDF host.
 
 ## Stack
 
@@ -242,9 +242,10 @@ model is `gemini-3.6-flash` (2.5-flash is retired for new keys).
 
 ## Mitra navigation + file-based portfolio import (ADR 0022)
 
-Built (Parts A-D), not yet archived — this section is the full reference until a future
-sign-off pass collapses it. Rationale + the live-verification notes are in
-[ADR 0022](./decisions/0022-mitra-navigation-and-file-import.md) itself.
+Built (Parts A-D), deployed to production 2026-09-12, not yet archived — this section is
+the full reference until a future sign-off pass collapses it. Rationale + the
+live-verification notes are in [ADR 0022](./decisions/0022-mitra-navigation-and-file-import.md)
+itself.
 
 - **Navigation** — 4 tools in `buildChatTools()` (`navigate_to_dashboard`,
   `navigate_to_portfolio`, `navigate_to_markets`, `open_stock`) plus the 7 MCP tools plus
@@ -352,7 +353,7 @@ analytical half of TradingAgents as our own TS code, stopping before any trade d
 Async, checkpointed runs (`agentRuns` collection is the checkpoint) via
 `/api/agents/run` → `/api/agents/tick` → `/dashboard/agents`; a daily reflection loop
 writes hindsight lessons per user. Merged to `main`/`v2`, tested, verified with a real
-live run — not yet deployed. Full detail: [archive/multi-agent-analysis.md](./archive/multi-agent-analysis.md).
+live run, and deployed to production. Full detail: [archive/multi-agent-analysis.md](./archive/multi-agent-analysis.md).
 
 ## Shipped features (see `/docs/archive/` for detail)
 

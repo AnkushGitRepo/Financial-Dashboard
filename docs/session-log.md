@@ -67,3 +67,12 @@ Rolling log of work sessions, most recent first is NOT required — append chron
 - Also fixed in passing: an unrelated stale `docs/api-surface.md`/`architecture.md` line claiming the scripted "Proactive insight" chat tiles were still a concept demo — they were deleted back in the Phase 9 follow-ups (per `session-log-archive.md` Rollup 2) and never actually removed from this doc.
 - **Not run yet, per explicit instruction:** the archiving/pruning protocol. `docs/architecture.md`'s new section stays as the full working reference (like Phase 11's did pre-archiving) until the user approves the build and it's collapsed into `/docs/archive/`.
 - **Next:** user review/approval of the whole feature; then archive + `ROADMAP.md`/`CLAUDE.md` sign-off updates; deploying it (and Phase 11) to production remain separately open.
+
+## 2026-09-12 — Pushed + deployed: Phase 11 and Mitra navigation/import both went live
+
+- User said "push and deploy." Fast-forwarded `v2` to `main`, pushed both to GitHub; CI (lint/typecheck/test/build) passed on both branches before deploying.
+- `vercel deploy --prod --yes` — `marketmitra-v2` built and aliased to `https://marketmitra-v2.vercel.app` cleanly (new deps `exceljs`/`mammoth`/`unpdf`/`csv-parse`/`fastest-levenshtein`/`@ai-sdk/react` all bundled without issue).
+- **Post-deploy smoke test:** `/` 200; `/dashboard` 404-unauth (expected — prod's Clerk dev instance only completes its handshake for a real browser, not bare `curl`, per the standing note on this); `POST /api/ai/chat`, `POST /api/portfolio-import/extract`, `POST /api/portfolio-import/confirm` all `401` unauthenticated, not `500` — confirms the new UIMessage-stream chat protocol and the new file-import routes (with their heavier dependencies) load cleanly in the actual Vercel serverless environment, not just locally.
+- Since `main` already carried both the Phase 11 work (merged earlier this session, previously undeployed) and the new Mitra build, this one deploy took **both live simultaneously**. Updated every "not yet deployed" reference for Phase 11 across `CLAUDE.md` / `ROADMAP.md` / `docs/architecture.md` to reflect that.
+- **Still deliberately not run:** the archiving/pruning protocol for the Mitra build — deploying it isn't the same signal as "reviewed, collapse the docs." `docs/architecture.md`'s Mitra section stays the full working reference until that explicit go-ahead.
+- **Next:** explicit review/sign-off on the Mitra build (then archive it, matching Phase 11's own pattern); otherwise no build in flight.

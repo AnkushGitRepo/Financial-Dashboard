@@ -317,7 +317,7 @@ Scoped in the [ADR 0020 amendment](./docs/decisions/0020-phase-10-rag-chat.md#am
 
 A **structured brief** (fixed markdown sections), **retrieval + synthesis only** (no agentic loop — that's Phase 11), **ephemeral** (not stored). Subjects: company / theme / portfolio / comparison. `POST /api/research` (BYO key, `ai` tier, no cache) + `/dashboard/research` (`ResearchPageClient`, `MarkdownLite` renderer). 272 web tests green at ship.
 
-## Phase 11 — Multi-agent analytical briefings ✅ merged, not yet deployed
+## Phase 11 — Multi-agent analytical briefings ✅ deployed
 
 Scoped 2026-09-07 → [ADR 0021](./docs/decisions/0021-phase-11-multi-agent-analysis.md) (accepted; runtime = **TS in the Next app**). Port the **analytical half** of TauricResearch/TradingAgents (Apache-2.0) — analyst team → bull/bear **debate** → synthesis — **as our own code, not a dependency**, and **stop before any trade decision** (no trader / risk-manager / position / simulated execution — the guardrail forbids it). Output: a debated briefing that may state which side of the debate is better-evidenced (a "direction"), never a recommendation/target, still ends "not investment advice." Full **reflection loop** in v1. Subject = one **stock** only (theme/portfolio/comparison stay Phase 10b's shallow tier).
 
@@ -341,13 +341,13 @@ Scoped 2026-09-07 → [ADR 0021](./docs/decisions/0021-phase-11-multi-agent-anal
 - [x] Injection — `src/lib/agents/lessons.ts` `buildLessonsContext()` (same-symbol then sector, ≤3 runs); the analysts phase resolves it into `doc.lessonsContext`, debate + synthesis pass it through. Prompts + `reflect.ts` carry the "calibration not prediction, short arbitrary window" caveat. 3 tests.
 
 ### Cross-cutting
-- [x] 325 web tests / tsc / lint / `next build` green; `docs/architecture.md` + `docs/api-surface.md` + `public/openapi.json` entries. `CRON_SECRET` is already a repo secret → both new workflows fire from `main`. **Verified with a real live end-to-end run** (TCS, self-host, 2026-09-12). **Merged to `main`/`v2` — not yet deployed to production.** Full detail: [`/docs/archive/multi-agent-analysis.md`](./docs/archive/multi-agent-analysis.md).
+- [x] 325 web tests / tsc / lint / `next build` green; `docs/architecture.md` + `docs/api-surface.md` + `public/openapi.json` entries. `CRON_SECRET` is already a repo secret → both new workflows fire from `main`. **Verified with a real live end-to-end run** (TCS, self-host, 2026-09-12). **Merged to `main`/`v2` and deployed to production 2026-09-12.** Full detail: [`/docs/archive/multi-agent-analysis.md`](./docs/archive/multi-agent-analysis.md).
 
 _Out of scope: any trade decision / position / risk-manager / simulated execution; price targets or valuation verdicts; a LangGraph dependency (unless the open item flips); cross-user memory; streaming agent output; non-stock subjects; backtesting._
 
 ---
 
-## Mitra navigation + file-based portfolio import ✅ built, merged, not yet deployed
+## Mitra navigation + file-based portfolio import ✅ built, merged, deployed
 
 Scoped and built 2026-09-12 → [ADR 0022](./docs/decisions/0022-mitra-navigation-and-file-import.md). Two capabilities: page-aware navigation via LLM tool-calling, and file-based portfolio import (image/XLSX/CSV/DOCX/PDF → extract → match → mandatory preview → explicit confirm).
 
@@ -356,7 +356,8 @@ Scoped and built 2026-09-12 → [ADR 0022](./docs/decisions/0022-mitra-navigatio
 - [x] **Part C** — `src/lib/portfolio-import/`: deterministic XLSX/CSV (`exceljs`+`csv-parse`), AI-assisted image/PDF/DOCX (`unpdf`+`mammoth`+`generateObject`), fuzzy matching against `/search` (edit-distance + word-boundary prefix bonus).
 - [x] **Part D** — `ImportPreviewCard` + `POST /api/portfolio-import/confirm` (the only route that writes; zero AI involvement). Nothing persisted between extract and confirm.
 - [x] 355 web tests / tsc / lint / `next build` green throughout. **Verified live, not just unit-tested**: real navigation, the hard boundary holding under direct pressure, and a full CSV-upload-to-portfolio-write round trip (matched + ambiguous rows, one resolved, one excluded, confirmed via a fresh page load). Full detail in `docs/architecture.md`'s "Mitra navigation + file-based portfolio import" section (not yet archived) and the ADR.
-- [ ] **Awaiting user review/sign-off.** Not yet deployed to production. Archiving/pruning protocol deliberately not run yet.
+- [x] Pushed to `main`/`v2` and deployed to production 2026-09-12. Post-deploy smoke test: new routes + `/api/ai/chat` return clean `401`s (not `500`s) unauthenticated.
+- [ ] Archiving/pruning protocol deliberately not run yet — hold for explicit sign-off.
 
 _Standing rule from this ADR: any future Mitra-driven portfolio edit must go through the same preview-then-explicit-confirm shape — this isn't scoped to import._
 
