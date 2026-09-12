@@ -1,151 +1,211 @@
 # MarketMitra
 
-A financial dashboard for Indian markets — one place to see your holdings, prices, and what moved your money. Open source, self-hostable, with a hosted option for people who'd rather not run their own infrastructure.
+A financial dashboard for Indian markets — one place to see your holdings, prices, and what
+moved your money. Free, open-source, and self-hostable, with a hosted option for people who'd
+rather not run their own infrastructure.
 
-This is **v2**: a full teardown-and-rebuild of the original Financial-Dashboard project, not an incremental update. See [ADR 0001](docs/decisions/0001-teardown-and-rebuild.md) for why.
+[![CI](https://github.com/AnkushGitRepo/Financial-Dashboard/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/AnkushGitRepo/Financial-Dashboard/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/github/license/AnkushGitRepo/Financial-Dashboard)](LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-## What changed from v1
+**[Live demo](https://marketmitra-v2.vercel.app)** · [Documentation](#project-context-for-humans-and-agents) · [Contributing](CONTRIBUTING.md) · [Report a bug](../../issues/new/choose)
 
-v1 was a split-stack MERN app: a React+Vite client, a separate Express server, a separate Django API for financial data/sentiment, a standalone Python scraper, hand-rolled OTP-based authentication, and two separate deploy targets (Render + Vercel).
+---
 
-v2 consolidates all of that into a single Next.js (App Router, TypeScript) application:
+## Contents
 
-- **One runtime, one language.** No more juggling Node/Express, Django, and Python scraper scripts as separate services — see [ADR 0002](docs/decisions/0002-nextjs-app-router.md) and [ADR 0004](docs/decisions/0004-nextjs-api-routes-as-backend.md).
-- **Clerk instead of hand-rolled auth.** No more custom OTP/email/SMS verification code — see [ADR 0005](docs/decisions/0005-clerk-auth.md).
-- **Built for two consumers from day one: a human dashboard and an AI agent.** Every feature ships a UI path and a documented, stable API endpoint together (see `/docs/api-surface.md`) — not a UI with an API bolted on afterward, and not an API with no UI.
-- **One deploy target.** Vercel + MongoDB Atlas, nothing else — see [ADR 0006](docs/decisions/0006-vercel-mongodb-atlas-deployment.md).
+- [What it does](#what-it-does)
+- [Status](#status)
+- [Two ways to run it](#two-ways-to-run-it)
+- [Stack](#stack)
+- [Getting started](#getting-started)
+- [The API surface, for AI agents too](#the-api-surface-for-ai-agents-too)
+- [Project context, for humans and agents](#project-context-for-humans-and-agents)
+- [Contributing](#contributing)
+- [License](#license)
 
-This is a fresh rebuild. No code, features, or data carried over automatically from v1 — everything (IPO calendar, market indices, news sentiment, and more) was rebuilt deliberately. v1's code is still reachable in this repo's git history if an old implementation detail is worth referencing.
+## What it does
+
+- **Dashboard** — real Indian indices, watchlist movers, a portfolio you actually hold, and a
+  full stock detail page (ratios, historical financials, shareholding, peer comparison,
+  annual-report PDFs, price history).
+- **Alerts** — price / %-move / 52-week / portfolio-P&L / IPO triggers, delivered in-app, by
+  webhook, and by email.
+- **News feed** — a free-RSS Indian-markets stream with a per-headline sentiment tag, sliceable
+  by stock or by your own holdings.
+- **IPO tracker** — calendar, subscription numbers, and grey-market premium (clearly labeled as
+  an unofficial third-party estimate).
+- **AI insights + Mitra chat** — bring your own key (Gemini, Anthropic, or OpenRouter),
+  retrieval-grounded over a live corpus of news and filings, encrypted at rest. Always a
+  neutral synthesis, never investment advice.
+- **Multi-agent analysis** — four analyst agents research a stock from different angles, a
+  bull and a bear debate it, and a synthesis briefing lays out both cases and where the
+  evidence currently leans — without ever recommending a trade.
+- **Research briefs** — a faster, structured report on a company, theme, portfolio, or
+  comparison, grounded in the same retrieval corpus.
+- **An API surface for agents, not just humans** — every feature above is also a documented,
+  stable API endpoint, plus an MCP server for AI tool-use. See
+  [`/docs/api-surface.md`](docs/api-surface.md).
+
+No usage numbers, growth stats, or "battle-tested" claims appear anywhere in this repo. It's
+a young rewrite — if a claim like that shows up somewhere, it's a bug, not a feature.
 
 ## Status
 
-Phases 0–9 have shipped to production (see `ROADMAP.md` for the phase list, `/docs/session-log.md` for what landed most recently):
+All planned phases are built. Phase-by-phase history, decisions, and what's still open live
+in [`ROADMAP.md`](ROADMAP.md), [`/docs/architecture.md`](docs/architecture.md), and
+[`/docs/session-log.md`](docs/session-log.md) — this README won't try to keep up with that
+level of detail, since it goes stale faster than code does.
 
-- **Dashboard** — real Indian indices, watchlist movers, holdings/portfolio (MongoDB-backed CRUD), and a full stock detail page (ratios, historical financials, shareholding, peer comparison, About, annual-report PDFs, price history).
-- **Alerts** — price / %-move / 52-week / portfolio-P&L / IPO triggers, in-app + webhook delivery.
-- **News feed** — free-RSS Indian-markets stream with a VADER headline-tone tag, per-stock and per-portfolio.
-- **IPO tracker** — calendar, subscription, and grey-market premium (a heavily-caveated third-party estimate).
-- **AI insights + Mitra chat** — BYO-key (Gemini / Anthropic / OpenRouter), neutral synthesis only, key AES-256-GCM encrypted at rest.
-- **API surface** — an MCP server at `/api/mcp` plus an interactive API explorer at `/dashboard/api`; fair-use rate limiting (hosted only).
+This is **v2**: a full teardown-and-rebuild of the original MERN-stack Financial-Dashboard
+project (React+Vite / Express / Django / a standalone Python scraper), consolidated into a
+single Next.js + MongoDB Atlas stack built to serve a human dashboard and an AI agent from
+day one. See [ADR 0001](docs/decisions/0001-teardown-and-rebuild.md) for why, and why nothing
+carried over automatically — v1's code is still reachable in this repo's git history if an
+old implementation detail is worth referencing.
 
-Market data is sourced by a companion Python service, `services/fundamentals-api/`, from free sources only (no paid vendors). This is a real snapshot, not a roadmap.
+## Two ways to run it
+
+MarketMitra is **free and open-source with no paid tier, no billing, and no trial limits**
+([ADR 0011](docs/decisions/0011-three-tier-fundamentals-data-sourcing.md),
+[ADR 0016](docs/decisions/0016-landing-page-no-paid-tier-reconciliation.md)). Both run the
+exact same codebase:
+
+| | Hosted | Self-hosted |
+| --- | --- | --- |
+| **For** | People who'd rather not run infrastructure | Anyone who wants their own instance |
+| **Sign-in** | Clerk | None — single local user, no login |
+| **AI insights** | Bring your own key | Bring your own key |
+| **Rate limits** | Fair-use limits on the shared instance | None |
+| **License** | — | MIT |
+
+A single `DEPLOYMENT_MODE` environment variable gates which one you get at runtime
+([ADR 0010](docs/decisions/0010-deployment-mode-gate.md)) — see
+[Getting started](#getting-started) below.
 
 ## Stack
 
-| Layer     | Choice                                                          | Why                                                                |
-| --------- | --------------------------------------------------------------- | ------------------------------------------------------------------ |
-| Framework | Next.js (App Router, TypeScript)                                | [ADR 0002](docs/decisions/0002-nextjs-app-router.md)               |
-| Styling   | CSS Modules + a shared design-token file, no Tailwind/Bootstrap | [ADR 0003](docs/decisions/0003-css-modules-no-framework.md)        |
-| Backend   | Next.js API route handlers (no separate server)                 | [ADR 0004](docs/decisions/0004-nextjs-api-routes-as-backend.md)    |
-| Auth      | Clerk, active only in hosted mode                               | [ADR 0005](docs/decisions/0005-clerk-auth.md), [ADR 0010](docs/decisions/0010-deployment-mode-gate.md) |
-| Database  | MongoDB Atlas, native driver (no Mongoose)                      | [ADR 0007](docs/decisions/0007-mongodb-native-driver.md)           |
-| Hosting   | Vercel                                                          | [ADR 0006](docs/decisions/0006-vercel-mongodb-atlas-deployment.md) |
+| Layer     | Choice                                                           | Why                                                                 |
+| --------- | ----------------------------------------------------------------- | -------------------------------------------------------------------- |
+| Framework | Next.js (App Router, TypeScript)                                 | [ADR 0002](docs/decisions/0002-nextjs-app-router.md)                 |
+| Styling   | CSS Modules + a shared design-token file, no Tailwind/Bootstrap  | [ADR 0003](docs/decisions/0003-css-modules-no-framework.md)          |
+| Backend   | Next.js API route handlers (no separate server)                  | [ADR 0004](docs/decisions/0004-nextjs-api-routes-as-backend.md)      |
+| Auth      | Clerk, active only in hosted mode                                 | [ADR 0005](docs/decisions/0005-clerk-auth.md), [ADR 0010](docs/decisions/0010-deployment-mode-gate.md) |
+| Database  | MongoDB Atlas, native driver (no Mongoose)                        | [ADR 0007](docs/decisions/0007-mongodb-native-driver.md)             |
+| Data service | `services/fundamentals-api/` — a scoped Python/FastAPI exception | [ADR 0011](docs/decisions/0011-three-tier-fundamentals-data-sourcing.md), [ADR 0013](docs/decisions/0013-fundamentals-api-vercel-hosting.md) |
+| Hosting   | Vercel                                                            | [ADR 0006](docs/decisions/0006-vercel-mongodb-atlas-deployment.md)   |
+| License   | MIT                                                               | [ADR 0009](docs/decisions/0009-mit-license.md)                       |
 
 ## Getting started
 
 ### Prerequisites
 
 - Node.js 20+
-- A [MongoDB Atlas](https://www.mongodb.com/atlas) cluster (or any MongoDB instance)
+- A [MongoDB Atlas](https://www.mongodb.com/atlas) cluster (or any MongoDB instance — a free
+  M0 tier works)
 - **Self-hosting (the default):** that's it. No Clerk account needed.
-- **Running in hosted mode:** also requires a [Clerk](https://clerk.com) application — only relevant to MarketMitra's own deployment, not to self-hosting.
+- **Running in hosted mode:** also requires a [Clerk](https://clerk.com) application — only
+  relevant to MarketMitra's own deployment, not to self-hosting.
 
 ### Local setup
 
 ```bash
+git clone https://github.com/AnkushGitRepo/Financial-Dashboard.git marketmitra
+cd marketmitra
 npm install
 cp .env.local.example .env.local
 ```
 
-Fill in `.env.local` with your own values:
+Fill in `.env.local` with your own values — at minimum:
 
 ```
-MONGODB_URI=          # MongoDB Atlas connection string
+MONGODB_URI=          # your MongoDB Atlas connection string
 MONGODB_DB=marketmitra
 ```
 
-`NEXT_PUBLIC_DEPLOYMENT_MODE` defaults to `selfhost` when left unset — the app runs with no login screen, straight into the dashboard as a single local user. Self-hosted users don't need to configure Clerk at all; those variables in `.env.local.example` only matter when `NEXT_PUBLIC_DEPLOYMENT_MODE=hosted`. See [ADR 0010](docs/decisions/0010-deployment-mode-gate.md).
+`NEXT_PUBLIC_DEPLOYMENT_MODE` defaults to `selfhost` when left unset — the app runs with no
+login screen, straight into the dashboard as a single local user. Self-hosted users don't
+need to configure Clerk at all; those variables in `.env.local.example` only matter when
+`NEXT_PUBLIC_DEPLOYMENT_MODE=hosted`. See [ADR 0010](docs/decisions/0010-deployment-mode-gate.md).
 
-(`.env.local` is gitignored — never commit real credentials. `.env.local.example` documents every required variable with no values.)
+(`.env.local` is gitignored — never commit real credentials. `.env.local.example` documents
+every variable with no values.)
 
 ```bash
 npm run dev
 ```
 
-The app runs at `http://localhost:3000`. `/` is the public landing page. `/dashboard` is open directly in self-host mode (the default); in hosted mode it requires signing in.
+The app runs at `http://localhost:3000`. `/` is the public landing page; `/dashboard` opens
+directly in self-host mode (the default), or requires sign-in in hosted mode.
 
 ### Other scripts
 
 ```bash
-npm run build    # production build
-npm run lint      # ESLint
-npm run test      # Vitest unit tests
-npm run format    # Prettier
+npm run build       # production build
+npm run lint         # ESLint
+npm run typecheck    # tsc --noEmit
+npm test             # Vitest unit tests
+npm run format       # Prettier
 ```
+
+These four (`lint`, `typecheck`, `test`, `build`) are exactly what [CI](.github/workflows/ci.yml)
+runs on every push and pull request.
 
 ### Deploying
 
-The project deploys to Vercel with MongoDB Atlas as the database — no other infrastructure required. Set the same environment variables from `.env.local.example` in the Vercel project settings.
+The project deploys to Vercel with MongoDB Atlas as the database — no other infrastructure
+required. Set the same environment variables from `.env.local.example` in the Vercel project
+settings.
 
-### Alerts evaluation (cron)
+### Alerts, retrieval/RAG, rate limiting, and the MCP server
 
-Price and portfolio alerts are checked by a scheduled call to `POST /api/cron/evaluate-alerts` (see [ADR 0014](docs/decisions/0014-alerts-engine-scope.md)). The route is guarded by a `CRON_SECRET` — set it in the environment; callers pass it as `Authorization: Bearer <CRON_SECRET>`.
+These features need a bit more setup than the basics above (a cron scheduler, an embedding
+service, an Upstash store). Full setup steps live in
+[`/docs/api-surface.md`](docs/api-surface.md) and the relevant ADRs
+([0014](docs/decisions/0014-alerts-engine-scope.md) for alerts,
+[0019](docs/decisions/0019-phase-9-api-surface-mcp-rate-limiting.md) for the MCP server and
+rate limiting, [0020](docs/decisions/0020-phase-10-rag-chat.md) for retrieval). Every one of
+them **degrades gracefully** when its optional dependency isn't configured — nothing errors,
+it just runs without that feature.
 
-`vercel.json` declares a **once-daily** cron (`0 4 * * *`, ~09:30 IST) — that's all the Vercel Hobby plan allows. For a useful cadence, point an external scheduler at the same URL with the same header:
+## The API surface, for AI agents too
 
-```bash
-# e.g. a system crontab entry, every 10 minutes on weekday market hours (UTC ≈ IST-5:30)
-*/10 3-10 * * 1-5  curl -fsS -X POST -H "Authorization: Bearer $CRON_SECRET" https://your-host/api/cron/evaluate-alerts
-```
+Every feature in this app ships with a documented API endpoint alongside its UI — this
+project is built to serve an AI agent as a first-class consumer, not as an afterthought.
+Public market data (symbol search, quotes, fundamentals, price history, news, IPOs, indices)
+is also exposed as an **MCP server** at `/api/mcp` for direct tool-use by AI agents, and
+[`/llms.txt`](public/llms.txt) gives an agent-readable pointer into the rest.
 
-A GitHub Actions workflow for this ships at `.github/workflows/evaluate-alerts.yml` (every 10 min during market hours) — activate it by adding the `CRON_SECRET` repo secret and making this the default branch (GitHub only runs `schedule:` from the default branch; the manual "Run workflow" button works from any branch). cron-job.org or a home server's crontab work too. The route only does work during NSE trading hours (it no-ops otherwise); add `?force=1` to run a cycle regardless. In-app notifications work with no extra setup. Set `ALERT_WEBHOOK_URL` (or a per-alert URL) to also forward alerts to a Telegram/Discord/Slack incoming webhook. For email, set `RESEND_API_KEY` ([Resend](https://resend.com)) — unset means in-app + webhook only. `ALERT_EMAIL_FROM` needs a Resend-verified domain for real sending; the default `onboarding@resend.dev` only reaches the Resend account owner.
-
-### MCP server + API
-
-The public market data (symbol search, quotes, fundamentals, price history, news, IPOs, indices) is exposed as an **MCP server** for AI agents at `/api/mcp` (Streamable HTTP — client config `{ "url": "https://your-host/api/mcp" }`). It wraps the same data the dashboard uses; see [`/docs/api-surface.md`](docs/api-surface.md) for the tool list and [`/llms.txt`](public/llms.txt) for an agent-readable pointer. All tools are read-only public data — no auth. See [ADR 0019](docs/decisions/0019-phase-9-api-surface-mcp-rate-limiting.md).
-
-**Rate limiting** (hosted only): provision an Upstash Redis store (Vercel → Storage → Create Database → Upstash for Redis) and connect it to both Vercel projects. It injects `KV_REST_API_URL` / `KV_REST_API_TOKEN` (the Upstash-native `UPSTASH_REDIS_REST_*` names also work), which turns on fair-use limits for `/api/*`, `/api/mcp`, and the fundamentals-api. With them unset the limiter is a no-op — **self-host is never throttled**.
-
-### Retrieval / RAG (chat + insights)
-
-The Mitra chat and the AI insight cards search an indexed corpus of news and company filings (plus your own notes). It needs two things:
-
-1. **The companion Python service reachable from the app.** Set `FUNDAMENTALS_API_URL` to wherever `services/fundamentals-api/` is running, and set the **same** `IPO_INGEST_TOKEN` on both — the app calls the service's `POST /embed` (local `fastembed` embeddings, no API key) and `POST /documents/extract-text`. On first use the service downloads a ~64 MB embedding model to a cache dir (`/tmp` by default; override with `FASTEMBED_CACHE_DIR`).
-2. **A MongoDB Atlas cluster** (any tier, including free M0) so [Atlas Vector Search](https://www.mongodb.com/products/platform/atlas-vector-search) is available. Run the indexer once to create the index and populate the corpus:
-
-   ```bash
-   curl -X POST -H "Authorization: Bearer $CRON_SECRET" \
-     "https://your-host/api/cron/index-corpus?indexesOnly=1"      # create the vector index
-   curl -X POST -H "Authorization: Bearer $CRON_SECRET" \
-     https://your-host/api/cron/index-corpus                       # first full pass
-   ```
-
-   A GitHub Actions workflow (`.github/workflows/index-corpus.yml`) keeps it fresh every 2 h — add the `CRON_SECRET` repo secret to activate it.
-
-If any of this is missing — a non-Atlas MongoDB, the service unreachable, no index yet — retrieval is skipped and chat/insights fall back to a portfolio-and-headlines summary. Nothing errors.
-
-## Two ways to run it
-
-MarketMitra is **free and open-source with no paid tier, no billing, and no trial limits** ([ADR 0011](docs/decisions/0011-three-tier-fundamentals-data-sourcing.md), [ADR 0016](docs/decisions/0016-landing-page-no-paid-tier-reconciliation.md)). There are two ways to use it, and they run the same codebase:
-
-- **Hosted** — MarketMitra's own deployment, for people who'd rather not run infrastructure. Sign-in is via Clerk; AI insights are still bring-your-own-key; the shared instance has fair-use rate limits.
-- **Self-hosted** (MIT licensed) — you bring your own MongoDB Atlas cluster and AI provider key. Not a stripped-down version; unthrottled.
-
-A single `DEPLOYMENT_MODE` environment variable gates which one you get at runtime ([ADR 0010](docs/decisions/0010-deployment-mode-gate.md)): unset or `selfhost` skips the auth layer entirely (single local user, no login), straight into the dashboard; `hosted` — MarketMitra's own deployment only — turns Clerk on. Self-host login is intentionally left as a future decision, not a finished feature. ([ADR 0008](docs/decisions/0008-hosted-vs-self-hosted-distribution.md) captured the original distribution thinking; the "no paid tier" line above supersedes its billing/trial framing.)
+See [`/docs/api-surface.md`](docs/api-surface.md) for the full endpoint reference.
 
 ## Project context, for humans and agents
 
-This repo is built to be picked up cold by a fresh session — human or AI agent — without re-deriving context from scratch:
+This repo is built to be picked up cold by a fresh session — human or AI agent — without
+re-deriving context from scratch:
 
-- **[`CLAUDE.md`](CLAUDE.md)** — entry point: current phase, stack constraints, pointers to everything below.
-- **[`/docs/architecture.md`](docs/architecture.md)** — current system architecture: routes, component structure, data flow.
-- **[`/docs/design-system.md`](docs/design-system.md)** — colors, type scale, spacing, component patterns. Every page is built against this.
-- **[`/docs/decisions/`](docs/decisions/)** — ADRs, one per real decision, numbered, never pruned.
-- **[`/docs/data-sources.md`](docs/data-sources.md)** — every external API/scraper this project depends on: endpoint, auth, rate limits, cost, ToS notes.
-- **[`/docs/api-surface.md`](docs/api-surface.md)** — the public API surface, documented for both the dashboard UI and AI agent consumers.
-- **[`/docs/session-log.md`](docs/session-log.md)** — rolling log of what actually happened, session by session.
+- **[`CLAUDE.md`](CLAUDE.md)** — entry point: current status, stack constraints, pointers to
+  everything below.
+- **[`/docs/architecture.md`](docs/architecture.md)** — current system architecture: routes,
+  component structure, data flow.
+- **[`/docs/design-system.md`](docs/design-system.md)** — colors, type scale, spacing,
+  component patterns. Every page is built against this.
+- **[`/docs/decisions/`](docs/decisions/)** — ADRs, one per real decision, numbered, never
+  pruned.
+- **[`/docs/data-sources.md`](docs/data-sources.md)** — every external API/scraper this
+  project depends on: endpoint, auth, rate limits, cost, ToS notes.
+- **[`/docs/api-surface.md`](docs/api-surface.md)** — the public API surface, documented for
+  both the dashboard UI and AI agent consumers.
+- **[`/docs/session-log.md`](docs/session-log.md)** — rolling log of what actually happened,
+  session by session.
 
-No usage numbers, adoption stats, or "battle-tested" claims appear anywhere in this repo. It's a fresh rebuild — if a claim like that shows up somewhere, it's a bug, not a feature.
+## Contributing
+
+Contributions are welcome — bug fixes, features, new data sources, docs. Please read
+[`CONTRIBUTING.md`](CONTRIBUTING.md) first: it covers the project's non-negotiable
+constraints (no paid tier, free data sources only, the stack choices above), how to set up
+locally, and what's expected of a pull request. This project also follows a
+[Code of Conduct](CODE_OF_CONDUCT.md). Found a security issue? See [`SECURITY.md`](SECURITY.md)
+instead of opening a public issue.
 
 ## License
 
