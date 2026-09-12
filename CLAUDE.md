@@ -43,7 +43,7 @@ MarketMitra is a financial dashboard (Indian markets: indices, stocks, IPOs, new
 
 ## Active focus
 
-**No build in flight.** Phases 0–10b are signed off, archived, and in production. The next feature-level work is **Phase 11** (multi-agent analytical agents, TradingAgents-style, built in-house — ❓) — needs its own scoping session first, do not build from assumptions. Phase 12 (mobile) has a full spec already (`marketmitra-mobile-app-prompt.md`) but is deprioritised.
+**No build in flight.** Phases 0–10b are signed off, archived, and in production. The next feature-level work is **Phase 11** (multi-agent analytical agents, TradingAgents-style, built in-house — ❓) — needs its own scoping session first, do not build from assumptions. Mobile app development (formerly Phase 12) is dropped — not on the roadmap.
 
 `src/lib/rag/` + the MCP tools + the agentic tool-calling chat (`/api/ai/chat`) are the foundation Phase 11 orchestrates.
 

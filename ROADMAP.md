@@ -345,9 +345,6 @@ Scoped 2026-09-07 → [ADR 0021](./docs/decisions/0021-phase-11-multi-agent-anal
 
 _Out of scope: any trade decision / position / risk-manager / simulated execution; price targets or valuation verdicts; a LangGraph dependency (unless the open item flips); cross-user memory; streaming agent output; non-stock subjects; backtesting._
 
-## Phase 12 — Mobile App (Expo/React Native, hosted-only) ⬜
-Full spec already written — see `marketmitra-mobile-app-prompt.md`. Deprioritized relative to the web feature phases above; pick up when there's bandwidth for a parallel track. In-app purchase handling remains an explicit open decision inside that document — resolve before App Store submission, not before starting the build.
-
 ---
 
 ## Deferred / Held Separately
@@ -359,7 +356,7 @@ Full spec already written — see `marketmitra-mobile-app-prompt.md`. Deprioriti
 
 ## Standing rules that apply across every phase
 
-- Stack: Next.js + TypeScript, CSS Modules only (no Tailwind/Bootstrap), MongoDB (unless Phase 4's storage discussion changes this for that service specifically), monorepo (`apps/web`, `apps/mobile`, `packages/shared`, and — pending Phase 4 — likely a `services/` directory for backend services like the fundamentals API).
+- Stack: Next.js + TypeScript, CSS Modules only (no Tailwind/Bootstrap), MongoDB (unless Phase 4's storage discussion changes this for that service specifically), plus a `services/` directory for backend services like the fundamentals API.
 - `DEPLOYMENT_MODE` gate governs all auth/billing code paths — self-host must remain free, full-featured, and BYOK for every phase, not just the ones built so far.
 - Scraping (Scrapling/Screener.in or similar) never enters production code, in any phase — dev/test-only, if used at all.
 - Any real architectural or product decision made while working a phase gets an ADR — don't let a decision live only in chat history.
