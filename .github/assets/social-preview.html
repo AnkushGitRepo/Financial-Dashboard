@@ -1,0 +1,258 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 1280px;
+    height: 640px;
+    overflow: hidden;
+    font-family: 'Manrope', sans-serif;
+  }
+
+  .card {
+    position: relative;
+    width: 1280px;
+    height: 640px;
+    background:
+      radial-gradient(1100px 620px at 6% -8%, #ffe6cf 0%, rgba(255, 230, 207, 0) 60%),
+      radial-gradient(900px 560px at 96% -4%, #e6e2ff 0%, rgba(230, 226, 255, 0) 58%),
+      radial-gradient(820px 560px at 52% 108%, #dcf6e7 0%, rgba(220, 246, 231, 0) 62%),
+      linear-gradient(180deg, #fdfbf7 0%, #fbfaf8 100%);
+  }
+
+  /* faint hairline frame, echoes the app's card borders */
+  .frame {
+    position: absolute;
+    inset: 28px;
+    border: 1.5px solid rgba(21, 23, 28, 0.08);
+    border-radius: 28px;
+  }
+
+  .content {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 90px;
+    gap: 40px;
+  }
+
+  .left {
+    flex: none;
+    width: 700px;
+  }
+
+  .chartcard {
+    flex: none;
+    width: 360px;
+    height: 400px;
+    background: #ffffff;
+    border: 1.5px solid rgba(21, 23, 28, 0.08);
+    border-radius: 30px;
+    box-shadow: 0 20px 48px rgba(21, 23, 28, 0.09);
+    padding: 30px 28px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .chartcard .ticker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #8a9099;
+    margin-bottom: 14px;
+  }
+
+  .chartcard .stat {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+
+  .chartcard .stat .value {
+    font-size: 40px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #15171c;
+  }
+
+  .chartcard .delta {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #d9f7e6;
+    color: #0f6b3f;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .chartcard .sub {
+    font-size: 14px;
+    color: #8a9099;
+    margin-bottom: 20px;
+  }
+
+  .bars {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+  }
+
+  .bars .bar {
+    flex: 1;
+    border-radius: 4px;
+  }
+
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #8a9099;
+    margin-bottom: 28px;
+  }
+
+  .lockup {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    margin-bottom: 30px;
+  }
+
+  .wordmark {
+    font-weight: 800;
+    font-size: 76px;
+    letter-spacing: -0.03em;
+    color: #15171c;
+    line-height: 1;
+  }
+
+  .tagline {
+    font-size: 25px;
+    font-weight: 500;
+    color: #4b5057;
+    line-height: 1.5;
+    margin-bottom: 40px;
+  }
+
+  .pills {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 999px;
+    background: #ffffff;
+    border: 1.5px solid rgba(21, 23, 28, 0.1);
+    font-size: 16px;
+    font-weight: 700;
+    color: #15171c;
+    box-shadow: 0 1px 2px rgba(21, 23, 28, 0.04);
+  }
+
+  .pill.dark {
+    background: #15171c;
+    color: #ffffff;
+    border-color: #15171c;
+  }
+
+  .pill .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #34c17c;
+    flex: none;
+  }
+
+  .pill.dark .dot { background: #7ee2a8; }
+
+  .corner-mark {
+    position: absolute;
+    right: 100px;
+    bottom: 92px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    font-weight: 500;
+    color: #8a9099;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="frame"></div>
+    <div class="content">
+      <div class="left">
+        <div class="eyebrow">Open Source &middot; Self-Hostable &middot; MIT Licensed</div>
+
+        <div class="lockup">
+          <svg width="72" height="72" viewBox="0 0 28 28" aria-hidden="true">
+            <rect x="0" y="0" width="28" height="28" rx="9" fill="#15171c"></rect>
+            <path d="M7 18.6 L12 13.2 L15.6 15.8 L21 9.4" fill="none" stroke="#7ee2a8"
+                  stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"></path>
+            <circle cx="21" cy="9.4" r="2.7" fill="#7ee2a8"></circle>
+          </svg>
+          <div class="wordmark">MarketMitra</div>
+        </div>
+
+        <div class="tagline">
+          Financial dashboard for Indian markets &mdash; portfolio, alerts, news, IPOs,
+          and multi-agent AI analysis. Free, self-hostable, no paid tier.
+        </div>
+
+        <div class="pills">
+          <div class="pill"><span class="dot"></span>Next.js</div>
+          <div class="pill"><span class="dot"></span>TypeScript</div>
+          <div class="pill"><span class="dot"></span>MongoDB Atlas</div>
+          <div class="pill dark"><span class="dot"></span>AI Agents</div>
+          <div class="pill"><span class="dot"></span>MIT License</div>
+        </div>
+      </div>
+
+      <div class="chartcard">
+        <div class="ticker">MM BROAD 50</div>
+        <div class="stat">
+          <span class="value">24,186</span>
+          <span class="delta">&#9650; 1.83%</span>
+        </div>
+        <div class="sub">Today, NSE session</div>
+        <div class="bars">
+          <div class="bar" style="height: 38%; background: #f0836b;"></div>
+          <div class="bar" style="height: 55%; background: #34c17c;"></div>
+          <div class="bar" style="height: 30%; background: #f0836b;"></div>
+          <div class="bar" style="height: 68%; background: #34c17c;"></div>
+          <div class="bar" style="height: 48%; background: #34c17c;"></div>
+          <div class="bar" style="height: 62%; background: #f0836b;"></div>
+          <div class="bar" style="height: 78%; background: #34c17c;"></div>
+          <div class="bar" style="height: 58%; background: #34c17c;"></div>
+          <div class="bar" style="height: 90%; background: #34c17c;"></div>
+          <div class="bar" style="height: 72%; background: #34c17c;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="corner-mark">github.com/AnkushGitRepo/marketmitra</div>
+  </div>
+</body>
+</html>
