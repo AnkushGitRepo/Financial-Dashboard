@@ -1,0 +1,47 @@
+# Runs the same checks required before any commit lands: lint, type-check,
+# unit tests, and a production build. No secrets required — this only
+# exercises the Next.js app's own code, not the fundamentals-api service or
+# any live external integration.
+
+name: CI
+
+on:
+  push:
+    branches: [main, v2]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Production build
+        # MONGODB_URI/MONGODB_DB only need to be *set* — the build collects
+        # route config at build time but never opens a real connection.
+        env:
+          MONGODB_URI: "mongodb://localhost:27017"
+          MONGODB_DB: "marketmitra"
+        run: npm run build

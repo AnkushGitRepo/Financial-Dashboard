@@ -1,0 +1,54 @@
+name: Feature request
+description: Suggest an idea, data source, or improvement.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before requesting, a few things worth knowing about this project
+        (see [CONTRIBUTING.md](../../blob/main/CONTRIBUTING.md#project-constraints-non-negotiable)):
+        no paid tier ever, free data sources only, Next.js + CSS Modules + MongoDB, and every
+        feature ships a UI and a documented API endpoint together.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: What's missing or annoying today? Who runs into this?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What you'd like to see. Doesn't need to be a full spec — a sketch is fine.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any other approaches you thought about, and why this one seems better.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Dashboard / portfolio
+        - Alerts
+        - News feed
+        - IPO tracker
+        - AI insights / Mitra chat
+        - Research / multi-agent analysis
+        - API / MCP server
+        - Data source (fundamentals-api)
+        - Self-hosting / deployment
+        - Docs
+        - Other
+    validations:
+      required: false
