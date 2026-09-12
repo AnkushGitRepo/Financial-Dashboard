@@ -4,12 +4,14 @@ Current system architecture for MarketMitra v2. Kept in sync with reality — wh
 ships and is signed off, its detailed build notes move to `/docs/archive/<feature-name>.md`
 and only a short summary stays here (see the context maintenance protocol in `/CLAUDE.md`).
 
-## Status: Phases 0–10a signed off and in production
+## Status: Phases 0–11 signed off; Phase 11 merged, not yet deployed
 
 v2 is a teardown-and-rebuild of the v1 Financial-Dashboard repo ([ADR 0001](./decisions/0001-teardown-and-rebuild.md)).
-Every feature phase through **Phase 10a (retrieval / RAG)** is built, deployed to production,
-and signed off. `v2` was merged to `main` so the GitHub Actions cron schedulers can fire
-from the default branch; both branches are kept identical.
+Every feature phase through **Phase 10b (research surface)** is built, deployed to
+production, and signed off. **Phase 11 (multi-agent analysis)** is built, tested, verified
+with a real live run, and merged to `main`/`v2` — production deployment is the only step
+left. `v2` is kept identical to `main` so the GitHub Actions cron schedulers can fire from
+the default branch.
 
 - **Phase 2–3:** scaffold + deployment-mode gate, landing page, on-brand auth pages,
   dashboard shell. ([archive: landing-page, auth-pages, dashboard-shell](./archive/))
@@ -21,15 +23,15 @@ from the default branch; both branches are kept identical.
 - **Phase 8:** AI insights + Mitra chat (`/dashboard/settings` + insight cards + chat). ([archive](./archive/ai-insights.md))
 - **Phase 9:** API surface — MCP server (`/api/mcp`), fair-use rate limiting, interactive explorer (`/dashboard/api`). ([archive](./archive/api-surface.md))
 - **Phase 10a:** retrieval (RAG) under chat + insights — `chunks` collection + Atlas Vector Search, embeddings on the fundamentals-api (`/embed`), `/api/cron/index-corpus`, agentic chat, grounded insights, per-user notes/holdings/chat layer. ([archive](./archive/rag-chat.md))
+- **Phase 10b:** `/dashboard/research` — a structured, ephemeral brief (company / theme / portfolio / comparison), retrieval + synthesis only, no agentic loop. ([archive](./archive/rag-chat.md#phase-10b--the-research-surface))
+- **Phase 11:** multi-agent analytical briefings (`/dashboard/agents`) — four analyst agents → bull/bear debate → synthesis, async checkpointed runs, a reflection loop. Merged to `main`/`v2`, **not yet deployed**. ([archive](./archive/multi-agent-analysis.md))
 
 The repo is a small monorepo: the Next.js app at the root (`src/`) plus a standalone Python
 service under `services/fundamentals-api/`.
 
 **Open follow-ups** (tracked in ROADMAP.md, none a blocker): one real alert fire + one real
-IPO-alert fire in market hours; README self-host note for the RAG env; pre-bundle the
-embedding model; a "clear chat history" control; filings-in-corpus needs an un-blocked PDF
-host. **Phase 10b** (a dedicated `/dashboard/research` surface) is scoped in ADR 0020 but
-not built; **Phase 11** (multi-agent) is ❓ — a scoping session, not a build task.
+IPO-alert fire in market hours; pre-bundle the embedding model; filings-in-corpus needs an
+un-blocked PDF host; deploy Phase 11 to production.
 
 ## Stack
 
@@ -311,39 +313,16 @@ unavailable.
   stored). `src/lib/ai/researchPrompts.ts` (pure) + `RESEARCH_SYSTEM`; `MarkdownLite`
   renders the result. Degrades to structured-data-only when retrieval is empty.
 
-## Multi-agent analysis (Phase 11) — built on `phase-11-agents`, NOT deployed
+## Multi-agent analysis (Phase 11)
 
-Scoping: [ADR 0021](./decisions/0021-phase-11-multi-agent-analysis.md). Ports the
-**analytical half** of TradingAgents as our own TS code — **no dependency**, and it **stops
-before any trade decision** (no trader / risk manager / position / simulated execution — the
-guardrail forbids it). `src/lib/agents/`:
-
-- **Pipeline** (`prompts.ts`, `context.ts`, `orchestrator.ts`, `indicators.ts`): four
-  **analyst** agents (fundamentals / news+sentiment+retrieval / technical / macro, each only
-  its data slice, no-data roles skip the LLM) → a **bull vs bear debate** (2 rounds) → a
-  **synthesis** briefing (bull case / bear case / agreements / uncertainties / what would
-  change it / *where the evidence leans*). `tradeActionCheck.ts` `scanForTradeActions()`
-  regenerates the synthesis once if it drifts into a recommendation / target / valuation
-  verdict. All calls go through `generateInsightText` (BYO key, guardrailed).
-- **Async, checkpointed** (`store.ts`, `runner.ts`): a run is a job. `POST /api/agents/run`
-  creates an `agentRuns` doc (`queued`) and `after()`-kicks `POST /api/agents/tick`, which
-  runs **one phase per invocation** (analysts, then one debate round, then synthesis),
-  persisting to the doc — so no invocation runs long. The doc **is** the checkpoint;
-  `claimNextRun` has an advisory lock + stale-lock recovery. `GET /api/agents/run/[id]` is
-  the owner-scoped poll. `.github/workflows/agents-tick.yml` (every 5 min) sweeps stuck
-  runs. `/dashboard/agents`: symbol input + a "~15–20 calls on your key, a few minutes"
-  note → phase indicator (polls every 4 s) → `MarkdownLite` briefing. One run in flight per
-  user; runs are ephemeral to the user (no list).
-- **Reflection loop** (`reflect.ts`, `lessons.ts`): `POST /api/cron/agents-reflect` (daily
-  workflow) finds `done` runs older than ~21 days with no reflection, pulls the price move
-  since, and writes hindsight **lessons** comparing the debate's tagged key claims to what
-  happened — per-user, never a verdict, framed as calibration. A fresh run injects the
-  user's recent same-symbol-then-sector lessons into the debate + synthesis prompts. Runs
-  older than 120 days are pruned.
-
-Cost and latency are the user's (BYO key); no operator-key path. Any analyst with no data,
-retrieval down, etc. degrades — the debate proceeds with what it has; a generation failure
-fails the run with a clear `error`.
+Four analyst agents (fundamentals / news+sentiment+retrieval / technical / macro) → a
+2-round bull/bear debate → a synthesis briefing (bull case / bear case / agreements /
+uncertainties / what would change it / where the evidence currently leans) — ports the
+analytical half of TradingAgents as our own TS code, stopping before any trade decision.
+Async, checkpointed runs (`agentRuns` collection is the checkpoint) via
+`/api/agents/run` → `/api/agents/tick` → `/dashboard/agents`; a daily reflection loop
+writes hindsight lessons per user. Merged to `main`/`v2`, tested, verified with a real
+live run — not yet deployed. Full detail: [archive/multi-agent-analysis.md](./archive/multi-agent-analysis.md).
 
 ## Shipped features (see `/docs/archive/` for detail)
 

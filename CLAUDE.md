@@ -8,11 +8,13 @@ MarketMitra is a financial dashboard (Indian markets: indices, stocks, IPOs, new
 
 ## Current phase
 
-**Phases 0–10b signed off + archived; Phase 11 (multi-agent) still ❓.** Everything through the research surface is live in production. Per-feature build detail lives in `/docs/archive/*.md`; `/docs/architecture.md` has the current-state summaries; `/docs/session-log.md` has the play-by-play.
+**Phases 0–10b signed off, archived, and live in production; Phase 11 (multi-agent) is built, tested, verified with a real live run, and merged to `main`/`v2` — not yet deployed.** Per-feature build detail lives in `/docs/archive/*.md`; `/docs/architecture.md` has the current-state summaries; `/docs/session-log.md` has the play-by-play.
 
 **Phase 10a — RAG** ([ADR 0020](./docs/decisions/0020-phase-10-rag-chat.md)) — done, archived, deployed + verified live on hosted 2026-09-07. `chunks` collection + Atlas Vector Search index; **embeddings run on `services/fundamentals-api` `POST /embed`** (`fastembed`, `bge-small-en-v1.5`, 384-dim — NOT in the Next app; `onnxruntime-node` won't load on Vercel), `src/lib/rag/embed.ts` is an HTTP client to it; `POST /api/cron/index-corpus` (`.github/workflows/index-corpus.yml`, every 2 h); agentic tool-calling chat (`search_context` + the 7 MCP tools); retrieval-grounded stock/portfolio/IPO insights; per-user layer (`/api/notes` + `/dashboard/notes`, holdings snapshot, chat history). **Everything degrades to pre-Phase-10 behaviour** when the corpus/embed service is unavailable. Full detail + the onnxruntime saga: [`/docs/archive/rag-chat.md`](./docs/archive/rag-chat.md). `EMBED_DIM = 384` must stay in lockstep across `embed.ts` / `embeddings.py` / the index def in `chunks.ts`.
 
-**Phase 10b — research surface** ([ADR 0020 amendment](./docs/decisions/0020-phase-10-rag-chat.md#amendment-2026-09-07-phase-10b-scoped)) — done, archived, deployed 2026-09-07. `POST /api/research` (subject = company | theme | portfolio | comparison; BYO key, `ai` tier, **no cache**, `generateInsightText` @ 3.5k tokens) + `/dashboard/research` (`ResearchPageClient` + `MarkdownLite`). A structured brief, retrieval + synthesis only — **no agentic loop** (that's Phase 11). Detail: [`/docs/archive/rag-chat.md`](./docs/archive/rag-chat.md#phase-10b--the-research-surface). **Phase 11** (multi-agent, TradingAgents-style, built in-house) still ❓ — needs its own scoping session; do not build from assumptions.
+**Phase 10b — research surface** ([ADR 0020 amendment](./docs/decisions/0020-phase-10-rag-chat.md#amendment-2026-09-07-phase-10b-scoped)) — done, archived, deployed 2026-09-07. `POST /api/research` (subject = company | theme | portfolio | comparison; BYO key, `ai` tier, **no cache**, `generateInsightText` @ 3.5k tokens) + `/dashboard/research` (`ResearchPageClient` + `MarkdownLite`). A structured brief, retrieval + synthesis only — **no agentic loop** (that's Phase 11). Detail: [`/docs/archive/rag-chat.md`](./docs/archive/rag-chat.md#phase-10b--the-research-surface).
+
+**Phase 11 — multi-agent analytical briefings** ([ADR 0021](./docs/decisions/0021-phase-11-multi-agent-analysis.md)) — built, tested (325 web tests / tsc / lint / build green), **verified with a real live end-to-end run** (TCS, self-host, 2026-09-12), merged to `main`/`v2`. **Not yet deployed to production.** Four analyst agents → bull/bear debate → synthesis briefing, async checkpointed runs (`/api/agents/run` → `/api/agents/tick` → `/dashboard/agents`), a daily reflection loop. Stops before any trade decision — no trader/risk-manager/position/execution, ever. Detail: [`/docs/archive/multi-agent-analysis.md`](./docs/archive/multi-agent-analysis.md).
 
 **Still open** (non-blocking): one real alert fire + one real IPO-alert fire in market hours; pre-bundle the `bge-small` embedding model (kills a ~18s cold-instance download); filings-in-corpus needs an un-blocked PDF host (BSE 403s Vercel's IP). Optional Resend verified domain in `ALERT_EMAIL_FROM`; rotate the Resend + `re_…` keys pasted in chat.
 
@@ -43,11 +45,9 @@ MarketMitra is a financial dashboard (Indian markets: indices, stocks, IPOs, new
 
 ## Active focus
 
-**No build in flight.** Phases 0–10b are signed off, archived, and in production. The next feature-level work is **Phase 11** (multi-agent analytical agents, TradingAgents-style, built in-house — ❓) — needs its own scoping session first, do not build from assumptions. Mobile app development (formerly Phase 12) is dropped — not on the roadmap.
+**No new phase in flight — refining existing pages and features.** All 11 phases are built and merged to `main`/`v2` (Phase 11 still awaiting production deploy). Work now shifts to page-by-page and feature-by-feature refinement, discussed and scoped one at a time rather than as a phase. Mobile app development (formerly Phase 12) is dropped — not on the roadmap.
 
-`src/lib/rag/` + the MCP tools + the agentic tool-calling chat (`/api/ai/chat`) are the foundation Phase 11 orchestrates.
-
-**Non-blocking follow-ups** (see ROADMAP.md): pre-bundle the `bge-small` embedding model into the fundamentals-api deployment; filings-in-corpus (blocked — BSE 403s Vercel); one real alert fire + one real IPO-alert fire in market hours.
+**Non-blocking follow-ups** (see ROADMAP.md): deploy Phase 11 to production; pre-bundle the `bge-small` embedding model into the fundamentals-api deployment; filings-in-corpus (blocked — BSE 403s Vercel); one real alert fire + one real IPO-alert fire in market hours.
 
 **Standing facts that outlived the phase detail:**
 

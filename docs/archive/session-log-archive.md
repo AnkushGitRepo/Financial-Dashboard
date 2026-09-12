@@ -171,3 +171,50 @@ Rolled up 2026-09-06 when Phase 9 was signed off. Feature detail:
 - **2026-09-06** — README correctness sweep: "## Status" was frozen at Phase 3; removed the
   "paid hosted option (7-day free trial)" / "billing UI" language (contradicts the no-paid-tier
   constraint).
+
+## Rollup 3 — Phase 9 follow-ups + Phase 10 RAG/research surface (2026-09-06 → 2026-09-07)
+
+Rolled up 2026-09-12 during the Phase 11 archiving pass. Feature detail:
+[rag-chat.md](./rag-chat.md).
+
+### Phase 9 post-sign-off follow-ups
+
+- **2026-09-06** — Upstash Redis provisioned for prod rate limiting; `rateLimit.ts` +
+  `fundamentals-api` config fixed to read the Vercel-injected `KV_REST_API_*` names.
+  Verified live on both projects.
+- **2026-09-06** — Phase 4 Tier 1 filing-URL discovery built as a post-sign-off follow-up;
+  a prod-startup regression it caused was caught and fixed the same day.
+- **2026-09-06** — Both GitHub Actions schedulers (`evaluate-alerts`, `refresh-ipos`)
+  activated: tokens rotated onto GitHub + Vercel, both workflows verified running from `main`.
+- **2026-09-06** — Alert email wired against Resend (`sendEmail()`, `renderEmail()`), shipped
+  config-gated/inert; a Resend key set in prod the same day made delivery live (sender caveat:
+  `onboarding@resend.dev` only reaches the account owner until a verified domain is set).
+
+### Phase 10a — Retrieval (RAG)
+
+- **2026-09-06** — Scoped: [ADR 0020](./decisions/0020-phase-10-rag-chat.md) (shared public
+  corpus + per-user private layer, Atlas Vector Search, local embeddings, agentic chat via
+  MCP tools). Open questions resolved same day; 10a build checklist written; split into 10a
+  (plumbing) / 10b (dedicated research surface, later).
+- **2026-09-06** — Phase 10a merged + deployed, but retrieval inert on hosted — Node-native
+  `onnxruntime-node` wouldn't load on Vercel (two other fixes landed first: a NUL-byte hash
+  bug, a lazy-import fix for the cold-start 500).
+- **2026-09-07** — Blocker resolved: embeddings moved off the Next app entirely, onto a new
+  `POST /embed` endpoint on `services/fundamentals-api` (`fastembed`, local CPU inference, no
+  API key). `src/lib/rag/embed.ts` became a thin HTTP client. Both services redeployed clean.
+- **2026-09-07** — **Verified live on hosted**: two prod-only bugs found and fixed via a real
+  `index-corpus.yml` run (`/news` route's `le=50` cap; fastembed's model download hitting a
+  read-only `$HOME` on Vercel). Final run: 150 news docs embedded, `errors: []`. Filings stay
+  `skipped` — BSE 403s Vercel's IP, a known external limitation, not a regression.
+- **2026-09-07** — Signed off + archived (`archive/rag-chat.md` created; architecture.md /
+  CLAUDE.md updated). Loose ends shipped same day: README self-host section, a "Clear chat"
+  control.
+
+### Phase 10b — the research surface
+
+- **2026-09-07** — Scoped (ADR 0020 amendment): a structured, ephemeral brief (company /
+  theme / portfolio / comparison), retrieval + synthesis only, no agentic loop.
+- **2026-09-07** — Built on `phase-10b-research`: `POST /api/research`, `/dashboard/research`,
+  `MarkdownLite` (a new tiny markdown renderer, no dependency). 272 tests green.
+- **2026-09-07** — Reviewed via [PR #1](https://github.com/AnkushGitRepo/Financial-Dashboard/pull/1),
+  approved, merged, deployed. Archived into `rag-chat.md`'s Phase 10b section.

@@ -317,7 +317,7 @@ Scoped in the [ADR 0020 amendment](./docs/decisions/0020-phase-10-rag-chat.md#am
 
 A **structured brief** (fixed markdown sections), **retrieval + synthesis only** (no agentic loop — that's Phase 11), **ephemeral** (not stored). Subjects: company / theme / portfolio / comparison. `POST /api/research` (BYO key, `ai` tier, no cache) + `/dashboard/research` (`ResearchPageClient`, `MarkdownLite` renderer). 272 web tests green at ship.
 
-## Phase 11 — Multi-agent analytical briefings 🔄 code-complete on `phase-11-agents`
+## Phase 11 — Multi-agent analytical briefings ✅ merged, not yet deployed
 
 Scoped 2026-09-07 → [ADR 0021](./docs/decisions/0021-phase-11-multi-agent-analysis.md) (accepted; runtime = **TS in the Next app**). Port the **analytical half** of TauricResearch/TradingAgents (Apache-2.0) — analyst team → bull/bear **debate** → synthesis — **as our own code, not a dependency**, and **stop before any trade decision** (no trader / risk-manager / position / simulated execution — the guardrail forbids it). Output: a debated briefing that may state which side of the debate is better-evidenced (a "direction"), never a recommendation/target, still ends "not investment advice." Full **reflection loop** in v1. Subject = one **stock** only (theme/portfolio/comparison stay Phase 10b's shallow tier).
 
@@ -341,7 +341,7 @@ Scoped 2026-09-07 → [ADR 0021](./docs/decisions/0021-phase-11-multi-agent-anal
 - [x] Injection — `src/lib/agents/lessons.ts` `buildLessonsContext()` (same-symbol then sector, ≤3 runs); the analysts phase resolves it into `doc.lessonsContext`, debate + synthesis pass it through. Prompts + `reflect.ts` carry the "calibration not prediction, short arbitrary window" caveat. 3 tests.
 
 ### Cross-cutting
-- [x] 325 web tests / tsc / lint / `next build` green; `docs/architecture.md` + `docs/api-surface.md` + `public/openapi.json` entries. `CRON_SECRET` is already a repo secret → both new workflows fire from `main`. **Not merged / not deployed — awaiting review.**
+- [x] 325 web tests / tsc / lint / `next build` green; `docs/architecture.md` + `docs/api-surface.md` + `public/openapi.json` entries. `CRON_SECRET` is already a repo secret → both new workflows fire from `main`. **Verified with a real live end-to-end run** (TCS, self-host, 2026-09-12). **Merged to `main`/`v2` — not yet deployed to production.** Full detail: [`/docs/archive/multi-agent-analysis.md`](./docs/archive/multi-agent-analysis.md).
 
 _Out of scope: any trade decision / position / risk-manager / simulated execution; price targets or valuation verdicts; a LangGraph dependency (unless the open item flips); cross-user memory; streaming agent output; non-stock subjects; backtesting._
 
